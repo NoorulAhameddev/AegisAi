@@ -47,20 +47,20 @@ Users can sign up, manage multiple chat sessions, and interact with an AI that r
 
 ```mermaid
 graph TD
-    A[Client (Browser)] -->|Auth Cookie| B[Middleware]
-    B -->|Verified Session| C[Next.js App Router]
+    A["Client (Browser)"] -->|"Auth Cookie"| B["Middleware"]
+    B -->|"Verified Session"| C["Next.js App Router"]
     
     subgraph "Backend Services"
-        C -->|Query/Mutation| D[Prisma ORM]
-        C -->|Context + Prompt| E[OpenAI API]
+        C -->|"Query/Mutation"| D["Prisma ORM"]
+        C -->|"Context + Prompt"| E["OpenAI API"]
     end
     
     subgraph "Data Persistence"
-        D -->|SQL| F[(PostgreSQL)]
+        D -->|"SQL"| F[("PostgreSQL")]
     end
     
-    E -->|Stream| C
-    C -->|Stream| A
+    E -->|"Stream"| C
+    C -->|"Stream"| A
 ```
 
 ---
