@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: aegis_app
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://aegis:aegispass@postgres:5432/aegisdb
+      - REDIS_URL=redis://redis:6379
+
+  postgres:
+    image: postgres:15
+    container_name: aegis_postgres
+    environment:
+      POSTGRES_USER: aegis
+      POSTGRES_PASSWORD: aegispass
+      POSTGRES_DB: aegisdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    container_name: aegis_redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+volumes:
+  pgdata:

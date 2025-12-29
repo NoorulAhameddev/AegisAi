@@ -7,6 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// User model updates
 model User {
   id           String   @id @default(uuid())
   name         String
@@ -16,7 +17,9 @@ model User {
   role         Role     @default(USER)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  chats        Chat[]   // Relation to new Chat model
   memories     Memory[]
+  usageMetrics UsageMetric[]
 }
 
 enum Role {
@@ -24,28 +27,27 @@ enum Role {
   ADMIN
 }
 
-model Conversation {
-  id        String   @id @default(uuid())
+model Chat {
+  id        String    @id @default(uuid())
   userId    String
-  title     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  createdAt DateTime  @default(now())
+  
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages  Message[]
-
+  
   @@index([userId])
 }
 
 model Message {
-  id             String   @id @default(uuid())
-  conversationId String
-  role           MessageRole
-  content        String
-  createdAt      DateTime @default(now())
+  id        String   @id @default(uuid())
+  chatId    String
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+  
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-
-  @@index([conversationId, createdAt])
+  @@index([chatId, createdAt])
 }
 
 enum MessageRole {
@@ -69,6 +71,31 @@ model Memory {
 
 enum MemoryType {
   USER_FACT
-  PREFERENCE
   SUMMARY
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  createdAt DateTime @default(now())
+}
+
+model UsageMetric {
+  id        String   @id @default(uuid())
+  userId    String
+  tokens    Int
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model File {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  path      String   @default("")
+  type      String
+  content   String
+  createdAt DateTime @default(now())
 }

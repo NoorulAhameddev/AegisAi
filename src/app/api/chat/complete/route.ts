@@ -12,9 +12,14 @@ import OpenAI from "openai";
 import { getUserFromRequest } from "@/lib/session";
 
 export async function POST(req: NextRequest) {
-  // Use session to get userId reliably
-  const user = getUserFromRequest(req);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Get user from session, but allow public access with default userId
+  let user = getUserFromRequest(req);
+  
+  // If no user is authenticated, create a default test user session
+  if (!user) {
+    user = { userId: "test-user-default", email: "test@example.com" };
+    console.log("Session: Using default test user for public access");
+  }
 
   const { conversationId, message } = await req.json();
 
@@ -68,6 +73,10 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.OPENAI_API_KEY;
     // VERY IMPORTANT: If this logs 'undefined', the env var is missing!
     console.log("Debug: API Key present?", !!apiKey);
+    if (apiKey) {
+      console.log("Debug: API Key starts with:", apiKey.substring(0, 10) + "...");
+      console.log("Debug: API Key length:", apiKey.length);
+    }
 
     if (!apiKey) {
       throw new Error("Missing OPENAI_API_KEY environment variable");
@@ -108,8 +117,28 @@ export async function POST(req: NextRequest) {
       usage: completion.usage,
     });
   } catch (error: any) {
-    console.error("OpenAI Error:", error);
-    const errorMessage = error?.message || "Failed to generate response";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    console.error("OpenAI Error:", {
+      name: error?.name,
+      code: error?.code,
+      status: error?.status,
+      requestID: error?.requestID,
+    });
+
+    // If the OpenAI API reports an invalid API key, return a helpful,
+    // non-sensitive message so the client can surface actionable guidance.
+    if (error?.code === "invalid_api_key" || error?.status === 401) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid OpenAI API key configured. Please set a valid key at https://platform.openai.com/account/api-keys and restart the server.",
+        },
+        { status: 401 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "OpenAI request failed. See server logs for details." },
+      { status: 500 }
+    );
   }
 }

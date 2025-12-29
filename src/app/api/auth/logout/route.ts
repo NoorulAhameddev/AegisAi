@@ -1,15 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
-  const refresh = req.cookies.get("auth_refresh")?.value;
-
-  if (refresh) {
-    await prisma.user.updateMany({ where: { refreshToken: refresh }, data: { refreshToken: null } });
-  }
-
+export async function POST() {
   const res = NextResponse.json({ message: "Logged out" });
-  res.cookies.delete("auth_access");
-  res.cookies.delete("auth_refresh");
+  res.cookies.set("auth_access", "", { maxAge: 0 }); // Clear cookie
   return res;
 }
