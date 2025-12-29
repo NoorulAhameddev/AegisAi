@@ -1,4 +1,4 @@
-# 🤖 Enterprise AI Chat Platform
+# 🛡️ Aegis: Enterprise AI Chat Platform
 
 ![Next.js](https://img.shields.io/badge/Next.js-black?style=for-the-badge&logo=next.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
@@ -6,7 +6,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
-> **A production-grade, full-stack AI SaaS application featuring secure authentication, real-time response streaming, and long-term conversation memory.**
+> **Aegis is a production-grade, full-stack AI SaaS application featuring secure authentication, real-time response streaming, Redis-backed rate limiting, and long-term conversation memory.**
 
 ---
 
@@ -30,6 +30,7 @@ Users can sign up, manage multiple chat sessions, and interact with an AI that r
 - **Streaming Response**: Zero-wait time; text renders character-by-character as the AI thinks.
 - **Context Awareness**: The AI "remembers" previous messages in the conversation.
 - **Smart Formatting**: Markdown support for code blocks, tables, and lists.
+- **AI Memory**: Intelligent persistent memory that allows the AI to recall user preferences and past context across sessions.
 
 ### 💾 **Robust Data Architecture**
 - **Persistent History**: All conversations are stored in a PostgreSQL database.
@@ -40,6 +41,8 @@ Users can sign up, manage multiple chat sessions, and interact with an AI that r
 - **Responsive Design**: Flawless experience on mobile, tablet, and desktop.
 - **Glassmorphism**: Trendy, premium visual aesthetics.
 - **Interactive States**: Smooth loading indicators, hover effects, and transitions.
+- **Admin Panel**: Dedicated dashboard for user management, usage metrics, and system monitoring.
+- **File Management**: Integrated file upload and processing capabilities for AI context.
 
 ---
 
@@ -72,8 +75,10 @@ graph TD
 | **Frontend** | Next.js 14, React, Tailwind CSS | Server Components, UI, Styling |
 | **Backend** | Next.js API Routes, Node.js | Serverless functions, Business Logic |
 | **Database** | PostgreSQL, Prisma | Relational Data, ORM |
+| **Caching/Rate Limit**| Redis | High-performance caching and rate limiting |
 | **AI Engine** | OpenAI API (GPT Models) | LLM Intelligence |
 | **Auth** | JWT (JsonWebTokens), Bcrypt | Stateless scalable authentication |
+| **Infrastructure** | Docker, Docker Compose | Containerization and orchestration |
 
 ---
 

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
-import { rateLimit } from "@/lib/rateLimit";
 
 export async function middleware(req: NextRequest) {
 	const ip = req.headers.get("x-forwarded-for")?.split(',')[0] || "unknown";
@@ -9,9 +8,6 @@ export async function middleware(req: NextRequest) {
 
 	// Diagnostic Log
 	console.log(`[DEBUG] Middleware: ${req.method} ${path} from ${ip}`);
-
-	// Bypassing rate limit for now to prevent hangs
-	const allowed = true;
 
 
 	if (path.startsWith("/api/chat") || path.startsWith("/api/files") || path.startsWith("/api/admin")) {
