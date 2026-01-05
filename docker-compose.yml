@@ -17,7 +17,7 @@ services:
       - REDIS_URL=redis://redis:6379
 
   postgres:
-    image: postgres:15
+    image: pgvector/pgvector:pg15
     container_name: aegis_postgres
     environment:
       POSTGRES_USER: aegis

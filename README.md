@@ -1,128 +1,151 @@
-# 🛡️ Aegis: Enterprise AI Chat Platform
+# 🛡️ Aegis AI
 
-![Next.js](https://img.shields.io/badge/Next.js-black?style=for-the-badge&logo=next.js&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-15.0-black?style=for-the-badge&logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-412991?style=for-the-badge&logo=openai&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
-> **Aegis is a production-grade, full-stack AI SaaS application featuring secure authentication, real-time response streaming, Redis-backed rate limiting, and long-term conversation memory.**
+> **The Enterprise-Grade AI Chat Platform.**  
+> Built for performance, security, and scalability with Next.js 15 (App Router), Prisma, and OpenAI.
 
 ---
 
 ## 🚀 Overview
 
-This project represents a **complete, deployable software product**. It moves beyond simple tutorials to demonstrate advanced full-stack engineering concepts, including custom authentication flows, database schema design, edge-ready API routes, and modern frontend architecture.
+**Aegis AI** is a fully production-ready AI chat application that goes beyond simple wrappers. It implements a robust, secure, and scalable architecture designed for real-world usage. 
 
-Users can sign up, manage multiple chat sessions, and interact with an AI that remembers context—all wrapped in a high-performance, responsive UI.
+Unlike basic tutorials, Aegis features **autonomous web search capabilities**, **long-term conversation memory**, **multimodal file analysis**, and a **secure authentication system** built from scratch. It is designed to be the perfect starting point for your own internal AI tools or SaaS products.
 
 ---
 
 ## ✨ Key Features
 
-### 🔐 **Bank-Grade Authentication**
-- **Custom Security**: Built-in authentication system (no 3rd party black boxes).
-- **Session Management**: Secure HTTP-only cookies for access & refresh tokens.
-- **Protection**: Middleware-guarded routes and API endpoints.
-- **Encryption**: Bcrypt password hashing and salting.
+### 🧠 **Intelligent AI Core**
+- **GPT-4o Integration**: Utilizes the latest models for high-fidelity responses.
+- **Real-Time Streaming**: Zero-latency token streaming using the Edge Runtime.
+- **Autonomous Web Search**: The AI can browse the web to fetch real-time information using custom tool calling functions.
+- **Contextual Memory**: Remembers previous conversations and user context indefinitely.
 
-### ⚡ **Real-Time AI Experience**
-- **Streaming Response**: Zero-wait time; text renders character-by-character as the AI thinks.
-- **Context Awareness**: The AI "remembers" previous messages in the conversation.
-- **Smart Formatting**: Markdown support for code blocks, tables, and lists.
-- **AI Memory**: Intelligent persistent memory that allows the AI to recall user preferences and past context across sessions.
+### 🛡️ **Enterprise Security**
+- **Bank-Grade Auth**: Custom JWT implementation with HTTP-only cookies (Access + Refresh tokens).
+- **Rate Limiting**: Redis-backed sliding window rate limiting to prevent abuse.
+- **Role-Based Access**: Granular permissions system (User/Admin roles) with protected API routes.
 
-### 💾 **Robust Data Architecture**
-- **Persistent History**: All conversations are stored in a PostgreSQL database.
-- **Prisma ORM**: Type-safe database interactions and automated migrations.
-- **Optimized Queries**: Indexed columns for fast history retrieval.
+### 📎 **Multimodal Capabilities**
+- **File Analysis**: Upload documents or images for the AI to analyze.
+- **Image Vision**: distinct support for analyzing images via GPT-4o Vision.
+- **Smart Formatting**: Full Markdown support including tables, code blocks, and LaTeX math equations.
 
-### 🎨 **Modern UX/UI**
-- **Responsive Design**: Flawless experience on mobile, tablet, and desktop.
-- **Glassmorphism**: Trendy, premium visual aesthetics.
-- **Interactive States**: Smooth loading indicators, hover effects, and transitions.
-- **Admin Panel**: Dedicated dashboard for user management, usage metrics, and system monitoring.
-- **File Management**: Integrated file upload and processing capabilities for AI context.
+### ⚙️ **Admin & Operations**
+- **Admin Dashboard**: Comprehensive panel to manage users, view usage metrics, and control system access.
+- **Maintenance Mode**: One-click system lockdown for updates.
+- **Usage Tracking**: Per-user token usage tracking for billing or quotas.
 
 ---
 
-## 🏗️ Architecture
+## 🛠️ Technology Stack
 
-```mermaid
-graph TD
-    A["Client (Browser)"] -->|"Auth Cookie"| B["Middleware"]
-    B -->|"Verified Session"| C["Next.js App Router"]
-    
-    subgraph "Backend Services"
-        C -->|"Query/Mutation"| D["Prisma ORM"]
-        C -->|"Context + Prompt"| E["OpenAI API"]
-    end
-    
-    subgraph "Data Persistence"
-        D -->|"SQL"| F[("PostgreSQL")]
-    end
-    
-    E -->|"Stream"| C
-    C -->|"Stream"| A
-```
-
----
-
-## �️ Technology Stack
-
-| Category | Technology | Purpose |
-|----------|------------|---------|
-| **Frontend** | Next.js 14, React, Tailwind CSS | Server Components, UI, Styling |
-| **Backend** | Next.js API Routes, Node.js | Serverless functions, Business Logic |
-| **Database** | PostgreSQL, Prisma | Relational Data, ORM |
-| **Caching/Rate Limit**| Redis | High-performance caching and rate limiting |
-| **AI Engine** | OpenAI API (GPT Models) | LLM Intelligence |
-| **Auth** | JWT (JsonWebTokens), Bcrypt | Stateless scalable authentication |
-| **Infrastructure** | Docker, Docker Compose | Containerization and orchestration |
+| Component | Technology | Description |
+|-----------|------------|-------------|
+| **Framework** | Next.js 15 (App Router) | React Server Components, Server Actions |
+| **Language** | TypeScript | Strict type safety across the entire stack |
+| **Database** | PostgreSQL | Robust relational data storage |
+| **ORM** | Prisma | Type-safe database queries and migrations |
+| **Styling** | Tailwind CSS 4 | Utility-first styling with modern design system |
+| **AI Processing** | OpenAI SDK | Chat completions and Tool calling |
+| **Search** | GoogleThis / Cheerio | Web scraping and search aggregation |
+| **Latency Control** | Redis | Rate limiting and caching |
+| **Container** | Docker | Easy deployment and orchestration |
 
 ---
 
 ## 🚦 Getting Started
 
-We have prepared detailed documentation to help you get this project running locally in minutes.
+Follow these steps to set up Aegis AI locally.
 
-� **[Read the Full Documentation via DOCUMENTATION.md](./DOCUMENTATION.md)**
+### Prerequisites
+- Node.js 18+  
+- Docker (for local PostgreSQL/Redis) OR a hosted database URL
 
-### Quick Setup
+### 1. Clone the Repository
+```bash
+git clone https://github.com/your-username/aegis-ai.git
+cd aegis-ai
+```
 
-1.  **Clone & Install**
-    ```bash
-    git clone <repo-url>
-    npm install
-    ```
+### 2. Install Dependencies
+```bash
+npm install
+```
 
-2.  **Configure Environment**
-    Create a `.env` file with your `DATABASE_URL` and `OPENAI_API_KEY`.
+### 3. Configure Environment
+Create a `.env` file in the root directory:
+```bash
+# App
+NODE_ENV="development"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
-3.  **Run Locally**
-    ```bash
-    npx prisma db push
-    npm run dev
-    ```
+# Database (PostgreSQL)
+DATABASE_URL="postgresql://user:password@localhost:5432/aegis_db"
+
+# Security
+JWT_ACCESS_SECRET="your-super-secret-access-key"
+JWT_REFRESH_SECRET="your-super-secret-refresh-key"
+
+# OpenAI
+OPENAI_API_KEY="sk-..."
+
+# Redis (Optional, for Rate Limiting)
+REDIS_URL="redis://localhost:6379"
+```
+
+### 4. Database Setup
+Push the schema to your database:
+```bash
+npx prisma db push
+```
+
+### 5. Run the Application
+```bash
+npm run dev
+```
+Visit `http://localhost:3000` to start chatting!
 
 ---
 
-## 📸 Functionality Preview
+## 📁 Project Structure
 
-| **Authentication** | **Dashboard** |
-|:---:|:---:|
-| Secure Login & Registration | Chat History & New Threads |
-| *(Secure implementation)* | *(Prisma + PostgreSQL)* |
-
-| **AI Chat** | **Streaming** |
-|:---:|:---:|
-| Context-aware conversations | Real-time text generation |
-| *(OpenAI Integration)* | *(Edge Runtime)* |
+```bash
+├── src/
+│   ├── app/                 # Next.js App Router pages & API routes
+│   ├── components/          # Reusable UI components
+│   ├── lib/                 # Core logic (Auth, OpenAI, Prisma, Utils)
+│   └── middleware.ts        # Edge middleware for Auth & Security
+├── prisma/                  # Database schema & migrations
+├── public/                  # Static assets
+└── scripts/                 # Maintenance & utility scripts
+```
 
 ---
 
-## 📄 License & Status
+## 🤝 Contributing
 
-This project is **Complete** and ready for production deployment on platforms like Vercel or Render.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-*(c) 2025 AI Chat Platform. All rights reserved.*
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+*Built with ❤️ by [Noorul Ahemed]*

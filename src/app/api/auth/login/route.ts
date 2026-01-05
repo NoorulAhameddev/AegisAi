@@ -6,8 +6,23 @@ import {
   signRefreshToken,
 } from "@/lib/auth";
 
+import { loginSchema } from "@/lib/validations";
+
 export async function POST(req: Request) {
-  const { email, password } = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch (e) {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const validation = loginSchema.safeParse(body);
+
+  if (!validation.success) {
+    return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
+  }
+
+  const { email, password } = validation.data;
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
@@ -18,10 +33,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
-  const accessToken = signAccessToken({ userId: user.id, role: user.role });
-  const refreshToken = signRefreshToken({ userId: user.id });
+  if ((user as any).isBanned) {
+    return NextResponse.json({ error: "Your account has been permanently suspended." }, { status: 403 });
+  }
 
-  await prisma.user.update({ where: { id: user.id }, data: { refreshToken } });
+  // Get IP and UserAgent
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const userAgent = req.headers.get("user-agent") || "unknown";
+
+  const { createSession } = await import("@/lib/session");
+  const { accessToken, refreshToken } = await createSession(user.id, userAgent, ip);
+
+  // Audit Log
+  await prisma.auditLog.create({
+    data: {
+      userId: user.id,
+      action: "LOGIN",
+    }
+  });
 
   const res = NextResponse.json({ message: "Logged in" });
 
@@ -30,7 +59,7 @@ export async function POST(req: Request) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
     path: "/",
-    maxAge: 900,
+    maxAge: 600, // 10 minutes
   });
 
   res.cookies.set("auth_refresh", refreshToken, {
@@ -38,7 +67,7 @@ export async function POST(req: Request) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
     path: "/",
-    maxAge: 604800,
+    maxAge: 604800, // 7 days
   });
 
   return res;

@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
     const token = req.cookies.get("auth_access")?.value;
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

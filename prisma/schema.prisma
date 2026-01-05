@@ -7,53 +7,55 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User model updates
 model User {
-  id           String   @id @default(uuid())
+  id           String        @id @default(uuid())
   name         String
-  email        String   @unique
+  email        String        @unique
   password     String
-  refreshToken String?
-  role         Role     @default(USER)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  chats        Chat[]   // Relation to new Chat model
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  tokenVersion Int           @default(0)
+  role         Role          @default(USER)
+  isBanned     Boolean       @default(false)
+  chats        Chat[]
   memories     Memory[]
   usageMetrics UsageMetric[]
+  sessions     Session[]
 }
 
-enum Role {
-  USER
-  ADMIN
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique // Hashed refresh token
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  lastActive DateTime @default(now())
+  userAgent String?
+  ipAddress String?
+
+  @@index([userId])
 }
 
 model Chat {
   id        String    @id @default(uuid())
   userId    String
   createdAt DateTime  @default(now())
-  
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages  Message[]
-  
+
   @@index([userId])
 }
 
 model Message {
   id        String   @id @default(uuid())
-  chatId    String
-  role      String
   content   String
   createdAt DateTime @default(now())
-  
+  chatId    String
+  role      String
   chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([chatId, createdAt])
-}
-
-enum MessageRole {
-  USER
-  ASSISTANT
-  SYSTEM
 }
 
 model Memory {
@@ -63,21 +65,16 @@ model Memory {
   content   String
   source    String?
   createdAt DateTime   @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, type])
-}
-
-enum MemoryType {
-  USER_FACT
-  SUMMARY
 }
 
 model AuditLog {
   id        String   @id @default(uuid())
   userId    String?
   action    String
+  details   String?
   createdAt DateTime @default(now())
 }
 
@@ -86,7 +83,6 @@ model UsageMetric {
   userId    String
   tokens    Int
   createdAt DateTime @default(now())
-  
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -94,8 +90,29 @@ model File {
   id        String   @id @default(uuid())
   userId    String
   name      String
-  path      String   @default("")
   type      String
   content   String
   createdAt DateTime @default(now())
+  path      String   @default("")
+}
+
+model SystemSetting {
+  key   String @id
+  value String
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum MemoryType {
+  USER_FACT
+  SUMMARY
 }

@@ -16,6 +16,7 @@ type UserData = {
     name: string;
     email: string;
     role: string;
+    isBanned: boolean;
     createdAt: string;
     _count: { chats: number };
 };
@@ -37,13 +38,85 @@ export default function AdminPage() {
     const [users, setUsers] = useState<UserData[]>([]);
     const [activity, setActivity] = useState<ActivityData[]>([]);
 
+    // Settings State
+    const [settings, setSettings] = useState({ allowRegistrations: true, maintenanceMode: false });
+    const [savingSettings, setSavingSettings] = useState(false);
+
+    const handleBanUser = async (userId: string, currentBanStatus: boolean) => {
+        const action = currentBanStatus ? "Unban" : "Ban";
+        if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+
+        // Optimistic update
+        setUsers(prev => prev.map(u =>
+            u.id === userId ? { ...u, isBanned: !currentBanStatus } : u
+        ));
+
+        try {
+            await fetch(`/api/admin/users/${userId}/ban`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ban: !currentBanStatus })
+            });
+        } catch (e) {
+            console.error(e);
+            alert("Failed to update ban status");
+            setUsers(prev => prev.map(u =>
+                u.id === userId ? { ...u, isBanned: currentBanStatus } : u
+            ));
+        }
+    };
+
+    const handleRoleUpdate = async (userId: string, newRole: string) => {
+        if (!confirm(`Change user role to ${newRole}?`)) return;
+
+        try {
+            await fetch(`/api/admin/users/${userId}/role`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ role: newRole })
+            });
+            // Update local state
+            setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+        } catch (e) {
+            alert("Failed to update role");
+        }
+    };
+
+    const handleDeleteUser = async (userId: string) => {
+        if (!confirm("Are you sure you want to PERMANENTLY delete this user? This cannot be undone.")) return;
+
+        try {
+            await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
+            setUsers(prev => prev.filter(u => u.id !== userId));
+        } catch (e) {
+            alert("Failed to delete user");
+        }
+    };
+
+    const handleSettingChange = async (key: string, value: boolean) => {
+        setSettings(prev => ({ ...prev, [key]: value }));
+        setSavingSettings(true);
+        try {
+            await fetch("/api/admin/settings", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ [key]: value })
+            });
+        } catch (e) {
+            alert("Failed to save setting");
+        } finally {
+            setSavingSettings(false);
+        }
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [mRes, uRes, aRes] = await Promise.all([
+                const [mRes, uRes, aRes, sRes] = await Promise.all([
                     fetch("/api/admin/metrics"),
                     fetch("/api/admin/users"),
-                    fetch("/api/admin/activity")
+                    fetch("/api/admin/activity"),
+                    fetch("/api/admin/settings")
                 ]);
 
                 if ([mRes, uRes, aRes].some(r => r.status === 401 || r.status === 403)) {
@@ -54,6 +127,7 @@ export default function AdminPage() {
                 setMetrics(await mRes.json());
                 setUsers(await uRes.json());
                 setActivity(await aRes.json());
+                if (sRes.ok) setSettings(await sRes.json());
             } catch (error) {
                 console.error("Failed to fetch admin data", error);
             } finally {
@@ -200,15 +274,19 @@ export default function AdminPage() {
                                     <tr>
                                         <th className="px-6 py-4">Name</th>
                                         <th className="px-6 py-4">Email</th>
-                                        <th className="px-6 py-4">Role</th>
+                                        <th className="px-6 py-4">Status</th>
                                         <th className="px-6 py-4 text-center">Chats</th>
                                         <th className="px-6 py-4 text-right">Joined</th>
+                                        <th className="px-6 py-4 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
                                     {users.map((u) => (
                                         <tr key={u.id} className="hover:bg-white/5 transition-colors">
-                                            <td className="px-6 py-4 font-medium text-white">{u.name}</td>
+                                            <td className="px-6 py-4 font-medium text-white">
+                                                {u.name}
+                                                {u.isBanned && <span className="ml-2 text-xs text-red-500 font-bold">(BANNED)</span>}
+                                            </td>
                                             <td className="px-6 py-4">{u.email}</td>
                                             <td className="px-6 py-4">
                                                 <span className={cn(
@@ -222,6 +300,45 @@ export default function AdminPage() {
                                             <td className="px-6 py-4 text-right font-mono text-xs">
                                                 {new Date(u.createdAt).toLocaleDateString()}
                                             </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex justify-end items-center gap-2">
+                                                    {u.role === "USER" ? (
+                                                        <button
+                                                            onClick={() => handleRoleUpdate(u.id, "ADMIN")}
+                                                            className="text-xs px-2 py-1 text-zinc-400 hover:text-white border border-zinc-700 rounded hover:bg-zinc-800"
+                                                        >
+                                                            Make Admin
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleRoleUpdate(u.id, "USER")}
+                                                            className="text-xs px-2 py-1 text-zinc-400 hover:text-white border border-zinc-700 rounded hover:bg-zinc-800"
+                                                        >
+                                                            Demote
+                                                        </button>
+                                                    )}
+
+                                                    <button
+                                                        onClick={() => handleBanUser(u.id, u.isBanned)}
+                                                        className={cn(
+                                                            "text-xs px-3 py-1 rounded border transition-colors",
+                                                            u.isBanned
+                                                                ? "border-green-800 text-green-400 hover:bg-green-900"
+                                                                : "border-yellow-900 text-yellow-500 hover:bg-yellow-900/30"
+                                                        )}
+                                                    >
+                                                        {u.isBanned ? "Unban" : "Ban"}
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleDeleteUser(u.id)}
+                                                        className="text-xs px-2 py-1 text-red-500 hover:bg-red-900/20 border border-red-900/50 rounded"
+                                                        title="Delete User"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -230,11 +347,62 @@ export default function AdminPage() {
                     </section>
                 )}
 
-                {/* Settings Tab - Placeholder */}
+                {/* Settings Tab */}
                 {activeTab === "settings" && (
-                    <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
-                        <Loader2 className="h-8 w-8 mb-4 animate-spin opacity-50" />
-                        <p>Global system settings coming soon.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <section className="rounded-2xl border border-white/5 bg-zinc-900/30 overflow-hidden p-6">
+                            <h3 className="font-semibold text-lg mb-4">System Controls</h3>
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <label className="font-medium block text-zinc-200">Allow New Registrations</label>
+                                        <p className="text-sm text-zinc-500">Enable or disable new users from signing up.</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleSettingChange("allowRegistrations", !settings.allowRegistrations)}
+                                        className={cn(
+                                            "w-12 h-6 rounded-full transition-colors relative",
+                                            settings.allowRegistrations ? "bg-green-500" : "bg-zinc-700"
+                                        )}
+                                    >
+                                        <span className={cn(
+                                            "absolute top-1 w-4 h-4 rounded-full bg-white transition-all",
+                                            settings.allowRegistrations ? "left-7" : "left-1"
+                                        )} />
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <label className="font-medium block text-zinc-200">Maintenance Mode</label>
+                                        <p className="text-sm text-zinc-500">Show maintenance page to all non-admin users.</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleSettingChange("maintenanceMode", !settings.maintenanceMode)}
+                                        className={cn(
+                                            "w-12 h-6 rounded-full transition-colors relative",
+                                            settings.maintenanceMode ? "bg-red-500" : "bg-zinc-700"
+                                        )}
+                                    >
+                                        <span className={cn(
+                                            "absolute top-1 w-4 h-4 rounded-full bg-white transition-all",
+                                            settings.maintenanceMode ? "left-7" : "left-1"
+                                        )} />
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section className="rounded-2xl border border-white/5 bg-zinc-900/30 overflow-hidden p-6">
+                            <h3 className="font-semibold text-lg mb-4">Admin Security</h3>
+                            <p className="text-sm text-zinc-500 mb-4">
+                                Ensure all administrators use strong passwords.
+                                Audit logs track all admin actions.
+                            </p>
+                            <div className="p-4 bg-yellow-900/10 border border-yellow-900/30 rounded-lg text-yellow-500 text-sm">
+                                ⚠ Use the Users tab to promote/demote administrators carefully.
+                            </div>
+                        </section>
                     </div>
                 )}
 

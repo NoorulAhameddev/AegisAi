@@ -1,128 +1,77 @@
-import { openai } from "@/lib/openai";
+import { chatQueue } from "@/lib/queue";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-import { NextRequest } from "next/server";
+import { getUserFromRequest } from "@/lib/session";
+import { rateLimit } from "@/lib/rate-limit";
+import { NextRequest, NextResponse } from "next/server";
+import fs from 'fs';
+import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
-  const token = req.cookies.get("auth_access")?.value;
-  if (!token) return new Response("Unauthorized", { status: 401 });
-
-  let payload: any;
   try {
-    payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
-  } catch (e) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+    const user = await getUserFromRequest(req);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { chatId, message } = await req.json();
+    const limit = await rateLimit(req, { limit: 20, window: 60 });
+    if (!limit.success) {
+      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
+    }
 
-  if (!chatId || !message) {
-    return new Response("Missing chatId or message", { status: 400 });
-  }
+    const { checkQuota } = await import("@/lib/quota");
+    const quota = await checkQuota(user.userId);
+    if (!quota.allowed) {
+      return NextResponse.json({ error: "Daily token limit exceeded." }, { status: 429 });
+    }
 
-  await prisma.message.create({
-    data: {
+    const body = await req.json();
+    const { chatId, message, fileId } = body;
+
+    if (!chatId || !message) {
+      return NextResponse.json({ error: "Missing chatId or message" }, { status: 400 });
+    }
+
+    // Log to file
+    fs.appendFileSync('server_debug.log', `[REQ] ${new Date().toISOString()} ChatId: ${chatId} Job Queued\n`);
+
+    // Encrypt Message Content (Data Privacy)
+    const { encrypt } = await import("@/lib/encryption");
+    const encryptedMessage = encrypt(message);
+
+    // Save User Message synchronously
+    await prisma.message.create({
+      data: {
+        chatId,
+        role: "USER",
+        content: encryptedMessage,
+      },
+    });
+
+    // Enqueue Job with Deterministic ID for Idempotency
+    const idempotencyKey = `${chatId}-${user.userId}-${Date.now().toString().slice(0, -3)}`; // Simple dedup within same second, or use message hash
+    // Better: Hash(chatId + message + userId) to allow strict dedup if retried immediately
+    // For now, let's keep it simple but safe against double-click submit
+
+    const job = await chatQueue.add('chat-job', {
       chatId,
-      role: "USER",
-      content: message,
-    },
-  });
-
-  const history = await prisma.message.findMany({
-    where: { chatId },
-    orderBy: { createdAt: "asc" },
-  });
-
-  // File Context Injection
-  const files = await prisma.file.findMany({
-    where: { userId: payload.userId },
-    orderBy: { createdAt: "desc" },
-    take: 3,
-  });
-
-  const fileContext = files.map((f: any) => f.content).join("\n").slice(0, 12000);
-
-  const messages: any[] = history.map((m: any) => ({
-    role: m.role.toLowerCase(),
-    content: m.content,
-  }));
-
-  if (fileContext) {
-    messages.unshift({
-      role: "system",
-      content: "Use this document context if relevant:\n" + fileContext,
+      message,
+      fileId,
+      userId: user.userId,
+      requestId: crypto.randomUUID(), // Traceability across systems
+    }, {
+      jobId: idempotencyKey, // Prevents multiple jobs with same ID
+      removeOnComplete: true,
+      removeOnFail: false
     });
-  }
 
-  // Diagnostic Log
-  console.log(`[DEBUG] Streaming ChatId: ${chatId}, User: ${payload.userId}`);
-  console.log(`[DEBUG] Messages count: ${messages.length}`);
-
-  let stream;
-  try {
-    stream = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      stream: true,
-      messages: messages,
+    return NextResponse.json({
+      jobId: job.id,
+      status: 'queued',
+      message: "Request queued for processing"
     });
-    console.log("[DEBUG] OpenAI Stream initiated successfully");
-  } catch (error: any) {
-    console.error("[ERROR] OpenAI call failed:", error.message || error);
-    return new Response(JSON.stringify({
-      error: "OpenAI API Error",
-      details: error.message
-    }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+
+  } catch (err: any) {
+    console.error("[API Error]", err);
+    fs.appendFileSync('server_debug.log', `[API ERROR] ${err.message}\n`);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
-
-  const encoder = new TextEncoder();
-  let assistantText = "";
-
-  const readable = new ReadableStream({
-    async start(controller) {
-      try {
-        for await (const chunk of stream) {
-          // Standard Chat Completion Chunk Parsing
-          const token = chunk.choices[0]?.delta?.content;
-
-          if (token) {
-            assistantText += token;
-            controller.enqueue(encoder.encode(token));
-          }
-        }
-        console.log(`[DEBUG] Stream completed. Length: ${assistantText.length}`);
-      } catch (e: any) {
-        console.error("[ERROR] Stream reading error:", e.message || e);
-      }
-
-      // Save to database
-      try {
-        await prisma.message.create({
-          data: {
-            chatId,
-            role: "ASSISTANT",
-            content: assistantText,
-          },
-        });
-
-        await prisma.usageMetric.create({
-          data: {
-            userId: payload.userId,
-            tokens: assistantText.length,
-          },
-        });
-      } catch (dbErr) {
-        console.error("[ERROR] Post-stream DB save failed:", dbErr);
-      }
-
-      controller.close();
-    },
-  });
-
-  return new Response(readable, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      "Connection": "keep-alive",
-    },
-  });
 }
+

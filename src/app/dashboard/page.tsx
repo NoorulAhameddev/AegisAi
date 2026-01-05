@@ -66,9 +66,7 @@ export default async function DashboardPage() {
         {/* Sidebar */}
         <aside className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/10 bg-zinc-900/50 p-6 flex flex-col gap-6">
           <div className="flex items-center gap-2 font-bold text-xl px-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center">
-              <span className="text-white">A</span>
-            </div>
+            <img src="/aegis-logo.png" alt="Aegis AI Logo" className="h-8 w-8 rounded-lg object-contain bg-black/20" />
             Aegis AI
           </div>
 

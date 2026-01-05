@@ -1,21 +1,22 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
+import { getUserFromRequest } from "@/lib/session";
 
-export async function POST(req: Request) {
-    const token = req.cookies.get("auth_access")?.value;
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    let payload: any;
-    try {
-        payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
-    } catch (err) {
-        return NextResponse.json({ error: "Invalid Token" }, { status: 401 });
-    }
+export async function POST(req: NextRequest) {
+    const user = await getUserFromRequest(req);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const chat = await prisma.chat.create({
-        data: { userId: payload.userId },
+        data: { userId: user.userId },
     });
+
+    // Audit (Silent fail is ok for logs)
+    prisma.auditLog.create({
+        data: {
+            userId: user.userId,
+            action: `CHAT_CREATE:${chat.id}`
+        }
+    }).catch(() => { });
 
     return NextResponse.json({ chatId: chat.id });
 }

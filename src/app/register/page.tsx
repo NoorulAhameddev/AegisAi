@@ -43,9 +43,7 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-md p-8">
         <div className="mb-8 text-center animate-fade-in-up">
-          <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-tr from-blue-500 to-cyan-500 mb-6 shadow-lg shadow-blue-500/20">
-            <Zap className="h-6 w-6 text-white" />
-          </div>
+          <img src="/aegis-logo.png" alt="Aegis AI Logo" className="inline-block h-12 w-12 rounded-xl object-contain mb-6 bg-black/20" />
           <h1 className="text-3xl font-bold tracking-tight mb-2">Create Account</h1>
           <p className="text-zinc-400">Join thousands of users using Aegis AI</p>
         </div>
