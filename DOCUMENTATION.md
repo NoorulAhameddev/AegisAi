@@ -33,8 +33,9 @@ graph TD
 1.  **Next.js App Router**: Handles routing, server-side rendering (SSR), and API endpoints. We use Server Actions for mutations and Route Handlers for streaming data.
 2.  **Edge Middleware**: Validates JWT authentication tokens before they reach the main server logic, ensuring high-speed security checks.
 3.  **Prisma ORM**: Provides a type-safe layer over PostgreSQL. We use it for managing Users, Chats, Messages, Files, and System Settings.
-4.  **OpenAI Integration**: The `src/lib/openai` module manages connections to GPT-4o. It handles streaming responses directly to the client using `OpenAIStream` and `StreamingTextResponse`.
-5.  **Tool Calling Engine**: A custom implementation in the chat API allows the model to "decide" when to use tools (like searching the web or analyzing a file) before responding to the user.
+4.  **AI Worker (Isolation Layer)**: The `src/workers/ai.worker.ts` runs as a separate process (via BullMQ). It handles all heavy AI logic, RAG, and Tool Execution. This decoupling ensures the main API never hangs or crashes due to AI timeouts.
+5.  **Security Sentinel**: A middleware layer that uses Regex + Logic to pre-screen all prompts for malicious intent *before* they touch the LLM or Database.
+6.  **Tool Calling Engine**: A custom implementation in the worker that allows the model to "decide" when to use tools (like Searching or Vision) safely.
 
 ---
 
@@ -75,10 +76,12 @@ graph TD
     # Format: postgresql://USER:PASSWORD@HOST:PORT/DB_NAME
     DATABASE_URL="postgresql://postgres:password@localhost:5432/aegis_ai"
 
-    # --- Security (JWT) ---
+    # --- Security (JWT + Encryption) ---
     # Generate these using `openssl rand -hex 32`
     JWT_ACCESS_SECRET="complex_string_for_access_token_signing"
     JWT_REFRESH_SECRET="complex_string_for_refresh_token_signing"
+    # CRITICAL: 32-byte exact key for AES-256 chat encryption
+    ENCRYPTION_KEY="12345678901234567890123456789012" 
 
     # --- AI Services ---
     OPENAI_API_KEY="sk-..."

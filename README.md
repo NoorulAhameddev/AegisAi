@@ -29,19 +29,17 @@ Unlike basic tutorials, Aegis features **autonomous web search capabilities**, *
 - **Contextual Memory**: Remembers previous conversations and user context indefinitely.
 
 ### 🛡️ **Enterprise Security**
-- **Bank-Grade Auth**: Custom JWT implementation with HTTP-only cookies (Access + Refresh tokens).
-- **Rate Limiting**: Redis-backed sliding window rate limiting to prevent abuse.
-- **Role-Based Access**: Granular permissions system (User/Admin roles) with protected API routes.
+- **Bank-Grade Auth**: Custom JWT implementation with HTTP-only cookies (Access + Refresh tokens) and "Nuclear Option" session revocation.
+- **Application Level Encryption**: All sensitive data (chats) are encrypted with AES-256-GCM before storage.
+- **Role-Based Access (RBAC)**: Fine-grained permissions (Permission Matrix) instead of simple role checks.
+- **Worker Isolation**: AI processing runs in an isolated Worker process, decoupled from the main API.
+- **Input Sanitization**: Strict regex and Sentinel (Regex + Logic) filtering to prevent Injection attacks.
 
-### 📎 **Multimodal Capabilities**
-- **File Analysis**: Upload documents or images for the AI to analyze.
-- **Image Vision**: distinct support for analyzing images via GPT-4o Vision.
-- **Smart Formatting**: Full Markdown support including tables, code blocks, and LaTeX math equations.
-
-### ⚙️ **Admin & Operations**
+### ⚙️ **Infrastructure & Scalability**
+- **Asynchronous Architecture**: BullMQ Job Queue ensures 100% uptime even under heavy load. User requests are queued and processed asynchronously.
 - **Admin Dashboard**: Comprehensive panel to manage users, view usage metrics, and control system access.
-- **Maintenance Mode**: One-click system lockdown for updates.
 - **Usage Tracking**: Per-user token usage tracking for billing or quotas.
+- **Request Tracing**: End-to-end `requestId` propagation for reliable audit logs.
 
 ---
 
@@ -93,6 +91,7 @@ DATABASE_URL="postgresql://user:password@localhost:5432/aegis_db"
 # Security
 JWT_ACCESS_SECRET="your-super-secret-access-key"
 JWT_REFRESH_SECRET="your-super-secret-refresh-key"
+ENCRYPTION_KEY="32-char-random-string-for-aes-256" # CRITICAL: Must be exactly 32 bytes
 
 # OpenAI
 OPENAI_API_KEY="sk-..."
