@@ -1,9 +1,4 @@
-import OpenAI from "openai";
-
-const apiKey = process.env.OPENAI_API_KEY;
-if (!apiKey) throw new Error("Missing OPENAI_API_KEY");
-
-const openai = new OpenAI({ apiKey });
+import { openai } from "./openai";
 
 export async function generateEmbedding(text: string): Promise<number[]> {
     const cleanText = text.replace(/\n/g, " ");

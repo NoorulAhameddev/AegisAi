@@ -29,7 +29,11 @@ export async function POST(req: Request) {
     const hashed = await hashPassword(password);
 
     const user = await prisma.user.create({
-      data: { name, email, password: hashed },
+      data: {
+        name,
+        email,
+        password: hashed,
+      },
     });
 
     // Auto-login
@@ -47,18 +51,20 @@ export async function POST(req: Request) {
 
     const res = NextResponse.json({ message: "Registered & Logged in" }, { status: 201 });
 
+    const isProd = process.env.NODE_ENV === "production";
+
     res.cookies.set("auth_access", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: isProd,
+      sameSite: isProd ? "strict" : "lax",
       path: "/",
       maxAge: 600,
     });
 
     res.cookies.set("auth_refresh", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: isProd,
+      sameSite: isProd ? "strict" : "lax",
       path: "/",
       maxAge: 604800,
     });

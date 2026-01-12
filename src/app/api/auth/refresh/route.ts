@@ -65,18 +65,20 @@ export async function POST(req: NextRequest) {
 
     const res = NextResponse.json({ message: "Refreshed" });
 
+    const isProd = process.env.NODE_ENV === "production";
+
     res.cookies.set("auth_access", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: isProd,
+      sameSite: isProd ? "strict" : "lax",
       path: "/",
       maxAge: 600, // 10m
     });
 
     res.cookies.set("auth_refresh", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: isProd,
+      sameSite: isProd ? "strict" : "lax",
       path: "/",
       maxAge: 604800, // 7d
     });

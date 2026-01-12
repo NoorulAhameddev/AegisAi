@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, Save, LogOut, Loader2, Lock, X } from "lucide-react";
+import { ArrowLeft, Save, LogOut, Loader2, Lock, X, User, Shield, AlertTriangle, Menu } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AppSidebar } from "@/components/layout/AppSidebar";
+import { MobileNav } from "@/components/layout/MobileNav";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { cn } from "@/lib/utils";
 
-type User = {
+type AppUser = {
     id: string;
     name: string;
     email: string;
@@ -14,14 +18,14 @@ type User = {
 
 export default function SettingsPage() {
     const router = useRouter();
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<AppUser | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [activeTab, setActiveTab] = useState<"profile" | "security">("profile");
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-    // Edit States
     const [displayName, setDisplayName] = useState("");
-    const [passwordMode, setPasswordMode] = useState(false);
-
+    
     // Password Form
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -78,7 +82,6 @@ export default function SettingsPage() {
                 setPasswordMsg("Password changed successfully!");
                 setCurrentPassword("");
                 setNewPassword("");
-                setTimeout(() => setPasswordMode(false), 1500);
             } else {
                 setPasswordMsg("Error: " + data.error);
             }
@@ -98,132 +101,190 @@ export default function SettingsPage() {
     };
 
     if (loading) {
-        return (
-            <div className="min-h-screen bg-black flex items-center justify-center text-zinc-500">
-                <Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading settings...
-            </div>
-        );
+        return <div className="min-h-screen bg-black flex items-center justify-center text-zinc-500">Loading settings...</div>;
     }
 
     return (
-        <div className="min-h-screen bg-black text-white p-8 font-sans">
-            <div className="max-w-2xl mx-auto">
-                {/* Header */}
-                <div className="flex items-center gap-4 mb-8">
-                    <Link href="/dashboard" className="p-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors">
-                        <ArrowLeft className="h-5 w-5" />
-                    </Link>
-                    <h1 className="text-2xl font-bold">Account Settings</h1>
-                </div>
-
-                {/* Profile Section */}
-                <section className="mb-6 p-6 rounded-2xl border border-zinc-800 bg-zinc-900/40">
-                    <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        Profile
-                        {user?.name !== displayName && (
-                            <span className="text-xs text-amber-500 font-normal">(Unsaved changes)</span>
-                        )}
-                    </h2>
-                    <div className="space-y-4">
+        <div className="flex h-screen bg-black text-white font-sans overflow-hidden bg-[url('/bg-noise.png')]">
+            {user && (
+                <>
+                    <div className="hidden md:block">
+                        <AppSidebar user={user} />
+                    </div>
+                    <MobileNav user={user} isOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
+                </>
+            )}
+            
+            <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+                 <header className="px-8 py-6 border-b border-white/5 bg-black/20 backdrop-blur-sm sticky top-0 z-20">
+                    <div className="flex items-center gap-4">
+                        <button 
+                            onClick={() => setMobileNavOpen(true)}
+                            className="md:hidden p-2 -ml-2 text-zinc-400 hover:text-white transition-colors"
+                        >
+                            <Menu className="h-6 w-6" />
+                        </button>
                         <div>
-                            <label className="block text-sm font-medium text-zinc-400 mb-1">Display Name</label>
-                            <div className="flex gap-2">
-                                <input
-                                    value={displayName}
-                                    onChange={(e) => setDisplayName(e.target.value)}
-                                    className="flex-1 rounded-lg bg-zinc-950 border border-zinc-800 px-4 py-2 text-white focus:outline-none focus:border-zinc-600 transition-colors"
-                                />
+                            <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+                            <p className="text-zinc-400 text-sm">Manage your account and preferences.</p>
+                        </div>
+                    </div>
+                </header>
+
+                <div className="p-8 max-w-5xl mx-auto w-full">
+                    <div className="flex flex-col md:flex-row gap-8">
+                        {/* Settings Nav */}
+                        <div className="w-full md:w-64 space-y-2">
+                            <button
+                                onClick={() => setActiveTab("profile")}
+                                className={cn(
+                                    "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left",
+                                    activeTab === "profile" ? "bg-white text-black shadow-lg shadow-white/10" : "text-zinc-400 hover:text-white hover:bg-white/5"
+                                )}
+                            >
+                                <User className="h-4 w-4" />
+                                My Profile
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("security")}
+                                className={cn(
+                                    "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left",
+                                    activeTab === "security" ? "bg-white text-black shadow-lg shadow-white/10" : "text-zinc-400 hover:text-white hover:bg-white/5"
+                                )}
+                            >
+                                <Shield className="h-4 w-4" />
+                                Security
+                            </button>
+                            
+                            <div className="pt-8 mt-8 border-t border-white/5">
                                 <button
-                                    onClick={handleUpdateProfile}
-                                    disabled={saving || user?.name === displayName}
-                                    className="px-4 py-2 bg-white text-black rounded-lg font-medium hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-400/10 transition-colors text-left"
                                 >
-                                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
+                                    <LogOut className="h-4 w-4" />
+                                    Sign Out
                                 </button>
                             </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-400 mb-1">Email Address</label>
-                            <input
-                                disabled
-                                value={user?.email || ""}
-                                className="w-full rounded-lg bg-zinc-950/50 border border-zinc-800 px-4 py-2 text-zinc-500 cursor-not-allowed"
-                            />
-                            <p className="text-xs text-zinc-600 mt-1">Email cannot be changed.</p>
-                        </div>
-                    </div>
-                </section>
 
-                {/* Security Section */}
-                <section className="mb-6 p-6 rounded-2xl border border-zinc-800 bg-zinc-900/40">
-                    <h2 className="text-lg font-semibold mb-4">Security</h2>
+                        {/* Content Area */}
+                        <div className="flex-1 space-y-6">
+                            {activeTab === "profile" && (
+                                <GlassCard className="p-8 animate-slide-up">
+                                    <h2 className="text-xl font-bold mb-6">Profile Details</h2>
+                                    
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-6">
+                                            <div className="h-24 w-24 rounded-full bg-linear-to-tr from-purple-500 to-blue-600 p-px">
+                                                <div className="h-full w-full rounded-full bg-black flex items-center justify-center text-3xl font-bold">
+                                                    {user?.name.charAt(0).toUpperCase()}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <button className="px-4 py-2 rounded-lg border border-white/10 hover:bg-white/5 text-sm font-medium transition-colors">
+                                                    Change Avatar
+                                                </button>
+                                                <p className="text-xs text-zinc-500 mt-2">Recommended size 400x400px</p>
+                                            </div>
+                                        </div>
 
-                    {!passwordMode ? (
-                        <button
-                            onClick={() => setPasswordMode(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 font-medium text-sm transition-colors"
-                        >
-                            <Lock className="h-4 w-4" />
-                            Change Password
-                        </button>
-                    ) : (
-                        <form onSubmit={handleChangePassword} className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 animate-in fade-in slide-in-from-top-2">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="font-medium text-sm text-zinc-300">Update Password</h3>
-                                <button type="button" onClick={() => setPasswordMode(false)} className="text-zinc-500 hover:text-white">
-                                    <X className="h-4 w-4" />
-                                </button>
-                            </div>
+                                        <div className="grid gap-6 max-w-lg">
+                                            <div className="space-y-2">
+                                                <label htmlFor="display-name" className="text-sm font-medium text-zinc-300">Display Name</label>
+                                                <div className="flex gap-3">
+                                                    <input
+                                                        id="display-name"
+                                                        value={displayName}
+                                                        onChange={(e) => setDisplayName(e.target.value)}
+                                                        className="flex-1 rounded-xl bg-black/40 border border-white/10 px-4 py-2.5 text-white focus:outline-none focus:border-purple-500/50 transition-colors"
+                                                    />
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                 <label htmlFor="email" className="text-sm font-medium text-zinc-300">Email Address</label>
+                                                 <input
+                                                    id="email"
+                                                    disabled
+                                                    value={user?.email || ""}
+                                                    className="w-full rounded-xl bg-white/5 border border-white/5 px-4 py-2.5 text-zinc-500 cursor-not-allowed"
+                                                />
+                                            </div>
+                                        </div>
 
-                            <div className="space-y-3">
-                                <input
-                                    type="password"
-                                    placeholder="Current Password"
-                                    value={currentPassword}
-                                    onChange={(e) => setCurrentPassword(e.target.value)}
-                                    className="w-full rounded-lg bg-zinc-900 border border-zinc-800 px-4 py-2 text-white text-sm focus:outline-none focus:border-zinc-600"
-                                />
-                                <input
-                                    type="password"
-                                    placeholder="New Password (min 6 chars)"
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                    className="w-full rounded-lg bg-zinc-900 border border-zinc-800 px-4 py-2 text-white text-sm focus:outline-none focus:border-zinc-600"
-                                />
-                                <div className="flex items-center justify-between pt-2">
-                                    <span className={`text-xs ${passwordMsg.includes("Error") ? "text-red-400" : "text-green-400"}`}>
-                                        {passwordMsg}
-                                    </span>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-500 transition-colors"
-                                    >
-                                        Update Password
-                                    </button>
+                                        <div className="pt-6 border-t border-white/5 flex justify-end">
+                                            <button
+                                                onClick={handleUpdateProfile}
+                                                disabled={saving || user?.name === displayName}
+                                                className="px-6 py-2.5 bg-white text-black rounded-xl font-bold hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-white/5"
+                                            >
+                                                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </GlassCard>
+                            )}
+
+                             {activeTab === "security" && (
+                                <div className="space-y-6 animate-slide-up">
+                                    <GlassCard className="p-8">
+                                        <h2 className="text-xl font-bold mb-6">Password & Security</h2>
+                                        <form onSubmit={handleChangePassword} className="space-y-5 max-w-lg">
+                                             <div className="space-y-2">
+                                                <label htmlFor="current-password" className="text-sm font-medium text-zinc-300">Current Password</label>
+                                                <input
+                                                    id="current-password"
+                                                    type="password"
+                                                    value={currentPassword}
+                                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                                    className="w-full rounded-xl bg-black/40 border border-white/10 px-4 py-2.5 text-white focus:outline-none focus:border-purple-500/50 transition-colors"
+                                                    placeholder="Enter current password"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label htmlFor="new-password" className="text-sm font-medium text-zinc-300">New Password</label>
+                                                <input
+                                                    id="new-password"
+                                                    type="password"
+                                                    value={newPassword}
+                                                    onChange={(e) => setNewPassword(e.target.value)}
+                                                    className="w-full rounded-xl bg-black/40 border border-white/10 px-4 py-2.5 text-white focus:outline-none focus:border-purple-500/50 transition-colors"
+                                                    placeholder="Minimum 6 characters"
+                                                />
+                                            </div>
+
+                                            {passwordMsg && (
+                                                <p className={cn("text-sm", passwordMsg.includes("Error") ? "text-red-400" : "text-green-400")}>
+                                                    {passwordMsg}
+                                                </p>
+                                            )}
+
+                                            <div className="pt-4 flex justify-end">
+                                                <button
+                                                    type="submit"
+                                                    className="px-6 py-2.5 bg-white text-black rounded-xl font-bold hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5"
+                                                >
+                                                    Update Password
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </GlassCard>
+
+                                    <div className="p-6 rounded-2xl border border-red-500/20 bg-red-500/5 backdrop-blur-sm">
+                                        <h3 className="text-lg font-bold text-red-500 flex items-center gap-2 mb-2">
+                                            <AlertTriangle className="h-5 w-5" /> Danger Zone
+                                        </h3>
+                                        <p className="text-zinc-400 text-sm mb-4">Once you delete your account, there is no going back. Please be certain.</p>
+                                        <button className="px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors text-sm font-medium">
+                                            Delete Account
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        </form>
-                    )}
-                </section>
-
-                {/* Danger Zone */}
-                <section className="p-6 rounded-2xl border border-red-500/10 bg-red-500/5">
-                    <h2 className="text-lg font-semibold text-red-500 mb-4">Danger Zone</h2>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="font-medium text-zinc-300">Sign Out</p>
-                            <p className="text-sm text-zinc-500">Log out of your account on this device.</p>
+                            )}
                         </div>
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-red-900/30 text-red-400 rounded-lg hover:bg-red-500/10 font-medium text-sm transition-colors"
-                        >
-                            <LogOut className="h-4 w-4" />
-                            Sign Out
-                        </button>
                     </div>
-                </section>
-            </div>
+                </div>
+            </main>
         </div>
     );
 }

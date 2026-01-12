@@ -7,6 +7,112 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model AuditLog {
+  id            String   @id @default(uuid())
+  userId        String?
+  adminRole     String?  @db.VarChar(50)
+  action        String   @db.VarChar(255)
+  targetType    String?  @db.VarChar(100)
+  targetId      String?
+  previousState Json?
+  newState      Json?
+  metadata      Json?
+  reason        String?  @db.Text
+  ticketId      String?  @db.VarChar(100)
+  ipAddress     String?  @db.VarChar(45)
+  userAgent     String?  @db.VarChar(500)
+  mfaVerified   Boolean  @default(false)
+  integrityHash String?  @db.VarChar(64)
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([action])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+}
+
+model Chat {
+  id        String    @id @default(uuid())
+  userId    String
+  title     String?   @db.VarChar(255)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Message   Message[]
+
+  @@index([userId, createdAt])
+}
+
+model File {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String   @db.VarChar(255)
+  type      String   @db.VarChar(100)
+  content   String   @db.Text
+  path      String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Memory {
+  id        String     @id @default(uuid())
+  userId    String
+  type      MemoryType
+  content   String     @db.Text
+  source    String?
+  createdAt DateTime   @default(now())
+  User      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([userId, createdAt])
+}
+
+model Message {
+  id        String      @id @default(uuid())
+  chatId    String
+  role      MessageRole
+  content   String      @db.Text
+  createdAt DateTime    @default(now())
+  Chat      Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId, createdAt])
+  @@index([chatId, role])
+}
+
+model Session {
+  id         String   @id @default(uuid())
+  userId     String
+  token      String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastActive DateTime @default(now())
+  userAgent  String?  @db.VarChar(500)
+  ipAddress  String?  @db.VarChar(45)
+  User       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}
+
+model UsageMetric {
+  id        String   @id @default(uuid())
+  userId    String
+  tokens    Int
+  model     String?  @db.VarChar(50)
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
 model User {
   id           String        @id @default(uuid())
   name         String
@@ -14,96 +120,20 @@ model User {
   password     String
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  tokenVersion Int           @default(0)
   role         Role          @default(USER)
   isBanned     Boolean       @default(false)
-  chats        Chat[]
-  memories     Memory[]
-  usageMetrics UsageMetric[]
-  sessions     Session[]
+  tokenVersion Int           @default(0)
+  Chat         Chat[]
+  Memory       Memory[]
+  Session      Session[]
+  UsageMetric  UsageMetric[]
+
+  @@index([email])
 }
 
-model Session {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token     String   @unique // Hashed refresh token
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  lastActive DateTime @default(now())
-  userAgent String?
-  ipAddress String?
-
-  @@index([userId])
-}
-
-model Chat {
-  id        String    @id @default(uuid())
-  userId    String
-  createdAt DateTime  @default(now())
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages  Message[]
-
-  @@index([userId])
-}
-
-model Message {
-  id        String   @id @default(uuid())
-  content   String
-  createdAt DateTime @default(now())
-  chatId    String
-  role      String
-  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
-
-  @@index([chatId, createdAt])
-}
-
-model Memory {
-  id        String     @id @default(uuid())
-  userId    String
-  type      MemoryType
-  content   String
-  source    String?
-  createdAt DateTime   @default(now())
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, type])
-}
-
-model AuditLog {
-  id        String   @id @default(uuid())
-  userId    String?
-  action    String
-  details   String?
-  createdAt DateTime @default(now())
-}
-
-model UsageMetric {
-  id        String   @id @default(uuid())
-  userId    String
-  tokens    Int
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model File {
-  id        String   @id @default(uuid())
-  userId    String
-  name      String
-  type      String
-  content   String
-  createdAt DateTime @default(now())
-  path      String   @default("")
-}
-
-model SystemSetting {
-  key   String @id
-  value String
-}
-
-enum Role {
-  USER
-  ADMIN
+enum MemoryType {
+  USER_FACT
+  SUMMARY
 }
 
 enum MessageRole {
@@ -112,7 +142,11 @@ enum MessageRole {
   SYSTEM
 }
 
-enum MemoryType {
-  USER_FACT
-  SUMMARY
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+  MODERATOR
+  ANALYST
+  SUPPORT
 }

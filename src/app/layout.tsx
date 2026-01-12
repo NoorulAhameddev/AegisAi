@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { getSettings } from "@/lib/settings";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
+import { CommandPalette } from "@/components/ui/CommandPalette";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,6 +58,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <CommandPalette />
         {children}
       </body>
     </html>

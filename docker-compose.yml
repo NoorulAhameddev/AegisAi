@@ -1,39 +1,20 @@
 version: "3.9"
 
 services:
-  app:
-    build: .
-    container_name: aegis_app
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-      - redis
-    restart: always
-    environment:
-      - DATABASE_URL=postgresql://aegis:aegispass@postgres:5432/aegisdb
-      - REDIS_URL=redis://redis:6379
-
-  postgres:
-    image: pgvector/pgvector:pg15
-    container_name: aegis_postgres
-    environment:
-      POSTGRES_USER: aegis
-      POSTGRES_PASSWORD: aegispass
-      POSTGRES_DB: aegisdb
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
   redis:
-    image: redis:7
-    container_name: aegis_redis
+    image: redis:7-alpine
+    container_name: aegis-redis
     ports:
       - "6379:6379"
-    restart: always
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 volumes:
-  pgdata:
+  redis-data:

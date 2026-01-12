@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "prisma.prisma",
+    "bradlc.vscode-tailwindcss",
+    "dbaeumer.vscode-eslint",
+    "expo.vscode-expo-tools",
+    "ms-azuretools.vscode-docker",
+    "esbenp.prettier-vscode",
+    "ms-python.python",
+    "ms-vscode.cpptools",
+    "vscjava.vscode-java-pack",
+    "mtxr.sqltools"
+  ]
+}

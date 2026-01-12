@@ -2,23 +2,32 @@ import { chatQueue } from "@/lib/queue";
 import { prisma } from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/session";
 import { rateLimit } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
-import fs from 'fs';
 import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+
   try {
     const user = await getUserFromRequest(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) {
+      logger.warn('Unauthorized chat request');
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    // const user = { userId: "fe8036b1-afc1-4626-a567-1ebf4ff27f23" };
+    // const user = { userId: "fe8036b1-afc1-4626-a567-1ebf4ff27f23" };
 
     const limit = await rateLimit(req, { limit: 20, window: 60 });
     if (!limit.success) {
+      logger.warn('Rate limit exceeded', { userId: user.userId });
       return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const { checkQuota } = await import("@/lib/quota");
     const quota = await checkQuota(user.userId);
     if (!quota.allowed) {
+      logger.warn('Quota exceeded', { userId: user.userId });
       return NextResponse.json({ error: "Daily token limit exceeded." }, { status: 429 });
     }
 
@@ -28,9 +37,6 @@ export async function POST(req: NextRequest) {
     if (!chatId || !message) {
       return NextResponse.json({ error: "Missing chatId or message" }, { status: 400 });
     }
-
-    // Log to file
-    fs.appendFileSync('server_debug.log', `[REQ] ${new Date().toISOString()} ChatId: ${chatId} Job Queued\n`);
 
     // Encrypt Message Content (Data Privacy)
     const { encrypt } = await import("@/lib/encryption");
@@ -45,21 +51,35 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Enqueue Job with Deterministic ID for Idempotency
-    const idempotencyKey = `${chatId}-${user.userId}-${Date.now().toString().slice(0, -3)}`; // Simple dedup within same second, or use message hash
-    // Better: Hash(chatId + message + userId) to allow strict dedup if retried immediately
-    // For now, let's keep it simple but safe against double-click submit
+    // Improved idempotency key using content hash
+    const idempotencyKey = crypto
+      .createHash('sha256')
+      .update(`${chatId}:${user.userId}:${message}`)
+      .digest('hex')
+      .substring(0, 32); // Keep it reasonable length
+
+    const requestId = crypto.randomUUID();
 
     const job = await chatQueue.add('chat-job', {
       chatId,
       message,
       fileId,
       userId: user.userId,
-      requestId: crypto.randomUUID(), // Traceability across systems
+      requestId,
     }, {
-      jobId: idempotencyKey, // Prevents multiple jobs with same ID
-      removeOnComplete: true,
+      jobId: idempotencyKey, // Prevents duplicate jobs for same message
+      // Let queue default retention settings handle cleanup
+      // removeOnComplete: true, 
       removeOnFail: false
+    });
+
+    const duration = Date.now() - startTime;
+    logger.api('POST', '/api/chat/stream', 200, duration);
+    logger.info('Chat job queued', {
+      jobId: job.id,
+      chatId,
+      userId: user.userId,
+      requestId
     });
 
     return NextResponse.json({
@@ -69,9 +89,11 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (err: any) {
-    console.error("[API Error]", err);
-    fs.appendFileSync('server_debug.log', `[API ERROR] ${err.message}\n`);
+    const duration = Date.now() - startTime;
+    logger.error('Chat stream error', err, {
+      path: '/api/chat/stream',
+      duration
+    });
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-

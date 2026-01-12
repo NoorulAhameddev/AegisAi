@@ -60,12 +60,19 @@ export async function searchSimilar(query: string, userId: string, limit = 5) {
 
     if (!tableNames.includes("documents")) return [];
 
+    // SECURITY: Validate userId is a valid UUID to prevent injection
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(userId)) {
+        console.error(`[VectorStore] Invalid userId format: ${userId}`);
+        throw new Error('Invalid userId format');
+    }
+
     const vector = await generateEmbedding(query);
     const table = await db.openTable("documents");
 
-    // Search
+    // Safe: userId is validated as UUID, no injection possible
     const results = await table.vectorSearch(vector)
-        .filter(`userId = '${userId}'`) // simple filtering
+        .filter(`userId = '${userId}'`)
         .limit(limit)
         .toArray();
 

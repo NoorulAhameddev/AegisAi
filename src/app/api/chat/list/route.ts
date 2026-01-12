@@ -8,27 +8,30 @@ export async function GET(req: NextRequest) {
 
     try {
         const payload: any = jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
+
         const chats = await prisma.chat.findMany({
             where: { userId: payload.userId },
             orderBy: { createdAt: "desc" },
             take: 20,
-            include: {
-                messages: {
-                    take: 1,
-                    orderBy: { createdAt: "desc" } // Use first message as title if needed, or generated title
-                }
+            select: {
+                id: true,
+                title: true,
+                createdAt: true,
+                updatedAt: true
             }
         });
 
-        // Transform for frontend
+        // Format for frontend
         const formatted = chats.map(c => ({
             id: c.id,
-            title: c.messages[0]?.content.substring(0, 30) || "New Conversation",
-            createdAt: c.createdAt
+            title: c.title || "New Conversation",
+            createdAt: c.createdAt,
+            updatedAt: c.updatedAt
         }));
 
         return NextResponse.json(formatted);
-    } catch {
+    } catch (error) {
+        console.error('[ChatList] Error:', error);
         return NextResponse.json({ error: "Invalid Token" }, { status: 401 });
     }
 }

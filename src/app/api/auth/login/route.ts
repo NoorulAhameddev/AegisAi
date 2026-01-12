@@ -54,18 +54,20 @@ export async function POST(req: Request) {
 
   const res = NextResponse.json({ message: "Logged in" });
 
+  const isProd = process.env.NODE_ENV === "production";
+
   res.cookies.set("auth_access", accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: isProd,
+    sameSite: isProd ? "strict" : "lax", // allow mobile/web dev origin
     path: "/",
     maxAge: 600, // 10 minutes
   });
 
   res.cookies.set("auth_refresh", refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: isProd,
+    sameSite: isProd ? "strict" : "lax",
     path: "/",
     maxAge: 604800, // 7 days
   });

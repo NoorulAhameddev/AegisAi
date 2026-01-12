@@ -1,6 +1,4 @@
-import OpenAI from "openai";
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+import { openai } from "./openai";
 
 type Intent = "SAFE" | "UNSAFE" | "JAILBREAK" | "PII_LEAK";
 
@@ -64,9 +62,10 @@ export async function checkIntent(prompt: string): Promise<SecurityCheckResult> 
 
         return { valid: true, intent: "SAFE" };
 
-    } catch (e) {
+    } catch (e: any) {
         // Fail open or closed? Security standard says fail closed.
         console.error("Security Check Failed:", e);
-        return { valid: false, intent: "UNSAFE", reason: "Security verification unavailable." };
+        const reason = e.status === 401 ? "Invalid OpenAI API Key. Please check .env" : "Security verification unavailable.";
+        return { valid: false, intent: "UNSAFE", reason };
     }
 }

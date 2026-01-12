@@ -5,16 +5,16 @@ const cleanKey = rawKey.trim().replace(/^["']|["']$/g, '');
 
 const isValidKey = cleanKey.startsWith("sk-") && cleanKey.length > 20;
 
+console.log(`[DEBUG] Raw API Key length: ${rawKey.length}`);
+console.log(`[DEBUG] Clean API Key length: ${cleanKey.length}`);
+console.log(`[DEBUG] Starts with sk-: ${cleanKey.startsWith("sk-")}`);
+console.log(`[DEBUG] First 20 chars: ${cleanKey.substring(0, 20)}`);
+
 if (!isValidKey) {
-    if (process.env.NODE_ENV === "production") {
-        console.error("[CRITICAL] Invalid OPENAI_API_KEY format. Key must start with 'sk-'.");
-        // In strict mode, we might want to crash, but for now we'll log heavily.
-    } else {
-        console.warn("[WARN] Invalid OPENAI_API_KEY format. AI features will fail.");
-    }
+    console.error("[CRITICAL] Invalid OPENAI_API_KEY format. Key must start with 'sk-' and be > 20 chars.");
+    console.error(`[DEBUG] Key validation failed - starts with sk-: ${cleanKey.startsWith("sk-")}, length: ${cleanKey.length}`);
 } else {
-    // Log masked key for debugging
-    console.log(`[SYSTEM] OpenAI Service Initialized. Key: ${cleanKey.substring(0, 3)}...${cleanKey.slice(-4)}`);
+    console.log(`[SYSTEM] OpenAI Service Initialized with valid key`);
 }
 
 export const openai = new OpenAI({

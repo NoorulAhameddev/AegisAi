@@ -112,22 +112,46 @@ export default function AdminPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [mRes, uRes, aRes, sRes] = await Promise.all([
+                const responses = await Promise.all([
                     fetch("/api/admin/metrics"),
                     fetch("/api/admin/users"),
                     fetch("/api/admin/activity"),
                     fetch("/api/admin/settings")
                 ]);
 
-                if ([mRes, uRes, aRes].some(r => r.status === 401 || r.status === 403)) {
-                    router.push("/login"); // Simple protection
+                const [mRes, uRes, aRes, sRes] = responses;
+
+                // Handle 401/403 redirects or errors common to all
+                if (responses.some(r => r.status === 401 || r.status === 403 || r.url.includes("/login"))) {
+                    router.push("/login");
                     return;
                 }
 
-                setMetrics(await mRes.json());
-                setUsers(await uRes.json());
-                setActivity(await aRes.json());
-                if (sRes.ok) setSettings(await sRes.json());
+                // Helper to safe parse
+                const parse = async (res: Response) => {
+                    if (!res.ok) {
+                        const text = await res.text();
+                        console.error(`API Error ${res.url}: ${res.status}`, text);
+                        return null;
+                    }
+                    try {
+                        return await res.json();
+                    } catch (e) {
+                        console.error(`JSON Parse Error ${res.url}`, e);
+                        return null;
+                    }
+                };
+
+                const mData = await parse(mRes);
+                const uData = await parse(uRes);
+                const aData = await parse(aRes);
+                const sData = await parse(sRes);
+
+                if (mData) setMetrics(mData);
+                if (uData) setUsers(uData);
+                if (aData) setActivity(aData);
+                if (sData) setSettings(sData);
+
             } catch (error) {
                 console.error("Failed to fetch admin data", error);
             } finally {

@@ -5,6 +5,7 @@ import { getUserFromRequest } from "@/lib/session";
 export async function GET(req: NextRequest) {
     const user = await getUserFromRequest(req);
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // const user = { userId: "fe8036b1-afc1-4626-a567-1ebf4ff27f23" };
 
     const { searchParams } = new URL(req.url);
     const jobId = searchParams.get("jobId");

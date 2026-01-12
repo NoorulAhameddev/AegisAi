@@ -18,9 +18,24 @@ startCleanupTask();
 const worker = new Worker('chat-queue', processChatJob, { connection });
 
 worker.on('completed', job => {
-    console.log(`[Worker] Monitor: Job ${job.id} completed`);
+    const result = job.returnvalue;
+    console.log(`[Worker] ✅ Job ${job.id} COMPLETED`);
+    if (result?.rateLimited) {
+        console.log(`[Worker] Note: Job completed with rate limit notice`);
+    }
 });
 
 worker.on('failed', (job, err) => {
-    console.error(`[Worker] Monitor: Job ${job?.id} failed: ${err.message}`);
+    console.error(`[Worker] ❌ Job ${job?.id} FAILED!`);
+    console.error(`[Worker] Error Type: ${err.name}`);
+    console.error(`[Worker] Error Message: ${err.message}`);
+    if (err.stack) {
+        console.error(`[Worker] Stack Trace (first 500 chars): ${err.stack.substring(0, 500)}`);
+    }
 });
+
+worker.on('error', (err) => {
+    console.error(`[Worker] Worker infrastructure error:`, err.message);
+});
+
+console.log('[Worker] Job processing started, listening on chat-queue...');
