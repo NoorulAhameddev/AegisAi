@@ -371,7 +371,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ## 📞 Support
 
 For issues and questions:
-- 📧 Email: your-email@example.com
+- 📧 Email: noorulahamed07@gmail.com
 - 🐛 Issues: [GitHub Issues](https://github.com/your-username/aegis-ai/issues)
 - 💬 Discussions: [GitHub Discussions](https://github.com/your-username/aegis-ai/discussions)
 
