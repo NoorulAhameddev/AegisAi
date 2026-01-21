@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { hasPermission, requirePermission, getRoleDescription } from '@/lib/rbac';
+import { hasPermission, requirePermission, getRoleDescription } from '@/services/auth/rbac';
 import { Role } from '@prisma/client';
 
 describe('RBAC Module', () => {

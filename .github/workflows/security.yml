@@ -1,0 +1,25 @@
+name: Security Scan
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run npm audit
+        run: npm audit --production || true
+      
+      - name: OWASP Dependency Check
+        uses: jeremylong/DependencyCheck_Action@main
+        with:
+          project: 'Aegis-AI'
+          path: '.'
+          format: 'JSON'

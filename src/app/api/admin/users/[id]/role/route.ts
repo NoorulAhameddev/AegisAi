@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/session";
+import { getUserFromRequest } from "@/services/auth/session";
 
 export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
     const params = await props.params;

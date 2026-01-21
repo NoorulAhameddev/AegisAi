@@ -1,0 +1,31 @@
+# CODEOWNERS file
+# This file defines which users own particular code areas
+# GitHub uses this for automatic reviewer assignment and branch protection
+
+# Global owners
+* @noorul-ahemed
+
+# Frontend code
+/src/components/ @noorul-ahemed
+/src/app/ @noorul-ahemed
+/mobile/ @noorul-ahemed
+
+# Backend/API code
+/src/app/api/ @noorul-ahemed
+/src/services/ @noorul-ahemed
+
+# Database
+/prisma/ @noorul-ahemed
+
+# Documentation
+/docs/ @noorul-ahemed
+*.md @noorul-ahemed
+
+# Configuration
+/.github/ @noorul-ahemed
+/config/ @noorul-ahemed
+/scripts/ @noorul-ahemed
+
+# Security
+/src/utils/validators/ @noorul-ahemed
+/src/lib/auth.ts @noorul-ahemed

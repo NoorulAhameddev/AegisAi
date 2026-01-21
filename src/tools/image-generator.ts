@@ -21,6 +21,10 @@ export const ImageGeneratorTool: Tool = {
     },
     execute: async ({ prompt, style }) => {
         try {
+            // Note: DALL-E is not available on OpenRouter
+            // Consider using alternative models like:
+            // - stability-ai/stable-diffusion-xl
+            // - openai/dall-e-3 (if OpenRouter adds support)
             const response = await openai.images.generate({
                 model: "dall-e-3",
                 prompt,

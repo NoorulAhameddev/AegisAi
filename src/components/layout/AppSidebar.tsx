@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Clock, MessageSquare, FileText, Settings, LogOut, ChevronRight, PanelLeft } from "lucide-react";
+import { Clock, MessageSquare, FileText, Settings, LogOut, ChevronRight, PanelLeft, Database } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AppSidebarProps {
@@ -36,6 +36,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
     { href: "/dashboard", label: "Overview", icon: Clock },
     { href: "/chat", label: "Chat", icon: MessageSquare },
     { href: "/files", label: "Files", icon: FileText },
+    { href: "/knowledge", label: "Knowledge Base", icon: Database },
     { href: "/settings", label: "Settings", icon: Settings },
   ];
 

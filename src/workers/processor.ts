@@ -54,15 +54,13 @@ export async function processChatJob(job: Job) {
     }
 
     try {
-        // 0.5 Ingest User Message into Vector Store
+        // 0.5 Ingest User Message into Vector Store (for conversational memory)
         try {
-            const { addDocument, searchSimilar } = await import("../lib/vector-store");
-            await addDocument(message, { role: "user", chatId, fileId }, userId);
-
-            // 0.6 RAG Retrieval
-            // Logic for context retrieval could be extracted further if needed
+            const { addDocument } = await import("../lib/vector-store");
+            await addDocument(message, { role: "user", chatId, fileId, type: "conversation" }, userId);
+            console.log(`${logPrefix} ✓ User message ingested to vector store`);
         } catch (e) {
-            console.error("[Worker] RAG Error:", e);
+            console.error(`${logPrefix} Failed to ingest message to vector store (non-blocking):`, e);
         }
 
         // 1. Fetch System Prompt
@@ -82,13 +80,29 @@ export async function processChatJob(job: Job) {
             content: decrypt(msg.content)
         }));
 
-        // RAG Context Injection
+        // 🚀 ENHANCED RAG Context Injection
         let ragContext = "";
+        let ragSourceCount = 0;
         try {
-            const { searchSimilar } = await import("../lib/vector-store");
-            const docs = await searchSimilar(message, userId, 5);
-            if (docs.length > 0) {
-                ragContext = "RELEVANT CONTEXT:\n" + docs.map(d => `- ${d.text}`).join("\n");
+            const { retrieveContext, shouldUseRAG, formatRAGContext } = await import("../lib/rag-retrieval");
+            
+            // Check if RAG should be used for this query
+            if (shouldUseRAG(message)) {
+                console.log(`${logPrefix} 🔍 Retrieving RAG context...`);
+                const retrievalResult = await retrieveContext(message, userId, {
+                    topK: 5,
+                    includeMetadata: true,
+                });
+
+                if (retrievalResult.documents.length > 0) {
+                    ragContext = formatRAGContext(retrievalResult);
+                    ragSourceCount = retrievalResult.sources.size;
+                    console.log(`${logPrefix} ✓ RAG: Retrieved ${retrievalResult.documents.length} documents from ${ragSourceCount} sources (${retrievalResult.tokensUsed} tokens)`);
+                } else {
+                    console.log(`${logPrefix} ℹ️ RAG: No relevant documents found`);
+                }
+            } else {
+                console.log(`${logPrefix} ⏭️ RAG: Skipped (query type not suitable)`);
             }
         } catch (e) {
             console.warn(`${logPrefix} RAG retrieval failed (non-blocking):`, e);
@@ -145,7 +159,7 @@ export async function processChatJob(job: Job) {
         
         try {
             response = await openai.chat.completions.create({
-                model: "gpt-4o-mini",
+                model: "openai/gpt-4o-mini",
                 messages: formattedMessages,
                 tools: tools,
                 tool_choice: "auto",
@@ -233,7 +247,7 @@ export async function processChatJob(job: Job) {
             try {
                 console.log(`${logPrefix} Calling OpenAI API for final answer (tool result)...`);
                 const secondResponse = await openai.chat.completions.create({
-                    model: "gpt-4o-mini",
+                    model: "openai/gpt-4o-mini",
                     messages: formattedMessages,
                 });
                 finalContent = secondResponse.choices[0].message.content || "";

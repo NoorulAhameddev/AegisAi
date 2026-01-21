@@ -2,13 +2,13 @@
 
 ![Next.js](https://img.shields.io/badge/Next.js-16.0-black?style=for-the-badge&logo=next.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript&logoColor=white)
-![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-412991?style=for-the-badge&logo=openai&logoColor=white)
+![OpenRouter](https://img.shields.io/badge/OpenRouter-GPT--4o-412991?style=for-the-badge&logo=openai&logoColor=white)
 ![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
 > **Production-Ready Enterprise AI Chat Platform**  
-> Built with Next.js 15, OpenAI GPT-4o, RAG, and enterprise-grade security.
+> Built with Next.js 15, OpenRouter AI, RAG, and enterprise-grade security.
 
 ---
 
@@ -27,7 +27,7 @@
 ## ✨ Key Features
 
 ### 🧠 **Intelligent AI Core**
-- **GPT-4o Integration** - Latest OpenAI models for high-fidelity responses
+- **OpenRouter Integration** - Access to multiple AI models including GPT-4o through unified API
 - **Real-Time Streaming** - Zero-latency token streaming using Edge Runtime
 - **Autonomous Web Search** - AI can browse the web for real-time information
 - **RAG (Retrieval Augmented Generation)** - Vector store for contextual responses

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword } from "@/lib/auth";
+import { hashPassword } from "@/services/auth/auth";
 import { getSettings } from "@/lib/settings";
 
 import { registerSchema } from "@/lib/validations";

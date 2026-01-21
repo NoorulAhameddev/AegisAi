@@ -1,6 +1,6 @@
 "use client";
 
-import { X, LogOut, Clock, MessageSquare, FileText, Settings } from "lucide-react";
+import { X, LogOut, Clock, MessageSquare, FileText, Settings, Database } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,7 @@ export function MobileNav({ user, isOpen, onClose }: MobileNavProps) {
         { href: "/dashboard", label: "Overview", icon: Clock },
         { href: "/chat", label: "Chat", icon: MessageSquare },
         { href: "/files", label: "Files", icon: FileText },
+        { href: "/knowledge", label: "Knowledge Base", icon: Database },
         { href: "/settings", label: "Settings", icon: Settings },
     ];
 

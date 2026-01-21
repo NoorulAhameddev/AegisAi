@@ -1,4 +1,4 @@
-import { getUserMemory } from "@/lib/memory";
+import { getUserMemory } from "@/ai/memory/memory";
 import { Message } from "@prisma/client";
 
 export function buildPrompt(messages: Message[]) {

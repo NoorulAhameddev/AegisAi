@@ -2,7 +2,8 @@ import 'dotenv/config';
 import { Worker } from 'bullmq';
 import Redis from 'ioredis';
 import { startCleanupTask } from './cleanup';
-import { processChatJob } from './processor';
+// import { processChatJob } from './processor'; // data-user: Legacy processor
+import { processChatJobLangChain as processChatJob } from './langchain-processor'; // data-user: New LangChain processor
 
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 const connection = new Redis(redisUrl, {

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { openai } from "@/lib/openai";
+import { openai } from "@/services/ai/openai";
 import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
 
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     if (!file) return new Response("File not found", { status: 404 });
 
     const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "openai/gpt-4o-mini",
         messages: [
             { role: "system", content: "Answer ONLY using the provided document." },
             { role: "user", content: file.content.slice(0, 12000) },

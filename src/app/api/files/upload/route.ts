@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { extractText } from "@/lib/fileProcessor";
-import { getUserFromRequest } from "@/lib/session";
+import { extractText } from "@/services/files/fileProcessor";
+import { getUserFromRequest } from "@/services/auth/session";
 import fs from "fs";
 import crypto from "crypto";
 
@@ -58,19 +58,57 @@ export async function POST(req: NextRequest) {
 
         fs.appendFileSync('server_debug.log', `[UPLOAD] Saved to DB with ID ${saved.id}\n`);
 
-        // Ingest into Vector Store (Background-ish)
-        // We use setImmediate or just await it if we want to ensure it's ready before returning
-        // For better UX, we await it so the user can immediately chat about it.
+        // 🚀 ENHANCED: Ingest into RAG Vector Store with smart chunking
+        let ragIngested = false;
+        let ragChunks = 0;
         try {
-            const { ingestFile } = await import("@/lib/ingest");
-            await ingestFile(saved.id, text, user.userId);
-            fs.appendFileSync('server_debug.log', `[UPLOAD] Ingested into Vector Store\n`);
+            const { isSupportedFileType, isValidFileSize } = await import("@/lib/rag-config");
+            
+            // Check if file is suitable for RAG ingestion
+            if (isSupportedFileType(file.type) && isValidFileSize(file.size) && text && text.length > 50) {
+                const { ingestDocument } = await import("@/lib/vector-store");
+                
+                const documentIds = await ingestDocument(
+                    text,
+                    {
+                        fileId: saved.id,
+                        fileName: file.name,
+                        fileType: file.type,
+                        sourceId: saved.id,
+                        type: 'file',
+                    },
+                    user.userId
+                );
+                
+                ragIngested = true;
+                ragChunks = documentIds.length;
+                
+                // Update file metadata
+                await prisma.file.update({
+                    where: { id: saved.id },
+                    data: {
+                        metadata: JSON.stringify({
+                            ragIngested: true,
+                            ragChunks: documentIds.length,
+                            ingestedAt: new Date().toISOString(),
+                        })
+                    }
+                });
+                
+                fs.appendFileSync('server_debug.log', `[UPLOAD] RAG Ingested: ${documentIds.length} chunks\n`);
+            } else {
+                fs.appendFileSync('server_debug.log', `[UPLOAD] RAG Ingestion skipped (type: ${file.type}, size: ${file.size}, textLen: ${text.length})\n`);
+            }
         } catch (ingestErr: any) {
-            console.error("Ingestion failed", ingestErr);
-            fs.appendFileSync('server_debug.log', `[UPLOAD] Ingestion Failed: ${ingestErr.message}\n`);
+            console.error("RAG Ingestion failed", ingestErr);
+            fs.appendFileSync('server_debug.log', `[UPLOAD] RAG Ingestion Failed: ${ingestErr.message}\n`);
         }
 
-        return NextResponse.json({ fileId: saved.id });
+        return NextResponse.json({ 
+            fileId: saved.id,
+            ragIngested,
+            ragChunks,
+        });
     } catch (error: any) {
         fs.appendFileSync('server_debug.log', `[UPLOAD ERROR] ${error.message}\n${error.stack}\n`);
         return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });

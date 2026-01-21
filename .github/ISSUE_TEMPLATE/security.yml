@@ -1,0 +1,66 @@
+name: Security Issue
+description: Report a security vulnerability
+labels: ["security"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **SECURITY ISSUE** ⚠️
+        
+        **Please do NOT open a public GitHub issue for security vulnerabilities.**
+        
+        Instead, please report it responsibly by emailing: security@aegis-ai.com
+        
+        This form is for documentation purposes after the issue has been resolved.
+  
+  - type: input
+    id: title
+    attributes:
+      label: Security Issue Title
+      description: A short title for the security issue
+      placeholder: "Security: XSS vulnerability in chat component"
+    validations:
+      required: true
+  
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the security vulnerability
+      placeholder: "Describe the security issue..."
+    validations:
+      required: true
+  
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: What is the potential impact of this vulnerability?
+      placeholder: "This could allow..."
+    validations:
+      required: true
+  
+  - type: textarea
+    id: fix
+    attributes:
+      label: Proposed Fix
+      description: How can this be fixed?
+      placeholder: "The fix could be..."
+  
+  - type: input
+    id: cve
+    attributes:
+      label: CVE ID (if applicable)
+      description: CVE ID if one has been assigned
+      placeholder: "CVE-2026-XXXXX"
+  
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Acknowledgments
+      options:
+        - label: This is a confirmed security issue
+          required: true
+        - label: I have reported this responsibly
+          required: true

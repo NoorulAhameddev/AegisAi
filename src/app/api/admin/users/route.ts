@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/session";
+import { getUserFromRequest } from "@/services/auth/session";
 import { NextRequest, NextResponse } from "next/server";
 
-import { requirePermission } from "@/lib/rbac";
+import { requirePermission } from "@/services/auth/rbac";
 import { Role } from "@prisma/client";
 
 export async function GET(req: NextRequest) {

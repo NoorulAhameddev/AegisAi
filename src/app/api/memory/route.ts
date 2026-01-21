@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getUserMemory } from "@/lib/memory";
+import { getUserMemory } from "@/ai/memory/memory";
 
 export async function GET(req: Request) {
     const userId = req.headers.get("x-user-id");

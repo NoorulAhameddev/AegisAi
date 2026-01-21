@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/session";
-import { hashPassword, comparePassword } from "@/lib/auth";
+import { getUserFromRequest } from "@/services/auth/session";
+import { hashPassword, comparePassword } from "@/services/auth/auth";
 import { changePasswordSchema } from "@/lib/validations";
 
 export async function PUT(req: NextRequest) {

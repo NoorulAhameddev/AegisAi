@@ -4,7 +4,7 @@ import {
   verifyRefreshToken,
   signAccessToken,
   signRefreshToken,
-} from "@/lib/auth";
+} from "@/services/auth/auth";
 
 export async function POST(req: NextRequest) {
 

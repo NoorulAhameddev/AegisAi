@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { signAccessToken, verifyAccessToken, signRefreshToken, verifyRefreshToken, TokenPayload } from '@/lib/auth';
+import { signAccessToken, verifyAccessToken, signRefreshToken, verifyRefreshToken, TokenPayload } from '@/services/auth/auth';
 
 describe('Auth Module', () => {
   const testPayload: TokenPayload = {

@@ -57,7 +57,7 @@ async function testOpenAIKey() {
         // Now test a chat completion
         console.log('\n📡 Testing chat completion...');
         const chatResponse = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
+            model: 'openai/gpt-4o-mini',
             messages: [{ role: 'user', content: 'Say hello!' }],
             max_tokens: 10,
         });

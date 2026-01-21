@@ -15,7 +15,7 @@ interface EnvConfig {
     ENCRYPTION_KEY: string;
 
     // AI
-    OPENAI_API_KEY: string;
+    OPENROUTER_API_KEY: string;
 
     // Cache/Queue
     REDIS_URL?: string;
@@ -55,10 +55,10 @@ function validateEnvironment(): EnvConfig {
     }
 
     // AI
-    if (!process.env.OPENAI_API_KEY) {
-        errors.push('OPENAI_API_KEY is required');
-    } else if (!process.env.OPENAI_API_KEY.startsWith('sk-')) {
-        errors.push('OPENAI_API_KEY appears invalid (should start with sk-)');
+    if (!process.env.OPENROUTER_API_KEY) {
+        errors.push('OPENROUTER_API_KEY is required');
+    } else if (!process.env.OPENROUTER_API_KEY.startsWith('sk-')) {
+        errors.push('OPENROUTER_API_KEY appears invalid (should start with sk-)');
     }
 
     // Cache/Queue (optional but recommended for production)
@@ -83,7 +83,7 @@ function validateEnvironment(): EnvConfig {
         JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET!,
         DATABASE_URL: process.env.DATABASE_URL!,
         ENCRYPTION_KEY: process.env.ENCRYPTION_KEY!,
-        OPENAI_API_KEY: process.env.OPENAI_API_KEY!,
+        OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY!,
         REDIS_URL: process.env.REDIS_URL,
         NODE_ENV: (process.env.NODE_ENV as any) || 'development',
     };

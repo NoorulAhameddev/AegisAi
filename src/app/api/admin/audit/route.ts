@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/lib/auth";
-import { hasAdminPermission } from "@/lib/admin-permissions";
+import { verifyAuth } from "@/services/auth/auth";
+import { hasAdminPermission } from "@/services/auth/permissions";
 import { queryAuditLogs } from "@/lib/audit";
 
 export const runtime = "nodejs";

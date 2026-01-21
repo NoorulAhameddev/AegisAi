@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chatQueue } from "@/lib/queue";
-import { getUserFromRequest } from "@/lib/session";
+import { getUserFromRequest } from "@/services/auth/session";
 
 export async function GET(req: NextRequest) {
     const user = await getUserFromRequest(req);

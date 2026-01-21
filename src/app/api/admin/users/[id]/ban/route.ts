@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyAuth } from "@/lib/auth";
-import { hasAdminPermission, canModifyRole } from "@/lib/admin-permissions";
+import { verifyAuth } from "@/services/auth/auth";
+import { hasAdminPermission, canModifyRole } from "@/services/auth/permissions";
 import { createAuditLog } from "@/lib/audit";
 import { banUserSchema } from "@/lib/validations";
 

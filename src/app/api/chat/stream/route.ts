@@ -1,6 +1,6 @@
 import { chatQueue } from "@/lib/queue";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/session";
+import { getUserFromRequest } from "@/services/auth/session";
 import { rateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";

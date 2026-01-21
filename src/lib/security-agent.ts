@@ -30,7 +30,7 @@ export async function checkIntent(prompt: string): Promise<SecurityCheckResult> 
     // 1. LLM Evaluation (Slow Pass)
     try {
         const response = await openai.chat.completions.create({
-            model: "gpt-4o-mini", // Cheap & Fast
+            model: "openai/gpt-4o-mini", // Cheap & Fast
             temperature: 0,
             messages: [
                 {

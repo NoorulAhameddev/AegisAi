@@ -4,7 +4,7 @@ import {
   comparePassword,
   signAccessToken,
   signRefreshToken,
-} from "@/lib/auth";
+} from "@/services/auth/auth";
 
 import { loginSchema } from "@/lib/validations";
 
@@ -24,12 +24,22 @@ export async function POST(req: Request) {
 
   const { email, password } = validation.data;
 
+  console.log(`[LOGIN_DEBUG] Attempting login for: ${email}`);
   const user = await prisma.user.findUnique({ where: { email } });
+  
   if (!user) {
+    console.log(`[LOGIN_DEBUG] User not found: ${email}`);
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
-  if (!(await comparePassword(password, user.password))) {
+  console.log(`[LOGIN_DEBUG] User found. Role: ${user.role}. Comparing password...`);
+  console.log(`[LOGIN_DEBUG] Input password start: ${password.substring(0, 2)}... length: ${password.length}`);
+  console.log(`[LOGIN_DEBUG] Stored hash start: ${user.password.substring(0, 10)}...`);
+
+  const isValid = await comparePassword(password, user.password);
+  console.log(`[LOGIN_DEBUG] Password valid: ${isValid}`);
+
+  if (!isValid) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
