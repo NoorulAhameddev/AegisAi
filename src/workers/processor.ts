@@ -1,9 +1,9 @@
 import { prisma } from '../lib/prisma';
 import fs from 'fs';
-import { openai } from '../lib/openai';
+import { openai } from '../services/ai/openai';
 import { Job } from 'bullmq';
 import { validateInput, detectLeaks } from '../lib/security';
-import { buildPrompt, buildSystemPrompt } from '../lib/prompt';
+import { buildPrompt, buildSystemPrompt } from '../services/ai/prompt';
 
 export async function processChatJob(job: Job) {
     const { chatId, message, fileId, userId, requestId } = job.data;

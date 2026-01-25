@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Message } from '../../../src/types/chat';
 import { chatService } from '../../../src/services/chat';
@@ -12,13 +12,15 @@ export default function ChatDetail() {
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const flatListRef = useRef<FlatList>(null);
+    const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         if (id) {
             loadHistory();
-            // Setup interval to poll for new messages if needed, 
-            // but strictly we only poll after we send a job.
         }
+        return () => {
+            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+        };
     }, [id]);
 
     const loadHistory = async () => {
@@ -33,20 +35,23 @@ export default function ChatDetail() {
     };
 
     const pollJob = async (jobId: string) => {
-        const interval = setInterval(async () => {
+        // Clear any existing poll just in case
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+
+        pollIntervalRef.current = setInterval(async () => {
             try {
                 const status = await chatService.getJobStatus(jobId);
                 if (status.state === 'completed') {
-                    clearInterval(interval);
+                    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
                     setSending(false);
                     loadHistory(); // Refresh to see AI response
                 } else if (status.state === 'failed') {
-                    clearInterval(interval);
+                    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
                     setSending(false);
-                    alert('AI Failed to respond');
+                    Alert.alert('Error', 'AI Failed to respond');
                 }
             } catch (e) {
-                clearInterval(interval); // If clean fail
+                if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
                 setSending(false);
             }
         }, 2000); // Poll every 2s
@@ -73,7 +78,7 @@ export default function ChatDetail() {
             pollJob(jobId);
         } catch (e) {
             setSending(false);
-            alert('Failed to send message');
+            Alert.alert('Error', 'Failed to send message');
         }
     };
 

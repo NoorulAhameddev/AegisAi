@@ -1,4 +1,4 @@
-import { searchSimilar, Document } from "./vector-store";
+import { searchSimilar, Document } from "../../ai/rag/vector-store";
 import { getRAGConfig } from "./rag-config";
 
 /**

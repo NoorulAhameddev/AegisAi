@@ -6,8 +6,8 @@
 import { BufferMemory } from "langchain/memory";
 import { ChatMessageHistory } from "langchain/stores/message/in_memory";
 import { HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages";
-import { prisma } from "./prisma";
-import { decrypt } from "./encryption";
+import { prisma } from "@/lib/prisma";
+import { decrypt } from "@/lib/encryption";
 
 /**
  * Create a LangChain memory instance from chat history

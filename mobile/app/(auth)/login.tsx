@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { useAuth } from '../../src/context/AuthContext';
 import { Link } from 'expo-router';
+import { ENV } from '../../src/config/env';
+import { securityManager } from '../../src/utils/security';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -9,13 +11,37 @@ export default function Login() {
     const [busy, setBusy] = useState(false);
     const { signIn } = useAuth();
 
+    useEffect(() => {
+        if (ENV.REQUIRE_BIOMETRIC && ENV.IS_PROD) {
+            handleBiometricAuth();
+        }
+    }, []);
+
+    const handleBiometricAuth = async () => {
+        const available = await securityManager.isBiometricAvailable();
+        if (available) {
+            const success = await securityManager.authenticateWithBiometrics('Sign in to Aegis AI');
+            if (success) {
+                // If we have saved credentials, we could auto-login here.
+                // For now, we just acknowledge the security check.
+                console.log('Biometric auth success');
+            }
+        }
+    };
+
     const handleLogin = async () => {
         if (!email || !password) return Alert.alert('Error', 'Please fill all fields');
+
+        if (ENV.REQUIRE_BIOMETRIC && ENV.IS_PROD) {
+            const success = await securityManager.authenticateWithBiometrics();
+            if (!success) return;
+        }
+
         setBusy(true);
         try {
             await signIn(email, password);
         } catch (e: any) {
-            Alert.alert('Login Failed', e?.response?.data?.error || e.message || 'Unknown error');
+            Alert.alert('Login Failed', e?.message || 'Unknown error');
         } finally {
             setBusy(false);
         }
@@ -33,7 +59,7 @@ export default function Login() {
                 <TextInput
                     style={styles.input}
                     placeholder="Email"
-                    placeholderTextColor="#666"
+                    placeholderTextColor="#94A3B8"
                     value={email}
                     onChangeText={setEmail}
                     autoCapitalize="none"
@@ -43,7 +69,7 @@ export default function Login() {
                 <TextInput
                     style={styles.input}
                     placeholder="Password"
-                    placeholderTextColor="#666"
+                    placeholderTextColor="#94A3B8"
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry
@@ -74,7 +100,7 @@ export default function Login() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0F172A', // Slate 900
+        backgroundColor: '#0F172A',
         justifyContent: 'center',
         padding: 20,
     },
@@ -107,7 +133,7 @@ const styles = StyleSheet.create({
         borderColor: '#334155',
     },
     button: {
-        backgroundColor: '#4F46E5', // Indigo 600
+        backgroundColor: '#4F46E5',
         padding: 16,
         borderRadius: 12,
         alignItems: 'center',

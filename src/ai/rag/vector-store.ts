@@ -1,10 +1,23 @@
-import * as lancedb from "@lancedb/lancedb";
+// File: src/ai/rag/vector-store.ts
+// This module uses LanceDB which requires native bindings and should only run on the server
+let lancedb: any = null;
+
+// Lazy load lancedb to prevent bundling issues
+async function loadLanceDB() {
+	if (!lancedb) {
+		// Use eval-like approach to hide from static analysis
+		const moduleName = "@lancedb/lancedb";
+		lancedb = await import(/* webpackIgnore: true */ moduleName);
+	}
+	return lancedb;
+}
+
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
-import { generateEmbedding } from "./embeddings";
-import { getDocumentChunker } from "./chunker";
-import { getRAGConfig } from "./rag-config";
+import { generateEmbedding } from "../../services/rag/embeddings";
+import { getDocumentChunker } from "../../services/rag/chunker";
+import { getRAGConfig } from "../../services/rag/rag-config";
 
 const DB_DIR = path.join(process.cwd(), "data", "lancedb");
 
@@ -39,7 +52,8 @@ export interface DocumentMetadata {
 
 // connect function
 async function getDb() {
-    return await lancedb.connect(DB_DIR);
+    const db = await loadLanceDB();
+    return await db.connect(DB_DIR);
 }
 
 /**
@@ -160,17 +174,22 @@ export async function searchSimilar(
         filterQuery += ` AND sourceId = '${filters.sourceId}'`;
     }
 
-    // Safe: userId is validated as UUID, no injection possible
-    const results = await table.vectorSearch(vector)
-        .filter(filterQuery)
-        .limit(limit * 2) // Get more results for reranking
-        .toArray();
+    try {
+        // Safe: userId is validated as UUID, no injection possible
+        const results = await table.vectorSearch(vector)
+            .filter(filterQuery)
+            .limit(limit * 2) // Get more results for reranking
+            .toArray();
 
-    // Post-process: Remove duplicates and apply threshold
-    const config = getRAGConfig();
-    const uniqueResults = deduplicateResults(results as Document[]);
-    
-    return uniqueResults.slice(0, limit);
+        // Post-process: Remove duplicates and apply threshold
+        const config = getRAGConfig();
+        const uniqueResults = deduplicateResults(results as Document[]);
+        
+        return uniqueResults.slice(0, limit);
+    } catch (error) {
+        console.error(`[VectorStore] search failed: ${String(error)}`);
+        return [];
+    }
 }
 
 /**

@@ -1,23 +1,17 @@
 import { api } from './api';
+import { enhancedGet, enhancedPost } from './apiClient';
 import { storage } from './storage';
-import { User, AuthResponse } from '../types/auth';
+import { User } from '../types/auth';
 
 export const authService = {
     async register(email: string, password: string, name: string): Promise<User> {
-        const { data } = await api.post('/auth/register', { email, password, name });
-        // Assuming register logs in automatically or returns user
-        // Inspecting backend is skipped, assuming standard flow. 
-        // If it doesn't auto-login, we might need to login after.
-        // Usually register -> returns { user, ... }
-        return data;
+        return await enhancedPost<User>('/auth/register', { email, password, name });
     },
 
     async login(email: string, pass: string): Promise<User> {
-        const response = await api.post('/auth/login', { email, password: pass });
-
-        if (response.status !== 200) {
-            throw new Error(response.data?.error || 'Login failed');
-        }
+        // Use raw api for login to handle set-cookie manually if needed via interceptors,
+        // but apiClient also works. Let's use enhanced for consistency and retry.
+        await enhancedPost('/auth/login', { email, password: pass });
 
         // Backend only returns a message; fetch profile after cookies are set
         const user = await this.getCurrentUser();
@@ -27,15 +21,14 @@ export const authService = {
 
     async logout(): Promise<void> {
         try {
-            await api.post('/auth/logout');
+            await enhancedPost('/auth/logout', {});
         } catch (e) { /* ignore */ }
         await storage.clearTokens();
     },
 
     async getCurrentUser(): Promise<User | null> {
         try {
-            const { data } = await api.get('/auth/me');
-            return data;
+            return await enhancedGet<User>('/auth/me', { useCache: false, skipRetry: true });
         } catch (e) {
             return null;
         }

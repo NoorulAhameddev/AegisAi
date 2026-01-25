@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
     const user = await getUserFromRequest(req);
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { hasPermission } = await import("@/lib/rbac");
+    const { hasPermission } = await import("@/services/auth/rbac");
     if (!hasPermission(user.role as any, "settings:manage")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     return NextResponse.json(getSettings());
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     const user = await getUserFromRequest(req);
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { hasPermission } = await import("@/lib/rbac");
+    const { hasPermission } = await import("@/services/auth/rbac");
     if (!hasPermission(user.role as any, "settings:manage")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await req.json();

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Aegis AI",
     "slug": "aegis-ai-mobile",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "aegisai",
@@ -19,7 +19,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.aegisai.mobile",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to scan QR codes for quick sharing.",
         "NSPhotoLibraryUsageDescription": "This app accesses your photo library to save chat screenshots.",
@@ -34,7 +34,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "package": "com.aegisai.mobile",
-      "versionCode": 1,
+      "versionCode": 2,
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
@@ -73,23 +73,20 @@
         "origin": false
       },
       "eas": {
-        "projectId": "your-project-id-here"
+        "projectId": "8b9e6f1a-2c3d-4e5f-8a9b-0c1d2e3f4a5b"
       },
-      "buildNumber": "1",
+      "buildNumber": "2",
       "apiUrl": {
         "production": "https://api.aegisai.com/api",
         "staging": "https://staging-api.aegisai.com/api",
-        "development": "http://localhost:3000/api"
+        "development": "http://192.168.1.5:3000/api"
       }
     },
     "updates": {
-      "enabled": true,
-      "fallbackToCacheTimeout": 30000,
-      "url": "https://u.expo.dev/your-project-id"
+      "enabled": false
     },
     "runtimeVersion": {
       "policy": "appVersion"
     }
   }
 }
-

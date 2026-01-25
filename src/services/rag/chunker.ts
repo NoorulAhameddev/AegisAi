@@ -30,6 +30,15 @@ export class DocumentChunker {
         // Normalize whitespace
         const normalizedText = text.replace(/\s+/g, ' ').trim();
         
+        // Skip empty or too-small inputs
+        if (normalizedText.length === 0) {
+            return [];
+        }
+
+        if (normalizedText.length < minChunkSize) {
+            return [];
+        }
+
         if (normalizedText.length <= chunkSize) {
             // Text fits in one chunk
             return [{

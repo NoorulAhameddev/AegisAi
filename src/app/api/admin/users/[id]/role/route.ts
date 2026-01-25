@@ -9,7 +9,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     // RBAC Check
-    const { hasPermission } = await import("@/lib/rbac");
+    const { hasPermission } = await import("@/services/auth/rbac");
     if (!hasPermission(user.role as any, "user:promote")) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

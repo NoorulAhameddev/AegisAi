@@ -2,8 +2,8 @@ import { prisma } from '../lib/prisma';
 import fs from 'fs';
 import { Job } from 'bullmq';
 import { validateInput, detectLeaks } from '../lib/security';
-import { buildSystemPrompt } from '../lib/prompt';
-import { createAgent, runAgent } from '../lib/langchain-agent';
+import { buildSystemPrompt } from '../services/ai/prompt';
+import { createAgent, runAgent } from '../ai/integrations/langchain-agent';
 
 export async function processChatJobLangChain(job: Job) {
     const { chatId, message, fileId, userId, requestId } = job.data;

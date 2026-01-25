@@ -2,12 +2,12 @@
 // Responsibility: Parse requests, call services, return responses
 // Should NOT contain business logic
 
-import { Request, Response } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 
 export class FilesController {
   // TODO: Implement controller methods
   // Pattern: Request  Service  Response
-  // Example: async handleRequest(req: Request) => { ... }
+  // Example: async handleRequest(req: NextRequest) => { ... }
 }
 
 export const filesController = new FilesController();

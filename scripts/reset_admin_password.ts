@@ -1,5 +1,5 @@
 import { prisma } from "../src/lib/prisma";
-import { hashPassword } from "../src/lib/auth";
+import { hashPassword } from "../src/services/auth/auth";
 import fs from 'fs';
 
 async function main() {

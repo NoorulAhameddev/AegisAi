@@ -38,7 +38,7 @@ export const defaultRAGConfig: RAGConfig = {
     chunking: {
         chunkSize: 1000,            // 1000 characters per chunk
         chunkOverlap: 200,          // 200 character overlap
-        minChunkSize: 100,          // Skip chunks smaller than 100 chars
+        minChunkSize: 10,           // Skip chunks smaller than 10 chars to avoid noise
     },
     retrieval: {
         topK: 5,                    // Retrieve top 5 documents

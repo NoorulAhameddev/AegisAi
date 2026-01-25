@@ -1,5 +1,5 @@
 import { Tool } from "./index";
-import { openai } from "../lib/openai";
+import { openai } from "@/services/ai/openai";
 
 export const ImageGeneratorTool: Tool = {
     name: "generate_image",

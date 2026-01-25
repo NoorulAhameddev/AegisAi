@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { NextRequest } from "next/server";
-import { prisma } from "./prisma";
+import { prisma } from "@/lib/prisma";
 
 // STRICT SECURITY: Fail if secrets are missing in ALL environments
 if (!process.env.JWT_ACCESS_SECRET) {

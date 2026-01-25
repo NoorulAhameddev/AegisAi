@@ -36,7 +36,8 @@ export function validateInput(input: string): { valid: boolean; error?: string }
 
 export function detectLeaks(content: string): boolean {
     const patterns = [
-        /sk-[a-zA-Z0-9]{20,}/, // OpenAI Keys
+        /sk-[a-zA-Z0-9]{20,}/, // OpenAI Keys (legacy)
+        /sk-(proj|test|live|dev)-[a-zA-Z0-9]{8,}/, // OpenAI project/runtime keys
         /eyJ[a-zA-Z0-9_\-\.]+/, // JWT-ish
         /-----BEGIN PRIVATE KEY-----/
     ];

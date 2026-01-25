@@ -1,5 +1,5 @@
 import { Tool } from "./index";
-import { searchWeb } from "../lib/search";
+import { searchWeb } from "@/lib/search";
 import axios from "axios";
 import * as cheerio from "cheerio";
 
@@ -50,3 +50,12 @@ export const WebReadTool: Tool = {
         }
     }
 };
+
+// Lightweight wrappers used by LangChain tools
+export async function performSearch(query: string) {
+    return WebSearchTool.execute({ query });
+}
+
+export async function readWebpage(url: string) {
+    return WebReadTool.execute({ url });
+}

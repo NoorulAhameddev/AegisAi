@@ -3,6 +3,15 @@ const nextConfig = {
 	turbopack: {
 		root: './',
 	},
+	// Keep native lancedb bindings external so Turbopack doesn't try to place them in ESM chunks
+	serverExternalPackages: ["@lancedb/lancedb"],
+	webpack: (config, options) => {
+		if (!options.isServer) {
+			// Don't bundle lancedb on client side
+			config.resolve.alias['@lancedb/lancedb'] = false;
+		}
+		return config;
+	},
 	images: {
 		remotePatterns: [
 			{

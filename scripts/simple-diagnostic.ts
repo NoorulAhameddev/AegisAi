@@ -6,7 +6,7 @@ async function test() {
     console.log("Starting diagnostic...");
     try {
         console.log("Importing tools...");
-        const { getLangChainTools } = await import('../src/lib/langchain-tools');
+        const { getLangChainTools } = await import('../src/ai/integrations/langchain-tools');
         console.log("Tools imported. Count:", getLangChainTools().length);
     } catch (e) {
         console.error("Failed to import tools:", e);
@@ -14,7 +14,7 @@ async function test() {
 
     try {
         console.log("Importing agent...");
-        const agentModule = await import('../src/lib/langchain-agent');
+        const agentModule = await import('../src/ai/integrations/langchain-agent');
         console.log("Agent module imported.");
     } catch (e) {
         console.error("Failed to import agent:", e);

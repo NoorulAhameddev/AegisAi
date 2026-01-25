@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     const activity = await prisma.usageMetric.findMany({
         take: 20,
         orderBy: { createdAt: "desc" },
-        include: { user: { select: { email: true, name: true } } }
+        include: { User: true }
     });
 
     return NextResponse.json(activity);

@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
         let ragIngested = false;
         let ragChunks = 0;
         try {
-            const { isSupportedFileType, isValidFileSize } = await import("@/lib/rag-config");
+            const { isSupportedFileType, isValidFileSize } = await import("@/services/rag/rag-config");
             
             // Check if file is suitable for RAG ingestion
             if (isSupportedFileType(file.type) && isValidFileSize(file.size) && text && text.length > 50) {

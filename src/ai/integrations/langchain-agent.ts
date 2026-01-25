@@ -62,8 +62,22 @@ export async function createAgent(chatId: string, systemPrompt: string) {
  */
 export async function runAgent(executor: AgentExecutor, input: string) {
     try {
+        // Get chat history from memory if available
+        const memory = (executor as any).memory;
+        let chat_history: any[] = [];
+        
+        if (memory) {
+            try {
+                const memoryVariables = await memory.loadMemoryVariables({});
+                chat_history = memoryVariables.chat_history || [];
+            } catch (e) {
+                console.warn("Failed to load memory variables:", e);
+            }
+        }
+
         const result = await executor.invoke({
             input,
+            chat_history,
         });
 
         return {

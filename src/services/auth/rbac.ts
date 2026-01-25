@@ -34,6 +34,13 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
         "logs:read",
         "analytics:view"
     ],
+    SUPPORT: [
+        "chat:read",
+        "user:read",
+        "user:ban",
+        "logs:read",
+        "content:moderate"
+    ],
     ADMIN: [
         "chat:create",
         "chat:read",
@@ -81,6 +88,7 @@ export function getRoleDescription(role: Role): string {
         USER: "Regular user with basic chat access",
         MODERATOR: "Can moderate content and ban users",
         ANALYST: "Can view analytics and user data",
+        SUPPORT: "Support staff can moderate and access user data",
         ADMIN: "Full administrative access except system config",
         SUPER_ADMIN: "Complete system access"
     };

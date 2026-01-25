@@ -2,6 +2,7 @@
  * Environment Configuration
  * Centralized environment variable management with type safety and validation
  */
+import Constants from 'expo-constants';
 
 const getEnvVar = (key: string, defaultValue?: string): string => {
   const value = process.env[key] || defaultValue;
@@ -28,6 +29,14 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
   return parsed;
 };
 
+// Dynamically determine the dev API URL based on the packager host
+// This solves the "Network request failed" issue on Android Emulators/Physical devices
+const getDevApiUrl = () => {
+  const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
+  if (!debuggerHost) return 'http://localhost:3000/api';
+  return `http://${debuggerHost}:3000/api`;
+};
+
 export const ENV = {
   // Environment
   NODE_ENV: getEnvVar('NODE_ENV', 'development'),
@@ -35,7 +44,8 @@ export const ENV = {
   IS_PROD: getEnvVar('NODE_ENV', 'development') === 'production',
 
   // API Configuration
-  API_URL: getEnvVar('EXPO_PUBLIC_API_URL', 'http://192.168.1.5:3000/api'),
+  // Priority: 1. Explicit Env Var, 2. Auto-detected Dev IP, 3. Hardcoded Fallback
+  API_URL: process.env.EXPO_PUBLIC_API_URL || (getEnvVar('NODE_ENV', 'development') === 'development' ? getDevApiUrl() : 'https://api.aegisai.com/api'),
   API_TIMEOUT: getEnvNumber('EXPO_PUBLIC_API_TIMEOUT', 30000),
   MAX_RETRIES: getEnvNumber('EXPO_PUBLIC_MAX_RETRIES', 3),
 
@@ -62,16 +72,9 @@ if (ENV.IS_PROD) {
   if (!ENV.API_URL.startsWith('https://')) {
     console.error('⚠️ Production mode requires HTTPS API URL');
   }
-  if (ENV.ENABLE_DEBUG_LOGS) {
-    console.warn('⚠️ Debug logs should be disabled in production');
-  }
 }
 
-// Log configuration in development
+// Log configuration in development to verify the IP
 if (ENV.IS_DEV) {
-  console.log('📱 Environment Configuration:', {
-    NODE_ENV: ENV.NODE_ENV,
-    API_URL: ENV.API_URL,
-    OFFLINE_MODE: ENV.OFFLINE_MODE,
-  });
+  console.log('📱 API URL Auto-Detected:', ENV.API_URL);
 }

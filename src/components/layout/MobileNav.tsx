@@ -1,6 +1,6 @@
 "use client";
 
-import { X, LogOut, Clock, MessageSquare, FileText, Settings, Database } from "lucide-react";
+import { X, LogOut, Clock, MessageSquare, FileText, Settings, Database, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ export function MobileNav({ user, isOpen, onClose }: MobileNavProps) {
         { href: "/chat", label: "Chat", icon: MessageSquare },
         { href: "/files", label: "Files", icon: FileText },
         { href: "/knowledge", label: "Knowledge Base", icon: Database },
+        { href: "/study", label: "Study", icon: BookOpen },
         { href: "/settings", label: "Settings", icon: Settings },
     ];
 
@@ -44,7 +45,12 @@ export function MobileNav({ user, isOpen, onClose }: MobileNavProps) {
                         </div>
                         <span className="font-bold text-lg">Aegis AI</span>
                     </div>
-                    <button onClick={onClose} className="p-2 text-zinc-500 hover:text-white">
+                    <button 
+                        onClick={onClose} 
+                        className="p-2 text-zinc-500 hover:text-white"
+                        title="Close menu"
+                        aria-label="Close menu"
+                    >
                         <X className="h-5 w-5" />
                     </button>
                 </div>

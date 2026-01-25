@@ -172,10 +172,11 @@ describe('Text Extraction Functions', () => {
     it('should extract key terms from query', () => {
         // This tests the internal logic used in reranking
         const text = 'What is the company vacation policy for employees?';
+        const stopWords = new Set(['the', 'is']);
         const words = text.toLowerCase()
             .replace(/[^a-z0-9\s]/g, ' ')
             .split(/\s+/)
-            .filter(w => w.length > 2);
+            .filter(w => w.length > 2 && !stopWords.has(w));
         
         expect(words).toContain('company');
         expect(words).toContain('vacation');

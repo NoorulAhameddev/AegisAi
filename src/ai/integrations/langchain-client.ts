@@ -4,7 +4,7 @@
  */
 
 import { ChatOpenAI } from "@langchain/openai";
-import { env } from "./env";
+import { env } from "../../lib/env";
 
 /**
  * Create a LangChain ChatOpenAI instance
@@ -26,7 +26,7 @@ export function createLangChainClient(options?: {
     } = options || {};
 
     return new ChatOpenAI({
-        openAIApiKey: env.OPENAI_API_KEY,
+        openAIApiKey: env.OPENROUTER_API_KEY,
         modelName,
         temperature,
         streaming,

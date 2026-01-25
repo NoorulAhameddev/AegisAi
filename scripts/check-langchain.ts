@@ -1,7 +1,7 @@
 
-import { createAgent, runAgent } from '../src/lib/langchain-agent';
+import { createAgent, runAgent } from '../src/ai/integrations/langchain-agent';
 import { retrieveContext } from '../src/lib/rag-retrieval';
-import { getLangChainTools } from '../src/lib/langchain-tools';
+import { getLangChainTools } from '../src/ai/integrations/langchain-tools';
 
 async function main() {
   console.log("\n=============================================");

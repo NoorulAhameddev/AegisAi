@@ -12,8 +12,8 @@ export async function POST(req: NextRequest) {
   if (!token) return NextResponse.json({ error: "No token" }, { status: 401 });
 
   try {
-    const { verifyRefreshToken, signAccessToken, signRefreshToken } = await import("@/lib/auth");
-    const { hashToken, createSession } = await import("@/lib/session");
+    const { verifyRefreshToken, signAccessToken, signRefreshToken } = await import("@/services/auth/auth");
+    const { hashToken, createSession } = await import("@/services/auth/session");
 
     // 1. Verify Signature
     const payload = verifyRefreshToken(token);

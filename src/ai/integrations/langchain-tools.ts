@@ -38,8 +38,8 @@ export const webSearchTool = new DynamicStructuredTool({
     }),
     func: async ({ query }) => {
         try {
-            const { performSearch } = await import("../tools/web-browser");
-            const results = await performSearch(query);
+            const { searchWeb } = await import("@/lib/search");
+            const results = await searchWeb(query);
             return JSON.stringify(results);
         } catch (error: any) {
             return `Error searching: ${error.message}`;
@@ -76,12 +76,21 @@ export const imageGeneratorTool = new DynamicStructuredTool({
     schema: z.object({
         prompt: z.string().describe("The description of the image to generate"),
         size: z.enum(["256x256", "512x512", "1024x1024"]).optional().describe("Image size"),
+        style: z.enum(["vivid", "natural"]).optional().describe("Styling preference"),
     }),
-    func: async ({ prompt, size = "1024x1024" }) => {
+    func: async ({ prompt, size = "1024x1024", style = "vivid" }) => {
         try {
-            const { generateImage } = await import("../tools/image-generator");
-            const imageUrl = await generateImage(prompt, size);
-            return `Image generated successfully: ${imageUrl}`;
+            const { openai } = await import("@/services/ai/openai");
+            const response = await openai.images.generate({
+                model: "dall-e-3",
+                prompt,
+                n: 1,
+                size,
+                quality: "standard",
+                style: style as "vivid" | "natural",
+            });
+            if (!response.data || !response.data[0]) throw new Error("No image generated.");
+            return `Image generated successfully: ${response.data[0].url}`;
         } catch (error: any) {
             return `Error generating image: ${error.message}`;
         }

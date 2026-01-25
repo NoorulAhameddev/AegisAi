@@ -183,3 +183,116 @@ To enable GitHub Pages for documentation:
 ---
 
 **Note**: Some settings require repository administrator access. Adjust based on your team's needs.
+
+---
+
+## 📘 Feature Coverage Matrix
+
+Status legend: ✔️ Present • ⚠️ Partial • ❌ Missing
+
+### 🧩 A. Input & Ingestion
+- Text input: ✔️ Chat messages via API
+- File upload — PDF: ✔️ Extracts text on upload
+- File upload — DOCX: ⚠️ Libraries present, processor missing branch
+- File upload — TXT/Markdown: ⚠️ MIME supported, extraction not implemented
+- YouTube URL ingestion: ❌ No route/service
+- Web page URL ingestion: ✔️ Tools to search/read (not auto-RAG)
+- Audio file upload (MP3/WAV): ❌ No endpoints/transcription
+- Image upload (OCR): ✔️ Tesseract OCR for images
+- Batch upload (multi-file): ❌ Single-file form handled
+
+### 🔍 B. Extraction & Preprocessing
+- PDF text extraction: ✔️ Implemented
+- OCR for scanned PDFs: ⚠️ Image OCR only; scanned PDFs not routed
+- YouTube transcript extraction: ❌ Missing
+- Audio → text transcription: ❌ Missing
+- Timestamp cleaning: ❌ Missing
+- Language detection: ❌ Missing
+- Text normalization: ✔️ Basic whitespace normalization
+- Metadata extraction: ⚠️ File/chunk metadata saved; no author/duration
+
+### ✂️ C. Chunking & Token Management
+- Fixed-size chunking: ✔️ Implemented
+- Recursive/semantic chunking: ⚠️ Sentence/paragraph aware, no semantic recursion
+- Overlapping chunks: ✔️ Implemented
+- Token limit enforcement: ✔️ Max context + token estimate
+- Chunk metadata tagging: ✔️ Indexes and char ranges
+- Chunk preview/debug: ❌ Missing
+
+### 🧠 D. Core AI Capabilities
+- Summarization (short): ✔️ Bullet summary function
+- Summarization (detailed): ⚠️ Achievable via prompt; no dedicated fn
+- Structured notes / bullets / key concepts / glossary / examples / ELI5: ⚠️ Achievable via chat; no specific APIs
+- Question answering from content: ✔️ Document-scoped QA endpoint
+- Content rewriting/transformation: ⚠️ Via chat; no dedicated API
+
+### 📚 E. RAG (Retrieval-Augmented Generation)
+- Vector embeddings: ✔️ OpenAI embeddings
+- Vector storage (per document): ✔️ LanceDB
+- Per-user namespace isolation: ✔️ Filtered by `userId`
+- Per-project namespace: ❌ Missing
+- Semantic search: ✔️ API route to search
+- Top-K retrieval: ✔️ Configurable
+- Context-only answering: ⚠️ Enforced for file QA; general chat not strict
+- Source citation in answers: ⚠️ Metadata injected into RAG context
+- Document-scoped chat: ✔️ File QA
+- Multi-document chat: ✔️ RAG context injection in workers
+
+### 🗂️ F. Memory & Storage
+- Save generated notes: ⚠️ `Memory` model; not auto-saved
+- Save summaries: ⚠️ Summarize exists; no persistence hook
+- Save chat history: ✔️ Persisted messages
+- Versioning of notes: ❌ Missing
+- Re-run pipeline with updated prompts: ❌ Missing
+- Tagging & labeling documents: ❌ Generic metadata only
+- Delete/purge data: ⚠️ File delete; RAG purge helper exists (not wired)
+
+### 💬 G. Chat & Interaction
+- Chat with uploaded document: ✔️ Present
+- Chat with multiple documents: ✔️ RAG-assisted
+- Follow-up question support: ✔️ History included
+- Regenerate response: ❌ Missing explicit endpoint
+- Streaming responses: ⚠️ Queue-based; no SSE token stream
+- Prompt preview (advanced): ❌ Missing
+
+### 🎓 H. Study / Learning
+- Flashcards / Quiz (MCQ) / Question bank / Study-mode / Exam notes / Difficulty-based explanation: ❌ Missing
+
+### 📊 I. Output & Export
+- Export to PDF/Markdown/DOCX: ❌ Missing
+- Copy clean text: ⚠️ Likely UI; no API
+- Structured JSON export: ⚠️ Audit export JSON (notes/export missing)
+- Highlight important sections: ❌ Missing
+
+### 🎨 J. Presentation & Media
+- Slide outlines / Presentations / Diagrams / Image generation / TTS: ❌ Not implemented (general image tool exists)
+
+### ⚙️ K. System & Platform
+- Pipeline registry: ❌ Missing
+- Prompt versioning: ❌ Missing
+- Prompt templates per task: ⚠️ System prompt builder only
+- Error handling & retries: ✔️ Queue retries/backoff; try/catch
+- Rate limiting: ✔️ Redis-backed rate limit
+- Usage tracking: ✔️ `UsageMetric` writes in workers
+- Logging & observability: ✔️ Structured logger
+- Secure API key handling: ✔️ Validation in OpenAI client
+- Per-user quotas: ✔️ Daily token quota check
+- Background job processing: ✔️ BullMQ workers
+- Caching (Redis): ⚠️ Rate limit only; no general cache
+
+### 🔐 L. Security & Control
+- User authentication: ✔️ JWT access/refresh + sessions
+- Project-based isolation: ❌ Missing
+- Data encryption at rest: ⚠️ Message encryption; file storage unencrypted
+- Secure file storage: ⚠️ Basic uploads; no encrypted storage class
+- Role-based access: ⚠️ Roles exist; route enforcement incomplete
+- Audit logs: ✔️ Immutable audit trail
+
+---
+
+### 🔧 Recommended Next Actions
+- Add DOCX/TXT/Markdown extraction in `fileProcessor`.
+- Wire RAG purge into file delete flow.
+- Implement YouTube/audio ingestion with transcripts.
+- Add export endpoints (Markdown/PDF/DOCX) and regenerate support.
+- Enforce RBAC across API routes and encrypt file storage.

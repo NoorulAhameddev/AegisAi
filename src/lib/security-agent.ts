@@ -1,4 +1,4 @@
-import { openai } from "./openai";
+import { openai } from "../services/ai/openai";
 
 type Intent = "SAFE" | "UNSAFE" | "JAILBREAK" | "PII_LEAK";
 

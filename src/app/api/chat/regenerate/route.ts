@@ -1,0 +1,125 @@
+/**
+ * Regenerate Response API
+ * Regenerate the last assistant message in a chat
+ */
+
+import { NextRequest, NextResponse } from "next/server";
+import { verifyAuth } from "@/services/auth/auth";
+import { openai } from "@/services/ai/openai";
+import { prisma } from "@/lib/prisma";
+import { retrieveContext } from "@/lib/rag-retrieval";
+
+export async function POST(req: NextRequest) {
+    try {
+        const authResult = await verifyAuth(req);
+        if (!authResult) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const body = await req.json();
+        const { chatId, projectId } = body;
+
+        if (!chatId) {
+            return NextResponse.json({ error: "Missing chatId" }, { status: 400 });
+        }
+
+        const userId = authResult.id;
+
+        // Get chat with messages
+        const chat = await prisma.chat.findFirst({
+            where: { id: chatId, userId },
+            include: {
+                Message: {
+                    orderBy: { createdAt: "asc" },
+                },
+            },
+        });
+
+        if (!chat || chat.Message.length < 2) {
+            return NextResponse.json({ error: "Chat not found or insufficient messages" }, { status: 404 });
+        }
+
+        // Find last assistant message
+        const lastAssistantMsgIndex = chat.Message
+            .map((m: any, idx: number) => ({ msg: m, idx }))
+            .filter((item: any) => item.msg.role === "ASSISTANT")
+            .pop();
+
+        if (!lastAssistantMsgIndex) {
+            return NextResponse.json({ error: "No assistant message to regenerate" }, { status: 400 });
+        }
+
+        // Delete last assistant message
+        await prisma.message.delete({
+            where: { id: lastAssistantMsgIndex.msg.id },
+        });
+
+        // Get last user message
+        const lastUserMsg = chat.Message
+            .filter((m: any) => m.role === "USER")
+            .pop();
+
+        if (!lastUserMsg) {
+            return NextResponse.json({ error: "No user message found" }, { status: 400 });
+        }
+
+        // Retrieve RAG context
+        let ragContext = "";
+        let sources: string[] = [];
+
+        try {
+            const ragResult = await retrieveContext(lastUserMsg.content, userId);
+            if (ragResult.context && ragResult.context.length > 0) {
+                ragContext = ragResult.context;
+                sources = Array.from(ragResult.sources);
+            }
+        } catch (ragError) {
+            console.error("RAG retrieval error:", ragError);
+        }
+
+        // Build conversation (exclude deleted message)
+        const conversationMessages = chat.Message
+            .filter((m: any) => m.id !== lastAssistantMsgIndex.msg.id)
+            .map((msg: any) => ({
+                role: msg.role.toLowerCase() as "user" | "assistant",
+                content: msg.content,
+            }));
+
+        const systemPrompt = ragContext
+            ? `You are a helpful AI assistant. Use the following context to answer the user's question:\n\n${ragContext}`
+            : "You are a helpful AI assistant.";
+
+        // Generate new response
+        const completion = await openai.chat.completions.create({
+            model: "openai/gpt-4o-mini",
+            messages: [
+                { role: "system", content: systemPrompt },
+                ...conversationMessages,
+            ],
+            temperature: 0.8, // Higher temperature for variation
+        });
+
+        const newResponse = completion.choices[0].message.content || "";
+
+        // Save new assistant message
+        const newMessage = await prisma.message.create({
+            data: {
+                chatId,
+                role: "ASSISTANT",
+                content: newResponse,
+                sources: sources.length > 0 ? sources : undefined,
+            },
+        });
+
+        return NextResponse.json({
+            message: newMessage,
+            tokensUsed: completion.usage?.total_tokens,
+        });
+    } catch (error) {
+        console.error("Regenerate error:", error);
+        return NextResponse.json(
+            { error: error instanceof Error ? error.message : "Regeneration failed" },
+            { status: 500 }
+        );
+    }
+}

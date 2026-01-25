@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     const userAgent = req.headers.get("user-agent") || "unknown";
 
     // Dynamic import to avoid cycles/issues
-    const { createSession } = await import("@/lib/session");
+    const { createSession } = await import("@/services/auth/session");
     const { accessToken, refreshToken } = await createSession(user.id, userAgent, ip);
 
     // Audit

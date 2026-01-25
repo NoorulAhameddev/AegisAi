@@ -1,29 +1,26 @@
-import { api } from './api';
+import { enhancedGet, enhancedPost } from './apiClient';
 import { Chat, Message, ChatJobStatus } from '../types/chat';
 
 export const chatService = {
     async getChats(): Promise<Chat[]> {
-        const { data } = await api.get('/chat/list');
-        return data;
+        return await enhancedGet<Chat[]>('/chat/list', { useCache: true });
     },
 
     async createChat(title: string = "New Chat"): Promise<string> {
-        const { data } = await api.post('/chat/create', { title });
+        const data = await enhancedPost<{ chatId: string }>('/chat/create', { title });
         return data.chatId;
     },
 
     async getHistory(chatId: string): Promise<Message[]> {
-        const { data } = await api.get(`/chat/history?chatId=${chatId}`);
-        return data;
+        return await enhancedGet<Message[]>(`/chat/history?chatId=${chatId}`, { useCache: false });
     },
 
     async sendMessage(chatId: string, message: string): Promise<string> {
-        const { data } = await api.post('/chat/stream', { chatId, message });
+        const data = await enhancedPost<{ jobId: string }>('/chat/stream', { chatId, message });
         return data.jobId;
     },
 
     async getJobStatus(jobId: string): Promise<ChatJobStatus> {
-        const { data } = await api.get(`/chat/status?jobId=${jobId}`);
-        return data;
+        return await enhancedGet<ChatJobStatus>(`/chat/status?jobId=${jobId}`, { useCache: false });
     }
 };
