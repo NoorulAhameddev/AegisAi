@@ -1,6 +1,7 @@
 // File: src/ai/rag/vector-store.ts
 // This module uses LanceDB which requires native bindings and should only run on the server
 let lancedb: any = null;
+let dbInstance: any = null; // Cache database connection only, NOT table
 
 // Lazy load lancedb to prevent bundling issues
 async function loadLanceDB() {
@@ -50,10 +51,15 @@ export interface DocumentMetadata {
     [key: string]: any;
 }
 
-// connect function
+// FIXED: Cache ONLY database connection, NOT table
+// Tables must be opened fresh each time to see latest changes
 async function getDb() {
     const db = await loadLanceDB();
-    return await db.connect(DB_DIR);
+    if (!dbInstance) {
+        console.log(`[VectorStore] Creating new database connection to ${DB_DIR}`);
+        dbInstance = await db.connect(DB_DIR);
+    }
+    return dbInstance;
 }
 
 /**
@@ -61,31 +67,46 @@ async function getDb() {
  */
 export async function addDocument(text: string, metadata: DocumentMetadata, userId: string): Promise<string> {
     const db = await getDb();
-    const tableNames = await db.tableNames();
 
     // Generate Vector
     const vector = await generateEmbedding(text);
 
-    const record: Document = {
+    const record: Record<string, any> = {
         id: crypto.randomUUID(),
         text,
         vector,
         metadata: JSON.stringify(metadata),
         userId,
         createdAt: Date.now(),
-        chunkIndex: metadata.chunkIndex,
-        sourceId: metadata.sourceId || metadata.fileId,
     };
 
-    let table;
-    if (tableNames.includes("documents")) {
-        table = await db.openTable("documents");
-        await table.add([record]);
-    } else {
-        // Create table with first record to infer schema
-        table = await db.createTable("documents", [record]);
+    // Only add optional fields if they have values to avoid schema inference issues
+    if (metadata.chunkIndex !== undefined && metadata.chunkIndex !== null) {
+        record.chunkIndex = metadata.chunkIndex;
+    }
+    
+    const sourceId = metadata.sourceId || metadata.fileId;
+    if (sourceId) {
+        record.sourceId = sourceId;
     }
 
+    console.log(`[VectorStore] addDocument - Creating record with userId: ${userId.substring(0, 8)}, sourceId: ${sourceId?.substring(0, 8) || 'none'}`);
+    console.log(`[VectorStore] Record structure:`, Object.keys(record).join(', '));
+
+    const tableNames = await db.tableNames();
+    
+    if (tableNames.includes("documents")) {
+        // Always open fresh table for adds to ensure we're writing to latest version
+        const table = await db.openTable("documents");
+        console.log(`[VectorStore] Opening fresh table for insert`);
+        await table.add([record]);
+    } else {
+        // Create table with first record
+        console.log(`[VectorStore] Creating new documents table`);
+        await db.createTable("documents", [record]);
+    }
+
+    console.log(`[VectorStore] Successfully added document ${record.id.substring(0, 8)}`);
     return record.id;
 }
 
@@ -156,7 +177,12 @@ export async function searchSimilar(
     const db = await getDb();
     const tableNames = await db.tableNames();
 
-    if (!tableNames.includes("documents")) return [];
+    console.log(`[VectorStore] Available tables: ${tableNames.join(", ")}`);
+
+    if (!tableNames.includes("documents")) {
+        console.log(`[VectorStore] No documents table found`);
+        return [];
+    }
 
     // SECURITY: Validate userId is a valid UUID to prevent injection
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -165,29 +191,96 @@ export async function searchSimilar(
         throw new Error('Invalid userId format');
     }
 
+    console.log(`[VectorStore] Generating embedding for query: "${query.substring(0, 50)}..."`);
     const vector = await generateEmbedding(query);
+    console.log(`[VectorStore] Generated query embedding with ${vector.length} dimensions`);
+    
+    // Always open fresh table for queries to see latest data
     const table = await db.openTable("documents");
+    console.log(`[VectorStore] Opened fresh table for search`);
 
-    // Build filter query
+    // First, check how many documents exist for this user
+    try {
+        // Try without filter first to see if ANY documents exist
+        const allDocs = await table.query().limit(100).toArray();
+        console.log(`[VectorStore] Total documents in entire store: ${allDocs.length}`);
+        
+        // Try the filter WITHOUT quotes around userId value first
+        const filterNoQuotes = `userId = '${userId}'`;
+        const allDocsForUser = await table
+            .query()
+            .filter(filterNoQuotes)
+            .limit(1000)
+            .toArray();
+        console.log(`[VectorStore] Total documents with filter (no quotes): ${allDocsForUser.length}`);
+        
+        if (allDocsForUser.length === 0) {
+            // Try with different quoting
+            const filterWithBackticks = `\`userId\` = '${userId}'`;
+            const allDocsForUser2 = await table
+                .query()
+                .filter(filterWithBackticks)
+                .limit(1000)
+                .toArray();
+            console.log(`[VectorStore] Total documents with filter (backticks): ${allDocsForUser2.length}`);
+            
+            if (allDocsForUser2.length > 0) {
+                console.log(`[VectorStore] ✅ Backtick filter works! Updating filter syntax...`);
+                // Store to use backticks from now on
+            }
+        }
+        
+        if (allDocsForUser.length > 0) {
+            console.log(`[VectorStore] Sample document:`, JSON.stringify(allDocsForUser[0], null, 2).substring(0, 400));
+            // Check if the sample document has a vector
+            if (allDocsForUser[0].vector) {
+                console.log(`[VectorStore] Sample doc has vector with ${allDocsForUser[0].vector.length} dimensions`);
+            } else {
+                console.warn(`[VectorStore] ⚠️ Sample document has NO vector field!`);
+            }
+        } else if (allDocs.length > 0) {
+            console.log(`[VectorStore] Found documents in store, but NONE match filter. First doc userId: ${allDocs[0].userId}`);
+            console.log(`[VectorStore] First doc full: ${JSON.stringify(allDocs[0]).substring(0, 200)}`);
+        }
+    } catch (e) {
+        console.error(`[VectorStore] Error counting documents:`, e);
+    }
+
+    // Build filter query - try without quotes first (LanceDB syntax)
     let filterQuery = `userId = '${userId}'`;
     if (filters?.sourceId) {
         filterQuery += ` AND sourceId = '${filters.sourceId}'`;
     }
 
+    console.log(`[VectorStore] Running search with filter: ${filterQuery}`);
+
     try {
         // Safe: userId is validated as UUID, no injection possible
-        const results = await table.vectorSearch(vector)
-            .filter(filterQuery)
-            .limit(limit * 2) // Get more results for reranking
-            .toArray();
+        console.log(`[VectorStore] About to call vectorSearch with vector of ${vector.length} dimensions`);
+        
+        const builder = table.vectorSearch(vector);
+        console.log(`[VectorStore] vectorSearch builder created`);
+        
+        const filtered = builder.filter(filterQuery);
+        console.log(`[VectorStore] filter applied: ${filterQuery}`);
+        
+        const limited = filtered.limit(limit * 2);
+        console.log(`[VectorStore] limit set to ${limit * 2}`);
+        
+        const results = await limited.toArray();
+
+        console.log(`[VectorStore] Vector search returned ${results.length} results before deduplication`);
 
         // Post-process: Remove duplicates and apply threshold
         const config = getRAGConfig();
         const uniqueResults = deduplicateResults(results as Document[]);
         
+        console.log(`[VectorStore] After deduplication: ${uniqueResults.length} results, returning ${Math.min(uniqueResults.length, limit)}`);
+        
         return uniqueResults.slice(0, limit);
     } catch (error) {
         console.error(`[VectorStore] search failed: ${String(error)}`);
+        console.error(`[VectorStore] Error stack:`, error);
         return [];
     }
 }
@@ -231,14 +324,14 @@ export async function deleteDocumentsBySource(sourceId: string, userId: string):
     // Get count before deletion
     const beforeResults = await table
         .query()
-        .filter(`userId = '${userId}' AND sourceId = '${sourceId}'`)
+        .filter(`"userId" = '${userId}' AND "sourceId" = '${sourceId}'`)
         .limit(10000)
         .toArray();
     
     const count = beforeResults.length;
 
     if (count > 0) {
-        await table.delete(`userId = '${userId}' AND sourceId = '${sourceId}'`);
+        await table.delete(`"userId" = '${userId}' AND "sourceId" = '${sourceId}'`);
         console.log(`[VectorStore] Deleted ${count} documents for source ${sourceId}`);
     }
 
@@ -267,7 +360,7 @@ export async function getDocumentStats(userId: string): Promise<{
     const table = await db.openTable("documents");
     const results = await table
         .query()
-        .filter(`userId = '${userId}'`)
+        .filter(`"userId" = '${userId}'`)
         .limit(10000)
         .toArray();
 

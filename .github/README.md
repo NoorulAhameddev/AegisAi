@@ -178,7 +178,7 @@ To enable GitHub Pages for documentation:
 
 - [CONTRIBUTING.md](../CONTRIBUTING.md) - Contribution guidelines
 - [SECURITY.md](../SECURITY.md) - Security policy
-- [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) - Community guidelines
+- [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) - Community guidelines
 
 ---
 

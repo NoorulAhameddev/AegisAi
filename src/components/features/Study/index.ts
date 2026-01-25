@@ -1,0 +1,1 @@
+export { QuizGenerator } from './QuizGenerator';

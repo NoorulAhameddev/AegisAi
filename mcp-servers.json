@@ -1,0 +1,41 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "node",
+      "args": [
+        "./node_modules/@modelcontextprotocol/server-filesystem/dist/index.js",
+        "./uploads"
+      ],
+      "env": {}
+    },
+    "github": {
+      "command": "node",
+      "args": [
+        "./node_modules/@modelcontextprotocol/server-github/dist/index.js"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "browser": {
+      "command": "node",
+      "args": [
+        "./node_modules/@modelcontextprotocol/server-puppeteer/dist/index.js"
+      ],
+      "env": {
+        "BROWSER_TYPE": "edge",
+        "BROWSER_HEADLESS": "false"
+      }
+    },
+    "n8n": {
+      "command": "npx",
+      "args": [
+        "n8n-mcp"
+      ],
+      "env": {
+        "N8N_API_URL": "${N8N_API_URL}",
+        "N8N_API_KEY": "${N8N_API_KEY}"
+      }
+    }
+  }
+}

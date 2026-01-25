@@ -14,6 +14,7 @@ node_modules/
 out/
 build/
 dist/
+.next/cache
 
 # TypeScript
 *.tsbuildinfo
@@ -29,6 +30,7 @@ Thumbs.db
 *.swp
 *.swo
 *~
+.eslintcache
 
 # Debug
 npm-debug.log*
@@ -44,6 +46,8 @@ lerna-debug.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.envrc
+.direnv/
 
 # Vercel
 .vercel
@@ -73,6 +77,9 @@ Thumbs.db
 # Uploads (keep folder, ignore contents)
 uploads/*
 !uploads/.gitkeep
+
+# Local data stores
+data/lancedb/
 
 # Tools
 tools/redis/

@@ -14,7 +14,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 
     const { openai } = await import('../ai/openai');
     const response = await openai.embeddings.create({
-        model: 'openai/text-embedding-3-small', // Cost effective
+        model: 'openai/text-embedding-ada-002', // OpenRouter supported model
         input: cleanText,
         encoding_format: 'float',
     });

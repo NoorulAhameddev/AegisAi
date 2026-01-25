@@ -1,0 +1,134 @@
+{
+  "name": "AI Agent Webhook → Agent API",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-agent",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "Webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Normalize and validate input\nconst body = $json || {};\nconst message = body.message || body.text || body.prompt || '';
+const context = body.context || body.metadata || {};\nif (!message) {\n  throw new Error('Missing message in request body');\n}\nreturn [{ message, context }];"
+      },
+      "id": "Normalize Input",
+      "name": "Normalize Input",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [540, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.AGENT_API_URL || 'http://localhost:3000/api/ai' }}",
+        "method": "POST",
+        "responseFormat": "json",
+        "jsonParameters": true,
+        "sendHeaders": true,
+        "headerParametersJson": "{ \"Content-Type\": \"application/json\", \"Authorization\": \"Bearer {{ $env.AGENT_API_KEY || '' }}\" }",
+        "bodyParametersJson": "{ \"message\": \"{{ $json.message }}\", \"context\": {{ $json.context || {} }}, \"source\": \"n8n\" }",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "Call Agent API",
+      "name": "Call Agent API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [820, 300]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "reply",
+              "value": "={{ $json.reply || $json.response || $json.text || $json.message || 'No reply received' }}"
+            },
+            {
+              "name": "debug",
+              "value": "={{ $json }}"
+            }
+          ]
+        }
+      },
+      "id": "Shape Response",
+      "name": "Shape Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [1040, 300]
+    },
+    {
+      "parameters": {
+        "responseMode": "lastNode",
+        "responseCode": 200,
+        "responseData": "={{ $json }}",
+        "options": {}
+      },
+      "id": "Respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1260, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Input": {
+      "main": [
+        [
+          {
+            "node": "Call Agent API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Agent API": {
+      "main": [
+        [
+          {
+            "node": "Shape Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape Response": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "version": 2,
+  "type": "regular"
+}

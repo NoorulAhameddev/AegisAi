@@ -1,0 +1,23 @@
+This is a test file for Aegis AI file upload functionality.
+
+Testing Content:
+================
+
+This file is created to test if the file upload feature is working properly in the Aegis AI application.
+
+Key Information:
+- File Name: test_upload.txt
+- File Type: Text File
+- Upload Date: January 25, 2026
+- Purpose: Testing file upload and RAG functionality
+
+The application should be able to:
+1. Accept the file upload
+2. Process the file content
+3. Store the file in the knowledge base
+4. Retrieve content from the file when queried
+
+Expected Behavior:
+- File should appear in the Files section
+- Content should be indexed for search
+- AI should be able to answer questions about the file content

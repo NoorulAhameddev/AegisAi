@@ -1,0 +1,20 @@
+# RAG Test Document
+
+This is a test document to verify the RAG (Retrieval Augmented Generation) system is working correctly.
+
+## Key Information
+
+The purpose of this file is to test document ingestion and retrieval in the vector store.
+
+## Main Content
+
+This document contains important information about the Aegis AI system:
+- It is an enterprise AI chat platform
+- Built with Next.js and TypeScript
+- Uses PostgreSQL for data storage
+- Implements a worker-based async architecture
+- Supports file uploads and knowledge base management
+
+## Summary
+
+When you ask about this document, the AI should be able to retrieve it from the vector store and answer questions about its content.
