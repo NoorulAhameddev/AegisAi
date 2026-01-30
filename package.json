@@ -24,9 +24,9 @@
   },
   "dependencies": {
     "@lancedb/lancedb": "^0.23.0",
-    "@langchain/community": "1.0.0",
+    "@langchain/community": "0.2.0",
     "@langchain/core": "0.3.58",
-    "@langchain/openai": "^1.2.3",
+    "@langchain/openai": "^0.2.0",
     "@modelcontextprotocol/server-filesystem": "^2026.1.14",
     "@modelcontextprotocol/server-github": "^2025.4.8",
     "@modelcontextprotocol/server-puppeteer": "^2025.5.12",
@@ -69,6 +69,9 @@
     "tesseract.js": "^7.0.0",
     "youtube-transcript": "^1.2.1",
     "zod": "3.23.8"
+  },
+  "overrides": {
+    "apache-arrow": "18.1.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
