@@ -5,8 +5,10 @@ import { cn } from "@/lib/utils";
 import { ReactNode, useEffect, useRef } from "react";
 
 interface DialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open?: boolean;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onClose?: () => void;
   title?: string;
   description?: string;
   children: ReactNode;
@@ -25,7 +27,9 @@ const sizeClasses = {
 
 export function Dialog({
   open,
+  isOpen,
   onOpenChange,
+  onClose,
   title,
   description,
   children,
@@ -34,16 +38,18 @@ export function Dialog({
   size = "md",
   className,
 }: DialogProps) {
+  const effectiveOpen = open ?? isOpen ?? false;
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onOpenChange(false);
+        onOpenChange?.(false);
+        onClose?.();
       }
     };
 
-    if (open) {
+    if (effectiveOpen) {
       document.addEventListener("keydown", handleEscape);
       document.body.style.overflow = "hidden";
       return () => {
@@ -51,9 +57,9 @@ export function Dialog({
         document.body.style.overflow = "auto";
       };
     }
-  }, [open, onOpenChange]);
+  }, [effectiveOpen, onOpenChange, onClose]);
 
-  if (!open) return null;
+  if (!effectiveOpen) return null;
 
   return (
     <div
@@ -64,7 +70,8 @@ export function Dialog({
       )}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          onOpenChange(false);
+          onOpenChange?.(false);
+          onClose?.();
         }
       }}
     >
@@ -91,7 +98,10 @@ export function Dialog({
             )}
             {closeButton && (
               <button
-                onClick={() => onOpenChange(false)}
+                onClick={() => {
+                  onOpenChange?.(false);
+                  onClose?.();
+                }}
                 className="p-2 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                 aria-label="Close dialog"
               >

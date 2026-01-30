@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
-import { Slider } from '@/components/ui/Slider';
-import { AlertCircle, Info } from 'lucide-react';
+import React, { useState } from "react";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Badge } from "@/components/ui/Badge";
+import { Slider } from "@/components/ui/Slider";
+import { AlertCircle, Info } from "lucide-react";
 
 interface ChunkingSettings {
   chunkSize: number;
   overlapSize: number;
-  chunkingStrategy: 'fixed' | 'recursive' | 'semantic';
+  chunkingStrategy: "fixed" | "recursive" | "semantic";
   preserveStructure: boolean;
 }
 
@@ -28,7 +28,9 @@ export function ChunkingConfig({
   const estimatedChunks = Math.ceil(documentTokens / settings.chunkSize);
   const overlapPercentage = (settings.overlapSize / settings.chunkSize) * 100;
 
-  const handleStrategyChange = (strategy: 'fixed' | 'recursive' | 'semantic') => {
+  const handleStrategyChange = (
+    strategy: "fixed" | "recursive" | "semantic",
+  ) => {
     onChange({ ...settings, chunkingStrategy: strategy });
   };
 
@@ -47,32 +49,32 @@ export function ChunkingConfig({
       <Card className="p-4">
         <h3 className="font-semibold mb-3">Chunking Strategy</h3>
         <div className="grid grid-cols-3 gap-2">
-          {(['fixed', 'recursive', 'semantic'] as const).map((strategy) => (
+          {(["fixed", "recursive", "semantic"] as const).map((strategy) => (
             <button
               key={strategy}
               onClick={() => handleStrategyChange(strategy)}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
                 settings.chunkingStrategy === strategy
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               <div className="flex items-center justify-center gap-1">
-                {strategy === 'fixed' && '📏'}
-                {strategy === 'recursive' && '🔀'}
-                {strategy === 'semantic' && '🧠'}
+                {strategy === "fixed" && "📏"}
+                {strategy === "recursive" && "🔀"}
+                {strategy === "semantic" && "🧠"}
                 <span className="capitalize">{strategy}</span>
               </div>
             </button>
           ))}
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          {settings.chunkingStrategy === 'fixed' &&
-            'Equal-sized chunks, fastest processing'}
-          {settings.chunkingStrategy === 'recursive' &&
-            'Semantically aware, respects structure'}
-          {settings.chunkingStrategy === 'semantic' &&
-            'AI-powered, best for RAG but slower'}
+          {settings.chunkingStrategy === "fixed" &&
+            "Equal-sized chunks, fastest processing"}
+          {settings.chunkingStrategy === "recursive" &&
+            "Semantically aware, respects structure"}
+          {settings.chunkingStrategy === "semantic" &&
+            "AI-powered, best for RAG but slower"}
         </p>
       </Card>
 
@@ -101,7 +103,8 @@ export function ChunkingConfig({
           {documentTokens > 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-xs text-blue-700">
-                📊 Document will be split into ~<strong>{estimatedChunks}</strong> chunks
+                📊 Document will be split into ~
+                <strong>{estimatedChunks}</strong> chunks
               </p>
             </div>
           )}
@@ -115,11 +118,13 @@ export function ChunkingConfig({
             <label className="flex items-center gap-2 font-semibold text-sm mb-2">
               Overlap (tokens)
               <Badge variant="secondary">{settings.overlapSize}</Badge>
-              <span className="text-gray-500 font-normal">({overlapPercentage.toFixed(0)}%)</span>
+              <span className="text-gray-500 font-normal">
+                ({overlapPercentage.toFixed(0)}%)
+              </span>
             </label>
             <Slider
-              value={[settings.overlapSize]}
-              onValueChange={handleOverlapChange}
+              value={settings.overlapSize}
+              onChange={handleOverlapChange}
               min={0}
               max={Math.floor(settings.chunkSize * 0.5)}
               step={16}
@@ -128,8 +133,10 @@ export function ChunkingConfig({
           </div>
 
           <div className="flex items-start gap-2 text-xs text-gray-600">
-            <Info size={14} className="mt-0.5 flex-shrink-0" />
-            <span>Overlap helps maintain context between chunks. Recommended: 10-20%</span>
+            <Info size={14} className="mt-0.5 shrink-0" />
+            <span>
+              Overlap helps maintain context between chunks. Recommended: 10-20%
+            </span>
           </div>
         </div>
       </Card>
@@ -147,7 +154,9 @@ export function ChunkingConfig({
           />
           <div>
             <p className="font-medium text-sm">Preserve Structure</p>
-            <p className="text-xs text-gray-500">Respect markdown headers, code blocks, etc.</p>
+            <p className="text-xs text-gray-500">
+              Respect markdown headers, code blocks, etc.
+            </p>
           </div>
         </label>
       </Card>

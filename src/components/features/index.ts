@@ -6,37 +6,37 @@
  */
 
 // A. INPUT & INGESTION
-export { TextInput, FileUpload, URLIngestionModal } from './features/InputIngestion';
+export { TextInput, FileUpload, URLIngestionModal } from './InputIngestion';
 
 // B. EXTRACTION & PREPROCESSING  
-export { ExtractionStatus } from './features/Extraction';
+export { ExtractionStatus } from './Extraction';
 
 // C. CHUNKING & TOKEN MANAGEMENT
-export { ChunkingConfig, ChunkPreview } from './features/Chunking';
+export { ChunkingConfig, ChunkPreview } from './Chunking';
 
 // D. AI CAPABILITIES
-export { AICapabilities, FlashcardGenerator } from './features/AICapabilities';
+export { AICapabilities, FlashcardGenerator } from './AICapabilities';
 
 // E. RAG (RETRIEVAL-AUGMENTED GENERATION)
-export { RAGContext } from './features/RAG';
+export { RAGContext } from './RAG';
 
 // F. MEMORY & STORAGE
-export { DocumentStorage } from './features/Storage';
+export { DocumentStorage } from './Storage';
 
 // G. CHAT & INTERACTION
-export { AdvancedChat } from './features/Chat';
+export { AdvancedChat } from './Chat';
 
 // H. STUDY & LEARNING
-export { QuizGenerator } from './features/Study';
+export { QuizGenerator } from './Study';
 
 // I. EXPORT & OUTPUT
-export { ExportManager } from './features/Export';
+export { ExportManager } from './Export';
 
 // K & L. SYSTEM & SECURITY
-export { SecuritySettings } from './features/Security';
+export { SecuritySettings } from './Security';
 
 // DASHBOARD
-export { FeaturesDashboard } from './features/Dashboard';
+export { FeaturesDashboard } from './Dashboard';
 
 /**
  * Usage Examples:

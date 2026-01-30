@@ -11,16 +11,23 @@ async function getUser() {
   if (!token) return null;
 
   try {
-    const payload = jwt.verify(token.value, process.env.JWT_ACCESS_SECRET!) as { userId: string; role: string };
+    const payload = jwt.verify(token.value, process.env.JWT_ACCESS_SECRET!) as {
+      userId: string;
+      role: string;
+    };
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
       select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true
-      }
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
     });
+    // Ensure role is always present (fallback to 'USER' if missing)
+    if (user && !user.role) {
+      user.role = "USER";
+    }
     return user;
   } catch {
     return null;

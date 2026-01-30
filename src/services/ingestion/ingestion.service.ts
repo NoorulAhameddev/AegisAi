@@ -10,6 +10,7 @@ import { encrypt } from "@/lib/encryption";
 import fs from "fs";
 import crypto from "crypto";
 import path from "path";
+import OpenAI from "openai";
 
 export interface IngestionResult {
     fileId: string;
@@ -47,6 +48,11 @@ export async function ingestFile(
     // Get file buffer
     const buffer = 'buffer' in file ? file.buffer : Buffer.from(await file.arrayBuffer());
     
+    // Save a temporary plain file for extraction
+    const tempPath = `uploads/tmp/${safeName}`;
+    ensureDir(path.dirname(tempPath));
+    fs.writeFileSync(tempPath, buffer);
+
     // Save file with encryption
     if (encryptStorage) {
         // Encrypt file content before storage
@@ -61,17 +67,23 @@ export async function ingestFile(
         fs.writeFileSync(filePath, buffer);
     }
 
-    // Extract text content
+    // Extract text content from the temporary plain file
     let text = "";
     let language = "en";
     let fileMetadata: any = {};
 
     try {
-        text = await extractText(filePath, file.type);
+        text = await extractText(tempPath, file.type);
         language = detectLanguage(text);
-        fileMetadata = await extractMetadata(filePath, file.type);
+        fileMetadata = await extractMetadata(tempPath, file.type);
     } catch (e: any) {
         console.error(`[Ingestion] Extraction failed for ${file.name}:`, e.message);
+    } finally {
+        try {
+            fs.unlinkSync(tempPath);
+        } catch {
+            // ignore temp cleanup errors
+        }
     }
 
     // Save to database
@@ -473,14 +485,24 @@ async function fetchAndCleanWebPage(url: string): Promise<{ title: string; conte
 }
 
 async function transcribeAudio(filePath: string): Promise<string> {
-    // Use OpenAI Whisper API
-    const { openai } = await import('../ai/openai');
-    
+    // Whisper is only available on the official OpenAI endpoint; OpenRouter currently returns 405.
+    const apiKey = process.env.OPENAI_API_KEY?.trim();
+    const baseURL = process.env.OPENAI_BASE_URL?.trim() || "https://api.openai.com/v1";
+
+    if (!apiKey) {
+        throw new Error("Audio transcription requires OPENAI_API_KEY; OpenRouter does not support Whisper.");
+    }
+
+    if (apiKey.startsWith("sk-or-")) {
+        throw new Error("OPENAI_API_KEY points to an OpenRouter key. Whisper requires a direct OpenAI key.");
+    }
+
+    const openai = new OpenAI({ apiKey, baseURL });
     const audioFile = fs.createReadStream(filePath);
-    
+
     const transcription = await openai.audio.transcriptions.create({
         file: audioFile,
-        model: 'whisper-1',
+        model: "whisper-1",
     });
 
     return transcription.text;

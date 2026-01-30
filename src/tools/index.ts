@@ -14,12 +14,14 @@ export function registerTool(tool: Tool) {
 import { CalculatorTool } from "./calculator";
 import { ImageGeneratorTool } from "./image-generator";
 import { WebSearchTool, WebReadTool } from "./web-browser";
+import { CodeCompilerTool } from "./compiler";
 
 export function registerAllTools() {
     registerTool(CalculatorTool);
     registerTool(ImageGeneratorTool);
     registerTool(WebSearchTool);
     registerTool(WebReadTool);
+    registerTool(CodeCompilerTool);
 }
 
 export function getOpenAITools() {

@@ -9,6 +9,7 @@ import { MessageBubble } from "@/components/chat/MessageBubble";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { MobileNav } from "@/components/layout/MobileNav";
 import Link from "next/link";
+import { ArtifactsPanel } from "@/components/chat/ArtifactsPanel";
 
 type Message = {
   role: "USER" | "ASSISTANT" | "SYSTEM";
@@ -32,6 +33,21 @@ export default function ChatClient({ user }: ChatClientProps) {
 
   // State
   const [messages, setMessages] = useState<Message[]>([]);
+  // Cache messages per chatId to prevent disappearing on switch
+  const messageCacheRef = useRef<Map<string, Message[]>>(new Map());
+
+  // Load cache from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('aegis_message_cache');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        messageCacheRef.current = new Map(Object.entries(parsed));
+      }
+    } catch (err) {
+      console.warn('[ChatClient] Failed to load message cache from localStorage:', err);
+    }
+  }, []);
   const [input, setInput] = useState("");
   const [generating, setGenerating] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -63,15 +79,35 @@ export default function ChatClient({ user }: ChatClientProps) {
 
   useEffect(() => {
     if (urlChatId) {
+      // Immediately show cached messages if available
+      const cached = messageCacheRef.current.get(urlChatId);
+      if (cached) {
+        setMessages(cached);
+      }
+
       fetch(`/api/chat/history?chatId=${urlChatId}`)
-        .then(res => res.json())
+        .then(async res => {
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `Failed to load history (${res.status})`);
+          }
+          return res.json();
+        })
         .then(data => {
-          if (Array.isArray(data)) {
-            const formatted = data.map((m: any) => ({
-              role: m.role.toUpperCase(),
+          if (Array.isArray(data?.messages)) {
+            const formatted = data.messages.map((m: any) => ({
+              role: (m.role || "user").toUpperCase(),
               content: m.content
             }));
             setMessages(formatted);
+            messageCacheRef.current.set(urlChatId, formatted);
+            // Persist to localStorage
+            try {
+              const cacheObj = Object.fromEntries(messageCacheRef.current);
+              localStorage.setItem('aegis_message_cache', JSON.stringify(cacheObj));
+            } catch (err) {
+              console.warn('[ChatClient] Failed to save cache to localStorage:', err);
+            }
           }
         })
         .catch(err => console.error("Failed to load history", err));
@@ -115,8 +151,25 @@ export default function ChatClient({ user }: ChatClientProps) {
     const userMsg = input;
     setInput("");
     setGenerating(true);
-    setMessages((prev) => [...prev, { role: "USER", content: userMsg }]);
-    setMessages(prev => [...prev, { role: "ASSISTANT", content: "..." }]);
+    setMessages((prev) => {
+      const next: Message[] = [...prev, { role: "USER", content: userMsg }];
+      return next;
+    });
+    setMessages(prev => {
+      const next: Message[] = [...prev, { role: "ASSISTANT", content: "..." }];
+      // Update cache for current chat
+      if (urlChatId) {
+        messageCacheRef.current.set(urlChatId, next);
+        // Persist to localStorage
+        try {
+          const cacheObj = Object.fromEntries(messageCacheRef.current);
+          localStorage.setItem('aegis_message_cache', JSON.stringify(cacheObj));
+        } catch (err) {
+          console.warn('[ChatClient] Failed to save cache:', err);
+        }
+      }
+      return next;
+    });
 
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
@@ -167,8 +220,20 @@ export default function ChatClient({ user }: ChatClientProps) {
 
           if (state === 'completed') {
             setMessages(prev => {
-              const n = [...prev];
+              const n: Message[] = [...prev];
               if (n[n.length - 1].role === "ASSISTANT") n[n.length - 1].content = result.content;
+              // Persist to cache for active chat
+              const currentId = urlChatId || activeChatId;
+              if (currentId) {
+                messageCacheRef.current.set(currentId, n);
+                // Save to localStorage
+                try {
+                  const cacheObj = Object.fromEntries(messageCacheRef.current);
+                  localStorage.setItem('aegis_message_cache', JSON.stringify(cacheObj));
+                } catch (err) {
+                  console.warn('[ChatClient] Failed to save cache:', err);
+                }
+              }
               return n;
             });
             break;
@@ -202,8 +267,19 @@ export default function ChatClient({ user }: ChatClientProps) {
     } catch (err: any) {
       if (err.name !== 'AbortError') {
         setMessages(prev => {
-          const n = [...prev];
+          const n: Message[] = [...prev];
           if (n[n.length - 1].role === "ASSISTANT") n[n.length - 1].content = `Error: ${err.message}`;
+          const currentId = urlChatId;
+          if (currentId) {
+            messageCacheRef.current.set(currentId, n);
+            // Save to localStorage
+            try {
+              const cacheObj = Object.fromEntries(messageCacheRef.current);
+              localStorage.setItem('aegis_message_cache', JSON.stringify(cacheObj));
+            } catch (err) {
+              console.warn('[ChatClient] Failed to save cache:', err);
+            }
+          }
           return n;
         });
       }
@@ -212,6 +288,21 @@ export default function ChatClient({ user }: ChatClientProps) {
       setFile(null);
       setUploadedFileId(null);
     }
+  };
+
+  const [artifactOpen, setArtifactOpen] = useState(false);
+  const [artifactContent, setArtifactContent] = useState("");
+  const [artifactLanguage, setArtifactLanguage] = useState("");
+  
+  // ArtifactsPanel is now imported at the top
+
+  const closeArtifact = () => setArtifactOpen(false);
+
+  // Clean implementation of artifacts opening
+  const handleArtifactOpen = (content: string, language: string) => {
+      setArtifactContent(content);
+      setArtifactLanguage(language);
+      setArtifactOpen(true);
   };
 
   return (
@@ -293,7 +384,7 @@ export default function ChatClient({ user }: ChatClientProps) {
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col relative min-w-0 bg-[url('/bg-noise.png')] bg-repeat opacity-100">
+            <div className="flex-1 flex flex-col relative min-w-0 bg-[url('/bg-noise.png')] bg-repeat opacity-100 transition-all duration-300">
                 <div className="flex-1 overflow-y-auto pt-6 px-4 md:px-0 scrollbar-hide">
                     <div className="max-w-3xl mx-auto min-h-full flex flex-col justify-end pb-8">
                         {messages.length === 0 ? (
@@ -316,7 +407,12 @@ export default function ChatClient({ user }: ChatClientProps) {
                         ) : (
                             <div className="space-y-8 pb-4 pt-10">
                                 {messages.map((m, i) => (
-                                    <MessageBubble key={i} role={m.role} content={m.content} />
+                                    <MessageBubble 
+                                        key={i} 
+                                        role={m.role} 
+                                        content={m.content} 
+                                        onArtifactOpen={handleArtifactOpen}
+                                    />
                                 ))}
                                 <div ref={messagesEndRef} className="h-4" />
                             </div>
@@ -340,6 +436,14 @@ export default function ChatClient({ user }: ChatClientProps) {
                     </div>
                 </div>
             </div>
+            
+            {/* Artifacts Panel */}
+            <ArtifactsPanel 
+                isOpen={artifactOpen} 
+                onClose={closeArtifact} 
+                content={artifactContent} 
+                language={artifactLanguage} 
+            />
         </div>
       </main>
     </div>

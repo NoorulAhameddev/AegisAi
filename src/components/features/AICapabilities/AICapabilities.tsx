@@ -1,89 +1,105 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Loader2, Zap, Copy, Check, Settings } from 'lucide-react';
+import React, { useState } from "react";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Loader2, Zap, Copy, Check, Settings } from "lucide-react";
 
-type AICapability = 'summarize' | 'notes' | 'bullets' | 'concepts' | 'definitions' | 'examples' | 'explain' | 'qa';
+type AICapability =
+  | "summarize"
+  | "notes"
+  | "bullets"
+  | "concepts"
+  | "definitions"
+  | "examples"
+  | "explain"
+  | "qa";
 
 interface AICapabilityOption {
   id: AICapability;
   label: string;
   icon: string;
   description: string;
-  complexity: 'fast' | 'medium' | 'slow';
+  complexity: "fast" | "medium" | "slow";
 }
 
 const CAPABILITIES: AICapabilityOption[] = [
   {
-    id: 'summarize',
-    label: 'Summarize',
-    icon: '📝',
-    description: 'Generate concise summary',
-    complexity: 'fast',
+    id: "summarize",
+    label: "Summarize",
+    icon: "📝",
+    description: "Generate concise summary",
+    complexity: "fast",
   },
   {
-    id: 'notes',
-    label: 'Notes',
-    icon: '📄',
-    description: 'Detailed structured notes',
-    complexity: 'medium',
+    id: "notes",
+    label: "Notes",
+    icon: "📄",
+    description: "Detailed structured notes",
+    complexity: "medium",
   },
   {
-    id: 'bullets',
-    label: 'Bullet Points',
-    icon: '📋',
-    description: 'Key takeaways as bullets',
-    complexity: 'fast',
+    id: "bullets",
+    label: "Bullet Points",
+    icon: "📋",
+    description: "Key takeaways as bullets",
+    complexity: "fast",
   },
   {
-    id: 'concepts',
-    label: 'Key Concepts',
-    icon: '🧠',
-    description: 'Extract main concepts',
-    complexity: 'medium',
+    id: "concepts",
+    label: "Key Concepts",
+    icon: "🧠",
+    description: "Extract main concepts",
+    complexity: "medium",
   },
   {
-    id: 'definitions',
-    label: 'Glossary',
-    icon: '📚',
-    description: 'Definitions & explanations',
-    complexity: 'medium',
+    id: "definitions",
+    label: "Glossary",
+    icon: "📚",
+    description: "Definitions & explanations",
+    complexity: "medium",
   },
   {
-    id: 'examples',
-    label: 'Examples',
-    icon: '💡',
-    description: 'Real-world examples',
-    complexity: 'medium',
+    id: "examples",
+    label: "Examples",
+    icon: "💡",
+    description: "Real-world examples",
+    complexity: "medium",
   },
   {
-    id: 'explain',
-    label: 'ELI5',
-    icon: '👧',
-    description: 'Simplified explanation',
-    complexity: 'fast',
+    id: "explain",
+    label: "ELI5",
+    icon: "👧",
+    description: "Simplified explanation",
+    complexity: "fast",
   },
   {
-    id: 'qa',
-    label: 'Q&A',
-    icon: '❓',
-    description: 'Answer questions',
-    complexity: 'medium',
+    id: "qa",
+    label: "Q&A",
+    icon: "❓",
+    description: "Answer questions",
+    complexity: "medium",
   },
 ];
 
 interface AICapabilitiesProps {
-  onGenerate: (capability: AICapability, customPrompt?: string) => Promise<string>;
+  onGenerate: (
+    capability: AICapability,
+    customPrompt?: string,
+  ) => Promise<string>;
   loading?: boolean;
   result?: string;
 }
 
-export function AICapabilities({ onGenerate, loading = false, result }: AICapabilitiesProps) {
-  const [selectedCapability, setSelectedCapability] = useState<AICapability>('summarize');
-  const [customPrompt, setCustomPrompt] = useState('');
-  const [output, setOutput] = useState(result || '');
+export function AICapabilities({
+  onGenerate,
+  loading = false,
+  result,
+}: AICapabilitiesProps) {
+  const [selectedCapability, setSelectedCapability] =
+    useState<AICapability>("summarize");
+  const [customPrompt, setCustomPrompt] = useState("");
+  const [output, setOutput] = useState(result || "");
   const [copied, setCopied] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -94,7 +110,9 @@ export function AICapabilities({ onGenerate, loading = false, result }: AICapabi
       const response = await onGenerate(selectedCapability, customPrompt);
       setOutput(response);
     } catch (error) {
-      setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setOutput(
+        `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   };
 
@@ -114,25 +132,25 @@ export function AICapabilities({ onGenerate, loading = false, result }: AICapabi
             onClick={() => setSelectedCapability(cap.id)}
             className={`p-3 rounded-lg border-2 transition text-left ${
               selectedCapability === cap.id
-                ? 'border-blue-600 bg-blue-50'
-                : 'border-gray-200 hover:border-gray-300'
+                ? "border-blue-600 bg-blue-50"
+                : "border-gray-200 hover:border-gray-300"
             }`}
           >
             <p className="text-xl mb-1">{cap.icon}</p>
             <p className="text-sm font-semibold">{cap.label}</p>
             <p className="text-xs text-gray-500 mt-1">{cap.description}</p>
             <div className="mt-2">
-              {cap.complexity === 'fast' && (
+              {cap.complexity === "fast" && (
                 <Badge variant="success" className="text-xs">
                   Fast
                 </Badge>
               )}
-              {cap.complexity === 'medium' && (
+              {cap.complexity === "medium" && (
                 <Badge variant="warning" className="text-xs">
                   Medium
                 </Badge>
               )}
-              {cap.complexity === 'slow' && (
+              {cap.complexity === "slow" && (
                 <Badge variant="error" className="text-xs">
                   Slow
                 </Badge>
@@ -191,7 +209,7 @@ export function AICapabilities({ onGenerate, loading = false, result }: AICapabi
 
       {/* Output */}
       {output && (
-        <Card className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <Card className="p-4 bg-linear-to-br from-blue-50 to-indigo-50">
           <div className="flex items-center justify-between mb-3">
             <p className="font-semibold text-gray-900">Output</p>
             <button
@@ -212,7 +230,9 @@ export function AICapabilities({ onGenerate, loading = false, result }: AICapabi
             </button>
           </div>
           <div className="bg-white rounded-lg p-4 max-h-72 overflow-y-auto">
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{output}</p>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">
+              {output}
+            </p>
           </div>
         </Card>
       )}

@@ -107,7 +107,6 @@ export async function POST(req: NextRequest) {
                 chatId,
                 role: "ASSISTANT",
                 content: newResponse,
-                sources: sources.length > 0 ? sources : undefined,
             },
         });
 

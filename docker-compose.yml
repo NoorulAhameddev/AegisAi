@@ -1,20 +1,105 @@
 version: "3.9"
 
 services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: aegis-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-aegis_ai}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aegis-network
+
+  # Redis Cache and Queue
   redis:
     image: redis:7-alpine
     container_name: aegis-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
     ports:
-      - "6379:6379"
-    restart: unless-stopped
-    command: redis-server --appendonly yes
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis-data:/data
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - aegis-network
+
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: aegis-app
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-aegis_ai}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
+      SITE_NAME: ${SITE_NAME:-Aegis AI}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/app/uploads
+      - ./data:/app/data
+    restart: unless-stopped
+    networks:
+      - aegis-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optional: pgAdmin for Database Management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: aegis-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@aegis.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - aegis-network
+    profiles:
+      - dev
 
 volumes:
+  postgres-data:
   redis-data:
+
+networks:
+  aegis-network:
+    driver: bridge

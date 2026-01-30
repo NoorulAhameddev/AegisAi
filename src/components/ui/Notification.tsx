@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 export type NotificationType = "success" | "error" | "info" | "warning" | "loading";
 
 interface NotificationProps {
-  title: string;
+  title?: string;
   message?: string;
   type?: NotificationType;
   duration?: number;

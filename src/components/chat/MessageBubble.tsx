@@ -6,16 +6,17 @@ import rehypeKatex from "rehype-katex";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "katex/dist/katex.min.css";
-import { Bot, User, Copy, Check, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Bot, User, Copy, Check, ThumbsUp, ThumbsDown, Eye } from "lucide-react";
 import { useState } from "react";
 
 interface MessageBubbleProps {
   role: "USER" | "ASSISTANT" | "SYSTEM";
   content: string;
   onFeedback?: (helpful: boolean) => void;
+  onArtifactOpen?: (content: string, language: string) => void;
 }
 
-export function MessageBubble({ role, content, onFeedback }: MessageBubbleProps) {
+export function MessageBubble({ role, content, onFeedback, onArtifactOpen }: MessageBubbleProps) {
   const isUser = role === "USER";
   const [copied, setCopied] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState<boolean | null>(null);
@@ -72,30 +73,46 @@ export function MessageBubble({ role, content, onFeedback }: MessageBubbleProps)
               components={{
                 code({ node, inline, className, children, ...props }: any) {
                   const match = /language-(\w+)/.exec(className || "");
+                  const language = match ? match[1] : "";
+                  const codeContent = String(children).replace(/\n$/, "");
+                  const isPreviewable = ["html", "svg"].includes(language.toLowerCase());
+
                   return !inline && match ? (
                     <div className="rounded-lg overflow-hidden my-3 border border-white/10 shadow-lg group/code">
                       <div className="bg-zinc-900/80 px-4 py-1.5 text-xs text-zinc-400 border-b border-white/5 flex justify-between items-center">
-                        <span className="font-mono font-medium text-zinc-500">{match[1]}</span>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(String(children).replace(/\n$/, ""));
-                            setCopied(true);
-                            setTimeout(() => setCopied(false), 2000);
-                          }}
-                          className="p-1 rounded text-xs text-zinc-500 hover:text-white hover:bg-white/10 transition-colors"
-                          aria-label="Copy code"
-                        >
-                          {copied ? "Copied!" : "Copy"}
-                        </button>
+                        <span className="font-mono font-medium text-zinc-500">{language}</span>
+                        <div className="flex items-center gap-2">
+                            {isPreviewable && onArtifactOpen && (
+                                <button
+                                    onClick={() => onArtifactOpen(codeContent, language)}
+                                    className="flex items-center gap-1 p-1 px-2 rounded text-xs text-purple-400 hover:text-white hover:bg-purple-500/20 transition-colors border border-purple-500/20"
+                                    aria-label="Preview code"
+                                >
+                                    <Eye className="h-3 w-3" />
+                                    Preview
+                                </button>
+                            )}
+                            <button
+                            onClick={() => {
+                                navigator.clipboard.writeText(codeContent);
+                                setCopied(true);
+                                setTimeout(() => setCopied(false), 2000);
+                            }}
+                            className="p-1 rounded text-xs text-zinc-500 hover:text-white hover:bg-white/10 transition-colors"
+                            aria-label="Copy code"
+                            >
+                            {copied ? "Copied!" : "Copy"}
+                            </button>
+                        </div>
                       </div>
                       <SyntaxHighlighter
                         style={vscDarkPlus}
-                        language={match[1]}
+                        language={language}
                         PreTag="div"
                         customStyle={{ margin: 0, background: 'rgba(0,0,0,0.4)' }}
                         {...props}
                       >
-                        {String(children).replace(/\n$/, "")}
+                        {codeContent}
                       </SyntaxHighlighter>
                     </div>
                   ) : (

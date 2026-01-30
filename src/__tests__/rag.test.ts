@@ -120,7 +120,7 @@ describe('RAG Retrieval Logic', () => {
             documents: [],
             context: 'RELEVANT CONTEXT:\n[1] Test context',
             tokensUsed: 10,
-            sources: new Set(['source1', 'source2']),
+            sources: new Set<string>(['source1', 'source2']),
         };
 
         const formatted = formatRAGContext(mockResult);
@@ -136,7 +136,7 @@ describe('RAG Retrieval Logic', () => {
             documents: [],
             context: '',
             tokensUsed: 0,
-            sources: new Set(),
+            sources: new Set<string>(),
         };
 
         const formatted = formatRAGContext(emptyResult);

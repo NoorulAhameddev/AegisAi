@@ -4,13 +4,13 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/lib/auth";
+import { verifyAuth } from "@/services/auth/auth";
 import { ingestYouTubeURL } from "@/services/ingestion/ingestion.service";
 
 export async function POST(req: NextRequest) {
     try {
-        const authResult = await verifyAuth(req);
-        if (!authResult.valid || !authResult.payload) {
+        const user = await verifyAuth(req);
+        if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -20,10 +20,8 @@ export async function POST(req: NextRequest) {
         if (!url) {
             return NextResponse.json({ error: "Missing YouTube URL" }, { status: 400 });
         }
-
-        const userId = authResult.payload.userId;
         const result = await ingestYouTubeURL(url, {
-            userId,
+            userId: user.id,
             projectId: projectId || undefined,
             enableRAG: true,
         });

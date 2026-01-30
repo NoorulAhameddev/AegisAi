@@ -1,10 +1,12 @@
+import { useState } from 'react';
+
 /**
  * Hook: useTextProcessing
  * Handles text input, extraction, and AI processing
  */
 export function useTextProcessing() {
-  const [content, setContent] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [content, setContent] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const processText = async (text: string) => {
@@ -39,7 +41,7 @@ export function useTextProcessing() {
  */
 export function useFileUpload() {
   const [uploadStatus, setUploadStatus] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const uploadFile = async (file: File) => {
@@ -98,8 +100,8 @@ export function useFileUpload() {
  * Handles all AI capability generations (summarize, notes, etc)
  */
 export function useAIGeneration() {
-  const [result, setResult] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const generate = async (
@@ -144,7 +146,7 @@ export function useChat() {
     role: 'user' | 'assistant';
     content: string;
   }>>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const sendMessage = async (message: string, context?: string) => {
@@ -188,8 +190,8 @@ export function useChat() {
  * Semantic search across documents
  */
 export function useRAGSearch() {
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const search = async (query: string, documentIds: string[]) => {
@@ -225,7 +227,7 @@ export function useRAGSearch() {
  * Handle exporting to various formats
  */
 export function useExport() {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const exportContent = async (

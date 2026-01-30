@@ -4,7 +4,7 @@ const nextConfig = {
 		root: './',
 	},
 	// Keep native lancedb bindings external so Turbopack doesn't try to place them in ESM chunks
-	serverExternalPackages: ["@lancedb/lancedb"],
+	serverExternalPackages: ["@lancedb/lancedb", "pdfkit", "fontkit"],
 	webpack: (config, options) => {
 		if (!options.isServer) {
 			// Don't bundle lancedb on client side

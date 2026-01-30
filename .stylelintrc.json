@@ -1,0 +1,21 @@
+{
+  "extends": "stylelint-config-standard",
+  "rules": {
+    "no-descending-specificity": null,
+    "declaration-no-important": null
+  },
+  "overrides": [
+    {
+      "files": ["**/*.tsx", "**/*.ts"],
+      "customSyntax": "postcss-styled-syntax",
+      "rules": {
+        "declaration-property-value-no-unknown": [
+          true,
+          {
+            "ignoreProperties": ["--percentage"]
+          }
+        ]
+      }
+    }
+  ]
+}

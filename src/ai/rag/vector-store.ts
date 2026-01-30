@@ -205,17 +205,17 @@ export async function searchSimilar(
         const allDocs = await table.query().limit(100).toArray();
         console.log(`[VectorStore] Total documents in entire store: ${allDocs.length}`);
         
-        // Try the filter WITHOUT quotes around userId value first
-        const filterNoQuotes = `userId = '${userId}'`;
+        // Try the filter with double quotes for case-sensitive columns
+        const filterNoQuotes = `"userId" = '${userId}'`;
         const allDocsForUser = await table
             .query()
             .filter(filterNoQuotes)
             .limit(1000)
             .toArray();
-        console.log(`[VectorStore] Total documents with filter (no quotes): ${allDocsForUser.length}`);
+        console.log(`[VectorStore] Total documents with filter (double quotes): ${allDocsForUser.length}`);
         
         if (allDocsForUser.length === 0) {
-            // Try with different quoting
+            // Try with backticks as fallback
             const filterWithBackticks = `\`userId\` = '${userId}'`;
             const allDocsForUser2 = await table
                 .query()
@@ -246,10 +246,10 @@ export async function searchSimilar(
         console.error(`[VectorStore] Error counting documents:`, e);
     }
 
-    // Build filter query - try without quotes first (LanceDB syntax)
-    let filterQuery = `userId = '${userId}'`;
+    // Build filter query - use double quotes for case-sensitive column names
+    let filterQuery = `"userId" = '${userId}'`;
     if (filters?.sourceId) {
-        filterQuery += ` AND sourceId = '${filters.sourceId}'`;
+        filterQuery += ` AND "sourceId" = '${filters.sourceId}'`;
     }
 
     console.log(`[VectorStore] Running search with filter: ${filterQuery}`);
