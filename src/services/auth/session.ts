@@ -141,14 +141,30 @@ export async function getUserSessions(userId: string) {
 }
 
 /**
- * Update session last activity timestamp
+ * Update session last activity timestamp with timing-safe token comparison
  */
 export async function updateSessionActivity(sessionToken: string): Promise<void> {
   try {
-    await prisma.session.updateMany({
-      where: { token: hashToken(sessionToken) },
-      data: { lastActive: new Date() }
+    const hashedInput = hashToken(sessionToken);
+    
+    // Fetch session and use timing-safe comparison to prevent timing attacks
+    const session = await prisma.session.findFirst({
+      where: { token: hashedInput }
     });
+    
+    if (session) {
+      // Use timing-safe comparison to prevent timing attacks
+      const storedHash = Buffer.from(session.token);
+      const inputHash = Buffer.from(hashedInput);
+      
+      if (storedHash.length === inputHash.length && 
+          crypto.timingSafeEqual(storedHash, inputHash)) {
+        await prisma.session.update({
+          where: { id: session.id },
+          data: { lastActive: new Date() }
+        });
+      }
+    }
   } catch (error) {
     // Silently log - not critical if this fails
     logger.debug('Failed to update session activity');

@@ -98,6 +98,33 @@ export async function GET() {
     if (env.ENCRYPTION_KEY_CIPHERTEXT && env.AWS_REGION) {
         checks.checks.encryption = {
             status: "ok",
+            message: "Encryption configured"
+        };
+    } else {
+        allHealthy = false;
+        checks.checks.encryption = {
+            status: "error",
+            message: "Missing encryption configuration"
+        };
+    }
+
+    // 6. Vector Store (LanceDB) Check
+    try {
+        const { getDb } = await import("@/ai/rag/vector-store");
+        const db = await getDb();
+        // Try to list tables as a simple connectivity test
+        const tables = await db.tableNames();
+        checks.checks.vectorStore = {
+            status: "ok",
+            message: `LanceDB connected (${tables.length} tables)`
+        };
+    } catch (error: any) {
+        allHealthy = false;
+        checks.checks.vectorStore = {
+            status: "error",
+            message: error.message || "Vector store not accessible"
+        };
+    }
             message: "KMS encryption configured"
         };
     } else {

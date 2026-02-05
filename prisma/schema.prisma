@@ -53,12 +53,14 @@ model Chat {
   title     String?   @db.VarChar(255)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  deletedAt DateTime?  // Soft delete timestamp for GDPR compliance
   User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   Project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
   Message   Message[]
 
   @@index([userId, createdAt])
   @@index([projectId])
+  @@index([deletedAt]) // Index soft delete for fast filtering
 }
 
 model File {
@@ -76,7 +78,16 @@ model File {
   version     Int      @default(1)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  deletedAt   DateTime? // Soft delete timestamp for GDPR compliance
   Project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([projectId])
+  @@index([tags])
+  @@index([deletedAt]) // Index soft delete for fast filtering
+  @@unique([userId, name], name: "File_userId_name_key") // Prevent duplicate file uploads
+}
 
   @@index([userId, createdAt])
   @@index([projectId])
@@ -102,10 +113,12 @@ model Message {
   role      MessageRole
   content   String      @db.Text
   createdAt DateTime    @default(now())
+  deletedAt DateTime?   // Soft delete timestamp for GDPR compliance
   Chat      Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([chatId, createdAt])
   @@index([chatId, role])
+  @@index([deletedAt]) // Index soft delete for fast filtering
 }
 
 model Session {
@@ -215,4 +228,17 @@ enum Role {
   MODERATOR
   ANALYST
   SUPPORT
+}
+
+model FeatureFlag {
+  id                String   @id @default(uuid())
+  name              String   @unique
+  enabled           Boolean  @default(false)
+  description       String?  @db.Text
+  rolloutPercentage Int?     // 0-100: percentage of users who get the feature
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([name])
+  @@index([enabled])
 }

@@ -4,6 +4,8 @@ import { hashPassword, comparePassword, verifyAuth } from "@/services/auth/auth"
 import { changePasswordSchema } from "@/lib/validations";
 import { parseBody } from "@/lib/request-validation";
 import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { revokeAllSessions } from "@/services/auth/session";
+import { logger } from "@/lib/logger";
 
 export async function PUT(req: NextRequest) {
     const session = await verifyAuth(req);
@@ -24,10 +26,19 @@ export async function PUT(req: NextRequest) {
 
     const hashedPassword = await hashPassword(newPassword);
 
-    await prisma.user.update({
-        where: { id: session.id },
-        data: { password: hashedPassword }
-    });
+    try {
+        await prisma.user.update({
+            where: { id: session.id },
+            data: { password: hashedPassword }
+        });
 
-    return successResponse({ message: "Password updated successfully" });
+        // CRITICAL: Revoke all sessions to force re-login with new password
+        await revokeAllSessions(session.id, "Password changed");
+        logger.security('Password changed - all sessions revoked', { userId: session.id });
+
+        return successResponse({ message: "Password updated successfully. Please log in again." });
+    } catch (error) {
+        logger.error('Password update failed', error as Error, { userId: session.id });
+        return errorResponse("Failed to update password", { status: 500 });
+    }
 }

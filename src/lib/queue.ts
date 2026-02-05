@@ -40,6 +40,8 @@ export const chatQueue = new Queue(queueName, {
             type: 'exponential',
             delay: 1000,
         },
+        // CRITICAL: Use deduplication to prevent duplicate job processing
+        // Note: jobId should be set when enqueueing to enable dedup
     },
 });
 

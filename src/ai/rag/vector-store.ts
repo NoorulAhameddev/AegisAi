@@ -1,7 +1,8 @@
 // File: src/ai/rag/vector-store.ts
 // This module uses LanceDB which requires native bindings and should only run on the server
 let lancedb: any = null;
-let dbInstance: any = null; // Cache database connection only, NOT table
+// NOTE: Do NOT cache database connection - each operation must get fresh connection
+// to ensure recent writes are visible. Tables are cached internally by LanceDB.
 
 // Lazy load lancedb to prevent bundling issues
 async function loadLanceDB() {
@@ -51,15 +52,13 @@ export interface DocumentMetadata {
     [key: string]: any;
 }
 
-// FIXED: Cache ONLY database connection, NOT table
-// Tables must be opened fresh each time to see latest changes
+// CRITICAL FIX: Get fresh database connection for each operation
+// This ensures recent writes are always visible
 async function getDb() {
     const db = await loadLanceDB();
-    if (!dbInstance) {
-        console.log(`[VectorStore] Creating new database connection to ${DB_DIR}`);
-        dbInstance = await db.connect(DB_DIR);
-    }
-    return dbInstance;
+    // Create new connection each time - LanceDB internally caches table handles
+    const dbConnection = await db.connect(DB_DIR);
+    return dbConnection;
 }
 
 /**

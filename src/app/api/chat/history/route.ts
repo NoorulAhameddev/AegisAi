@@ -23,19 +23,21 @@ export async function GET(req: NextRequest) {
     const { chatId, page, limit } = data;
 
     try {
-        // Get total count for pagination metadata
+        // Get total count for pagination metadata (exclude soft-deleted messages)
         const totalCount = await prisma.message.count({
             where: {
                 chatId,
-                Chat: { userId: user.id }
+                deletedAt: null, // Exclude soft-deleted messages
+                Chat: { userId: user.id, deletedAt: null } // Exclude soft-deleted chats
             }
         });
 
-        // Fetch paginated messages
+        // Fetch paginated messages (exclude soft-deleted)
         const messages = await prisma.message.findMany({
             where: {
                 chatId,
-                Chat: { userId: user.id } // Ensure user owns this chat
+                deletedAt: null, // Exclude soft-deleted messages
+                Chat: { userId: user.id, deletedAt: null } // Ensure user owns non-deleted chat
             },
             orderBy: { createdAt: "asc" },
             skip: (page - 1) * limit,

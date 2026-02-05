@@ -86,13 +86,51 @@ export function notFoundResponse(options?: { requestId?: string }) {
 }
 
 /**
- * Create 429 Too Many Requests response
+ * Add rate limit headers to any response (success or error)
  */
-export function rateLimitResponse(options?: { requestId?: string }) {
-    return errorResponse("Too many requests. Please try again later.", {
+export function withRateLimitHeaders(
+    response: NextResponse,
+    options: {
+        limit: number;
+        remaining: number;
+        resetAfter?: number; // seconds until reset
+    }
+) {
+    response.headers.set("RateLimit-Limit", String(options.limit));
+    response.headers.set("RateLimit-Remaining", String(Math.max(0, options.remaining)));
+    if (options.resetAfter !== undefined) {
+        response.headers.set("RateLimit-Reset", String(Math.ceil(Date.now() / 1000) + options.resetAfter));
+    }
+    return response;
+}
+
+/**
+ * Create 429 Too Many Requests response with rate limit headers
+ */
+export function rateLimitResponse(options?: { 
+    requestId?: string;
+    limit?: number;
+    remaining?: number;
+    resetAfter?: number; // seconds until reset
+}) {
+    const response = errorResponse("Too many requests. Please try again later.", {
         status: 429,
         requestId: options?.requestId,
     });
+    
+    // Add standard RateLimit headers per RFC 6585
+    if (options?.limit !== undefined) {
+        response.headers.set("RateLimit-Limit", String(options.limit));
+    }
+    if (options?.remaining !== undefined) {
+        response.headers.set("RateLimit-Remaining", String(Math.max(0, options.remaining)));
+    }
+    if (options?.resetAfter !== undefined) {
+        response.headers.set("RateLimit-Reset", String(Math.ceil(Date.now() / 1000) + options.resetAfter));
+        response.headers.set("Retry-After", String(options.resetAfter));
+    }
+    
+    return response;
 }
 
 /**

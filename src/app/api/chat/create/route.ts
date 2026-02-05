@@ -22,13 +22,17 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        // Audit (Silent fail is ok for logs)
-        prisma.auditLog.create({
-            data: {
-                userId: user.id,
-                action: `CHAT_CREATE:${chat.id}`,
-            },
-        }).catch(() => { });
+        // CRITICAL: Await audit log to ensure it's created
+        try {
+            await prisma.auditLog.create({
+                data: {
+                    userId: user.id,
+                    action: `CHAT_CREATE:${chat.id}`,
+                },
+            });
+        } catch (auditError) {
+            logger.error("Failed to create audit log for chat", auditError as Error, { userId: user.id, chatId: chat.id });
+        }
 
         return successResponse({ chatId: chat.id });
     } catch (error) {

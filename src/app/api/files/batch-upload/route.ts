@@ -9,10 +9,11 @@ import { batchIngestFiles } from "@/services/ingestion/ingestion.service";
 import { writeFile, unlink, mkdir, readFile } from "fs/promises";
 import { join } from "path";
 import { existsSync } from "fs";
-import { errorResponse, rateLimitResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { errorResponse, rateLimitResponse, successResponse, unauthorizedResponse, badRequestResponse } from "@/lib/response";
 import { logger } from "@/lib/logger";
 import { env } from "@/lib/env";
 import { rateLimit } from "@/lib/rate-limit";
+import { z } from "zod";
 
 export async function POST(req: NextRequest) {
     const tempFiles: string[] = [];
@@ -30,6 +31,15 @@ export async function POST(req: NextRequest) {
 
         const formData = await req.formData();
         const projectId = formData.get("projectId") as string | null;
+        
+        // Validate projectId as UUID if provided
+        if (projectId) {
+            const uuidSchema = z.string().uuid();
+            const validation = uuidSchema.safeParse(projectId);
+            if (!validation.success) {
+                return badRequestResponse("Invalid projectId format - must be a valid UUID");
+            }
+        }
         
         // Extract all files
         const files: Array<{ path: string; name: string; mimeType: string }> = [];

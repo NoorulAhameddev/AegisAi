@@ -49,6 +49,14 @@ lerna-debug.log*
 .envrc
 .direnv/
 
+# Environment files (all environments - production, staging, development)
+.env.production
+.env.staging
+.env.development
+mobile/.env.production
+mobile/.env.staging
+mobile/.env.development
+
 # Vercel
 .vercel
 

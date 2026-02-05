@@ -11,19 +11,19 @@ export async function middleware(req: NextRequest) {
 	const requestId = req.headers.get("x-request-id") || crypto.randomUUID();
 
 	// Allow Expo web/clients to access API with credentials in dev
-	const allowedOrigins = [
-		"http://localhost:8081",
-		"http://localhost:8082",
-		"http://127.0.0.1:8081",
-		"http://127.0.0.1:8082",
-		"http://192.168.1.5:8081",
-		"http://192.168.1.5:8082",
-		"http://192.168.56.1:8081",
-		"http://192.168.56.1:8082",
-	];
+	// CRITICAL: Read from environment to avoid hardcoding production origins
+	const allowedOriginsList = env.ALLOWED_ORIGINS 
+		? env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+		: [
+			"http://localhost:8081",
+			"http://localhost:8082",
+			"http://127.0.0.1:8081",
+			"http://127.0.0.1:8082",
+		];
+	
 	const origin = req.headers.get("origin") || "";
 	const isApiRoute = path.startsWith("/api/");
-	const isAllowedOrigin = allowedOrigins.includes(origin);
+	const isAllowedOrigin = allowedOriginsList.includes(origin);
 
 	// Handle CORS preflight for API routes
 	if (isApiRoute && req.method === "OPTIONS") {
@@ -79,7 +79,17 @@ export async function middleware(req: NextRequest) {
 
 	// Verify JWT for API routes
 	if (path.startsWith("/api/chat") || path.startsWith("/api/files") || path.startsWith("/api/admin")) {
-		const token = req.cookies.get("auth_access")?.value;
+		// Support both cookie and Bearer token authentication
+		let token = req.cookies.get("auth_access")?.value;
+		
+		// If no cookie, check Authorization Bearer header
+		if (!token) {
+			const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
+			if (authHeader?.startsWith("Bearer ")) {
+				token = authHeader.substring(7); // Remove "Bearer " prefix
+			}
+		}
+		
 		if (!token) {
 			logger.security('Unauthorized API access attempt', { path, ip, requestId });
 			return NextResponse.json(

@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma';
+import { env } from '../lib/env';
 
 export async function startCleanupTask() {
     // Run immediately on start
@@ -16,18 +17,18 @@ async function runCleanup() {
         const now = new Date();
 
         // 1. Cleanup Expired Sessions
-        // @ts-ignore - Client generation pending
         const s = await prisma.session.deleteMany({
             where: { expiresAt: { lt: now } }
         });
         if (s.count > 0) console.log(`[Worker] Removed ${s.count} expired sessions.`);
 
-        // 2. Retention Policy: Delete logs older than 30 days
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        // 2. CRITICAL: Retention Policy - Use config from environment
+        const retentionDays = env.AUDIT_LOG_RETENTION_DAYS || 90;
+        const expiryDate = new Date(now.getTime() - retentionDays * 24 * 60 * 60 * 1000);
         const l = await prisma.auditLog.deleteMany({
-            where: { createdAt: { lt: thirtyDaysAgo } }
+            where: { createdAt: { lt: expiryDate } }
         });
-        if (l.count > 0) console.log(`[Worker] Removed ${l.count} old audit logs.`);
+        if (l.count > 0) console.log(`[Worker] Removed ${l.count} old audit logs (retention: ${retentionDays} days).`);
 
     } catch (e) {
         console.error("[Worker] Cleanup error:", e);

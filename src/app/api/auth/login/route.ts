@@ -1,12 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { comparePassword } from "@/services/auth/auth";
 import { loginSchema } from "@/lib/validations";
 import { parseBody } from "@/lib/request-validation";
 import { env } from "@/lib/env";
-import { errorResponse, successResponse } from "@/lib/response";
+import { errorResponse, successResponse, rateLimitResponse } from "@/lib/response";
+import { rateLimit } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // CRITICAL: Rate limit login attempts to prevent brute force
+  const limit = await rateLimit(req, { limit: 20, window: 3600 }); // 20 attempts per hour per IP
+  if (!limit.success) {
+    logger.security('Login rate limit exceeded', { ip: req.headers.get('x-forwarded-for') });
+    return rateLimitResponse();
+  }
+
   const { data, response } = await parseBody(req, loginSchema);
   if (response) return response;
 

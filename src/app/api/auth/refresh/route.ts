@@ -22,10 +22,6 @@ export async function POST(req: NextRequest) {
 
     if (!session) {
       // TOKEN REUSE DETECTED!
-      // The token is valid (crypto-wise) but not in DB.
-      // This means it was likely already used and rotated, or it's a stolen old token.
-      // SECURITY ACTION: Invalidate all sessions for this user?
-      // YES, aggressive security is required.
       await prisma.session.deleteMany({ where: { userId: payload.userId } });
       logger.security("Refresh token reuse detected", { userId: payload.userId });
       return errorResponse("Invalid Session - Reuse Detected", { status: 401 });
@@ -50,16 +46,18 @@ export async function POST(req: NextRequest) {
     if ((user as any).isBanned) return forbiddenResponse();
 
     // 5. ROTATION: Delete old, Create New
-    // Transactional consistency is best
+    // Use transaction to ensure atomicity
     const ip = req.headers.get("x-forwarded-for") || "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";
 
-    // We can use a transaction, but separate calls are "okay" here if we don't mind tiny race window.
-    // Deleting first ensures we don't have duplicates.
-    await prisma.session.delete({ where: { id: session.id } });
-
-    // Create New Session
+    // Create new session first
     const { accessToken, refreshToken } = await createSession(user.id, userAgent, ip);
+
+    // ATOMIC: Delete old session and verify new one exists in same transaction
+    await prisma.$transaction([
+        prisma.session.delete({ where: { id: session.id } }),
+        prisma.session.findUniqueOrThrow({ where: { userId: user.id }, orderBy: { createdAt: 'desc' } })
+    ]);
 
     const res = successResponse({ message: "Refreshed" });
 

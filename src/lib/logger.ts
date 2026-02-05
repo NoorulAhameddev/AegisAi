@@ -4,13 +4,41 @@ interface LogContext {
     [key: string]: any;
 }
 
+// CRITICAL: PII redaction to prevent sensitive data in logs
+function redactPII(context?: LogContext): LogContext {
+    if (!context) return {};
+    
+    const redacted: LogContext = { ...context };
+    const sensitiveFields = ['password', 'token', 'secret', 'apiKey', 'pin', 'ssn', 'creditCard', 'email', 'phone'];
+    
+    for (const key in redacted) {
+        const lowerKey = key.toLowerCase();
+        
+        // Check if field name matches sensitive patterns
+        if (sensitiveFields.some(field => lowerKey.includes(field))) {
+            const value = redacted[key];
+            if (typeof value === 'string') {
+                // Show first 3 chars + asterisks for short strings, otherwise just [REDACTED]
+                redacted[key] = value.length <= 3 ? '[REDACTED]' : value.substring(0, 3) + '***';
+            } else if (value !== null && value !== undefined) {
+                redacted[key] = '[REDACTED]';
+            }
+        }
+    }
+    
+    return redacted;
+}
+
 class Logger {
     private output(level: LogLevel, message: string, context?: LogContext, error?: Error) {
+        // Redact PII before logging
+        const redactedContext = redactPII(context);
+        
         const payload = {
             timestamp: new Date().toISOString(),
             level,
             message,
-            ...context,
+            ...redactedContext,
             error: error?.message,
             stack: error?.stack,
         };
@@ -51,26 +79,26 @@ class Logger {
     }
 
     worker(jobId: string, action: string, context?: LogContext) {
-        this.info(`Worker: ${action}`, { jobId, ...context });
+        this.info(`Worker: ${action}`, { jobId, ...redactPII(context) });
     }
 
     security(action: string, context?: LogContext) {
-        this.warn(`Security: ${action}`, context);
+        this.warn(`Security: ${action}`, redactPII(context));
     }
 
     auth(action: string, context?: LogContext) {
-        this.info(`Auth: ${action}`, context);
+        this.info(`Auth: ${action}`, redactPII(context));
     }
 
     db(operation: string, table: string, duration?: number, context?: LogContext) {
         this.debug(`DB: ${operation} on ${table}`, {
             duration: duration ? `${duration}ms` : undefined,
-            ...context,
+            ...redactPII(context),
         });
     }
 
     performance(metric: string, value: number, unit: string = 'ms', context?: LogContext) {
-        this.debug(`Performance: ${metric}=${value}${unit}`, context);
+        this.debug(`Performance: ${metric}=${value}${unit}`, redactPII(context));
     }
 }
 

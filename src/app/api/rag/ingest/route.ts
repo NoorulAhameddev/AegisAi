@@ -88,28 +88,47 @@ export async function POST(req: NextRequest) {
             };
         }
 
-        // Ingest document with chunking
-        const documentIds = await ingestDocument(
-            contentToIngest,
-            fileMetadata,
-            user.id
-        );
+        // Ingest document with chunking and update metadata atomically
+        let documentIds: string[] = [];
+        try {
+            documentIds = await ingestDocument(
+                contentToIngest,
+                fileMetadata,
+                user.id
+            );
 
-        // Update file metadata if it's a file ingestion
-        if (fileId) {
-            await prisma.file.update({
-                where: { id: fileId },
-                data: {
-                    metadata: JSON.stringify({
-                        ...(typeof fileMetadata === 'string' 
-                            ? JSON.parse(fileMetadata) 
-                            : fileMetadata),
-                        ragIngested: true,
-                        ragChunks: documentIds.length,
-                        ingestedAt: new Date().toISOString(),
-                    })
+            // Only update file metadata on successful ingestion
+            if (fileId && documentIds.length > 0) {
+                try {
+                    await prisma.file.update({
+                        where: { id: fileId },
+                        data: {
+                            metadata: JSON.stringify({
+                                ...(typeof fileMetadata === 'string' 
+                                    ? JSON.parse(fileMetadata) 
+                                    : fileMetadata),
+                                ragIngested: true,
+                                ragChunks: documentIds.length,
+                                ingestedAt: new Date().toISOString(),
+                            })
+                        }
+                    });
+                } catch (dbError: any) {
+                    logger.error('Failed to update file metadata after ingestion', dbError, {
+                        fileId,
+                        chunks: documentIds.length,
+                        userId: user.id
+                    });
+                    // Still return success since ingestion succeeded, but log warning
                 }
+            }
+        } catch (ingestError: any) {
+            logger.error('RAG document ingestion failed', ingestError, {
+                fileId,
+                userId: user.id,
+                contentLength: contentToIngest?.length || 0
             });
+            return errorResponse(`Failed to ingest document: ${ingestError.message}`, { status: 500 });
         }
 
         const duration = Date.now() - startTime;

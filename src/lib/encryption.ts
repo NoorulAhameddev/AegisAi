@@ -4,6 +4,7 @@ import { getEncryptionKey } from "./secrets";
 
 const ALGORITHM = "aes-256-gcm";
 const CURRENT_KEY_VERSION = "v1";
+const MAX_INPUT_SIZE = 10_000_000; // 10MB limit to prevent OOM
 
 let cachedKeyVersions: Record<string, Buffer> | null = null;
 
@@ -21,6 +22,11 @@ async function getKeyVersions(): Promise<Record<string, Buffer>> {
 
 export async function encrypt(text: string): Promise<string> {
     if (!text) throw new Error("Cannot encrypt empty string");
+    
+    // CRITICAL: Validate input length to prevent memory exhaustion
+    if (text.length > MAX_INPUT_SIZE) {
+        throw new Error(`Input too large: ${text.length} bytes exceeds maximum of ${MAX_INPUT_SIZE} bytes`);
+    }
 
     const keys = await getKeyVersions();
     const key = keys[CURRENT_KEY_VERSION];

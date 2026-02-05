@@ -8,7 +8,8 @@ const ACCESS_SECRET = env.JWT_ACCESS_SECRET;
 const REFRESH_SECRET = env.JWT_REFRESH_SECRET;
 
 export function hashPassword(password: string) {
-  return bcrypt.hash(password, 12);
+  // Use rounds=14 for stronger security (standard is 12, but 14 is recommended for 2026+)
+  return bcrypt.hash(password, 14);
 }
 
 export function comparePassword(password: string, hash: string) {

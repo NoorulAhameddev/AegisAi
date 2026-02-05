@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
         if (!user) return unauthorizedResponse();
 
         const chats = await prisma.chat.findMany({
-            where: { userId: user.id },
+            where: { userId: user.id, deletedAt: null }, // Exclude soft-deleted chats
             orderBy: { createdAt: "desc" },
             take: 20,
             select: {

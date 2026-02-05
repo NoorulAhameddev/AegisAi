@@ -5,7 +5,8 @@
 
 import { prisma } from "./prisma";
 import { Role } from "@prisma/client";
-import { createHash } from "crypto";
+import { createHash, createHmac } from "crypto";
+import { env } from "./env";
 
 export type AuditAction =
     | "USER_BAN"
@@ -85,7 +86,8 @@ export async function createAuditLog(entry: AuditLogEntry): Promise<void> {
 }
 
 /**
- * Generate SHA-256 integrity hash for audit entry
+ * Generate cryptographic integrity hash for audit entry
+ * Uses HMAC-SHA256 if signing key available, otherwise SHA256
  */
 function generateIntegrityHash(entry: AuditLogEntry): string {
     const data = JSON.stringify({
@@ -94,6 +96,13 @@ function generateIntegrityHash(entry: AuditLogEntry): string {
         targetId: entry.targetId,
         timestamp: new Date().toISOString(),
     });
+    
+    // CRITICAL: Use HMAC if signing key available for stronger integrity verification
+    if (env.AUDIT_SIGNING_KEY) {
+        return createHmac("sha256", env.AUDIT_SIGNING_KEY).update(data).digest("hex");
+    }
+    
+    // Fallback to SHA256 if no signing key configured
     return createHash("sha256").update(data).digest("hex");
 }
 

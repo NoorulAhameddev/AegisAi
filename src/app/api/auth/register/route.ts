@@ -4,11 +4,19 @@ import { getSettings } from "@/lib/settings";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { parseBody } from "@/lib/request-validation";
-import { errorResponse, forbiddenResponse, successResponse } from "@/lib/response";
+import { errorResponse, forbiddenResponse, successResponse, rateLimitResponse } from "@/lib/response";
 import { registerSchema } from "@/lib/validations";
+import { rateLimit } from "@/lib/rate-limit";
+import { NextRequest } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // CRITICAL: Rate limit registration endpoint to prevent brute force
+    const limit = await rateLimit(req, { limit: 10, window: 3600 }); // 10 registrations per hour per IP
+    if (!limit.success) {
+      return rateLimitResponse();
+    }
+
     const settings = getSettings();
     if (!settings.allowRegistrations) {
       return forbiddenResponse();

@@ -17,6 +17,7 @@
     "test:edge": "tsx scripts/test-edge.ts",
     "migrate": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
+    "migrate:dry-run": "prisma migrate deploy --dry-run",
     "studio": "prisma studio",
     "cleanup:sessions": "tsx scripts/cleanup-sessions.ts",
     "docker:build": "docker build -t aegis-ai .",

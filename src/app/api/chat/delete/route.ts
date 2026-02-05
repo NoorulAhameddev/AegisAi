@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { verifyAuth } from "@/services/auth/auth";
 import { prisma } from "@/lib/prisma";
 import { successResponse, errorResponse, unauthorizedResponse, notFoundResponse, badRequestResponse } from "@/lib/response";
+import { z } from "zod";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,9 +16,16 @@ export async function POST(req: NextRequest) {
       return badRequestResponse("Missing required field: chatId");
     }
 
+    // Validate chatId as UUID
+    const uuidSchema = z.string().uuid();
+    const validation = uuidSchema.safeParse(chatId);
+    if (!validation.success) {
+      return badRequestResponse("Invalid chatId format - must be a valid UUID");
+    }
+
     // Verify chat ownership
     const chat = await prisma.chat.findFirst({
-      where: { id: chatId, userId: user.id },
+      where: { id: chatId, userId: user.id, deletedAt: null }, // Only find non-deleted chats
       select: { id: true },
     });
 
@@ -25,9 +33,19 @@ export async function POST(req: NextRequest) {
       return notFoundResponse();
     }
 
-    // Delete messages first due to FK constraints, then the chat
-    await prisma.message.deleteMany({ where: { chatId } });
-    await prisma.chat.delete({ where: { id: chatId } });
+    // Soft delete: Mark chat and all messages as deleted instead of hard delete
+    await prisma.$transaction([
+      // Soft delete messages in this chat
+      prisma.message.updateMany({
+        where: { chatId },
+        data: { deletedAt: new Date() }
+      }),
+      // Soft delete the chat itself
+      prisma.chat.update({
+        where: { id: chatId },
+        data: { deletedAt: new Date() }
+      })
+    ]);
 
     // Audit log entry
     await prisma.auditLog.create({

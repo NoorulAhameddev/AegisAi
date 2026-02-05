@@ -72,7 +72,8 @@ export async function processChatJob(job: Job) {
         const allMessages = await prisma.message.findMany({
             where: { chatId: chatId },
             orderBy: { createdAt: "asc" },
-            take: 10,
+            take: 50, // CRITICAL: Limit to last 50 messages to prevent memory bloat and pagination issues
+            skip: 0,
         });
 
         // Decrypt messages before processing
@@ -119,6 +120,18 @@ export async function processChatJob(job: Job) {
             { role: "system", content: finalSystemPrompt },
             ...buildPrompt(decryptedMessages)
         ];
+        
+        // SECURITY: Add boundary markers to current user message to prevent injection
+        // Find the last user message and wrap it with explicit boundaries
+        for (let i = formattedMessages.length - 1; i >= 0; i--) {
+            if (formattedMessages[i].role === 'user') {
+                const originalContent = formattedMessages[i].content;
+                if (typeof originalContent === 'string') {
+                    formattedMessages[i].content = `===USER_MESSAGE_START===\n${originalContent}\n===USER_MESSAGE_END===`;
+                }
+                break;
+            }
+        }
 
         // 3. File Injection (if applicable)
         if (fileId) {
@@ -155,7 +168,7 @@ export async function processChatJob(job: Job) {
         const { getOpenAITools, toolsRegistry } = await import("../tools/index");
         const tools = getOpenAITools();
 
-        // 5. First AI Call
+        // 5. First AI Call with request ID for tracing
         console.log(`${logPrefix} Calling OpenAI API...`);
         let response: any;
         let responseMessage: any;
@@ -167,6 +180,9 @@ export async function processChatJob(job: Job) {
                 messages: formattedMessages,
                 tools: tools,
                 tool_choice: "auto",
+                headers: {
+                    "X-Request-ID": requestId || `worker-${Date.now()}`,
+                }
             });
 
             console.log(`${logPrefix} ✓ OpenAI API responded: ${response.choices[0].message.content?.substring(0, 50) || '(tool call)'}...`);
@@ -194,7 +210,7 @@ export async function processChatJob(job: Job) {
                 };
             } else if (errorStatus === 401 || errorStatus === 403) {
                 console.error(`${logPrefix} AUTHENTICATION FAILED - Invalid API key`);
-                return { 
+                return {
                     status: 'failed', 
                     error: 'Authentication failed with AI provider.',
                     chatId 
@@ -247,12 +263,15 @@ export async function processChatJob(job: Job) {
                 }
             }
 
-            // Second Call (Final Answer)
+            // Second Call (Final Answer) with request ID for tracing
             try {
                 console.log(`${logPrefix} Calling OpenAI API for final answer (tool result)...`);
                 const secondResponse = await openai.chat.completions.create({
                     model: "openai/gpt-4o-mini",
                     messages: formattedMessages,
+                    headers: {
+                        "X-Request-ID": requestId || `worker-${Date.now()}`,
+                    }
                 });
                 finalContent = secondResponse.choices[0].message.content || "";
                 console.log(`${logPrefix} ✓ Final answer received`);

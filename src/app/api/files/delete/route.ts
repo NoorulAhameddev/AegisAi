@@ -6,12 +6,16 @@ import { verifyAuth } from "@/services/auth/auth";
 import { logger } from "@/lib/logger";
 import { parseBody } from "@/lib/request-validation";
 import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { createAuditLog } from "@/lib/audit";
 
 export async function DELETE(req: NextRequest) {
     const user = await verifyAuth(req);
     if (!user) return unauthorizedResponse();
 
-    const bodySchema = z.object({ fileId: z.string().min(1) });
+    // Validate fileId as UUID
+    const bodySchema = z.object({ 
+      fileId: z.string().uuid("Invalid fileId format - must be a valid UUID")
+    });
     const { data, response } = await parseBody(req, bodySchema);
     if (response) return response;
 
@@ -26,6 +30,18 @@ export async function DELETE(req: NextRequest) {
 
         // Delete from DB
         await prisma.file.delete({ where: { id: data.fileId } });
+
+        // CRITICAL: Create audit log for compliance and accountability
+        await createAuditLog({
+            userId: user.id,
+            adminRole: user.role,
+            action: "FILE_DELETE",
+            targetType: "FILE",
+            targetId: data.fileId,
+            metadata: { fileName: file.name, fileType: file.type },
+        }).catch((auditErr) => {
+            logger.error('Failed to create audit log for file deletion', auditErr as Error, { userId: user.id, fileId: data.fileId });
+        });
 
         // Try delete from disk (ignore error if missing)
         try {

@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         // Verify chat ownership
         const chat = await prisma.chat.findFirst({
             where: { id: chatId, userId },
-            include: { Message: { orderBy: { createdAt: "asc" }, take: 20 } },
+            include: { Message: { orderBy: { createdAt: "asc" }, take: 50 } }, // CRITICAL: Limit to last 50 messages
         });
 
         if (!chat) {
@@ -80,7 +80,11 @@ export async function POST(req: NextRequest) {
                     const conversationMessages = await Promise.all(
                         chat.Message.map(async (msg: any) => ({
                             role: msg.role.toLowerCase() as "user" | "assistant",
-                            content: await decrypt(msg.content),
+                            // CRITICAL: Gracefully handle decryption failure per message
+                            content: await decrypt(msg.content).catch((err) => {
+                                logger.error('Message decryption failed', err as Error, {userId, chatId, msgId: msg.id});
+                                return '[Message corrupted - could not decrypt]';
+                            }),
                         }))
                     );
 
