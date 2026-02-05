@@ -1,15 +1,38 @@
-# Dependencies
+################################################################################
+# PRODUCTION-READY GITIGNORE
+# Aegis AI - Next.js 16 + TypeScript Enterprise Chat Platform
+# 
+# Files needed to run the project ARE committed:
+#   - Source code (src/)
+#   - Configuration (*.config.js, tsconfig.json)
+#   - Package files (package.json, package-lock.json)
+#   - Documentation (*.md, docs/)
+#   - Database schema (prisma/schema.prisma)
+#   - Public assets (public/)
+#   - Tests (__tests__/, *.test.ts)
+#   - Mobile app (mobile/)
+#   - Git config (.github/, .gitignore)
+#   - Environment template (.env.example)
+#
+# Everything else (node_modules, build output, secrets) is ignored
+################################################################################
+
+################################################################################
+# DEPENDENCIES & PACKAGE MANAGERS
+################################################################################
 node_modules/
-/.pnp
+.pnp
 .pnp.js
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
 
-# Testing
-/coverage
-.nyc_output/
-
+################################################################################
+# BUILD OUTPUT & ARTIFACTS
+################################################################################
 # Next.js
-/.next/
-/out/
 .next/
 out/
 build/
@@ -20,60 +43,85 @@ dist/
 *.tsbuildinfo
 next-env.d.ts
 
-# Production
-/build
-
-# Misc
-.DS_Store
-*.pem
-Thumbs.db
-*.swp
-*.swo
-*~
+# Build caches
+.swc/
+.turbo/
 .eslintcache
 
-# Debug
+################################################################################
+# RUNTIME DATA & DATABASES
+################################################################################
+# Local data stores
+data/lancedb/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+prisma/dev.db
+prisma/dev.db-journal
+
+# File uploads (keep directory structure only)
+uploads/*
+!uploads/.gitkeep
+
+################################################################################
+# ENVIRONMENT & SECRETS (CRITICAL)
+################################################################################
+# All environment files except template
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.staging.local
+.env.production
+.env.staging
+.env.development
+.envrc
+.direnv/
+
+# Mobile-specific environment files
+mobile/.env.production
+mobile/.env.staging
+mobile/.env.development
+
+################################################################################
+# LOGS & DEBUG OUTPUT
+################################################################################
+# Node logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 lerna-debug.log*
 
-# Local env files
-.env
-.env*.local
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.envrc
-.direnv/
+# Application logs
+*.log
+logs/
+.logs/
+*.log.*
+server_debug.log
 
-# Environment files (all environments - production, staging, development)
-.env.production
-.env.staging
-.env.development
-mobile/.env.production
-mobile/.env.staging
-mobile/.env.development
-
-# Vercel
-.vercel
-
-# Turbo
-.turbo
-
-# IDE
+################################################################################
+# IDE & EDITOR
+################################################################################
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+!.vscode/launch.json.example
+
 .idea/
 *.sublime-project
 *.sublime-workspace
+.DS_Store
 
-# OS
+################################################################################
+# OPERATING SYSTEM
+################################################################################
 .DS_Store
 .DS_Store?
 ._*
@@ -82,61 +130,80 @@ mobile/.env.development
 ehthumbs.db
 Thumbs.db
 
-# Uploads (keep folder, ignore contents)
-uploads/*
-!uploads/.gitkeep
+################################################################################
+# PYTHON & VIRTUAL ENVIRONMENTS
+################################################################################
+.venv/
+venv/
+ENV/
+env/
+.Python
+*.py[cod]
+*$py.class
+*.so
+__pycache__/
+*.egg-info/
+dist/
+build/
 
-# Local data stores
-data/lancedb/
+################################################################################
+# JUPYTER NOTEBOOKS
+################################################################################
+.ipynb_checkpoints
+*.ipynb
 
-# Tools
+################################################################################
+# TEMPORARY & BACKUP FILES
+################################################################################
+*.tmp
+*.bak
+*.backup
+*_old
+*_backup
+*.orig
+*.swp
+*.swo
+*~
+*.pem
+
+################################################################################
+# TESTING & COVERAGE
+################################################################################
+/coverage
+.nyc_output/
+*.lcov
+
+################################################################################
+# DEVELOPMENT TOOLS & TEMPORARY FOLDERS
+################################################################################
+# Playwright & MCP testing
+.playwright-mcp/
+.agent/
+
+# Deployment & verification
+.vercel
+.netlify
+
+################################################################################
+# PROJECT-SPECIFIC IGNORES
+################################################################################
+# Mobile Expo
+mobile/.expo/
+mobile/.expo-shared/
+
+# Redis tools
 tools/redis/
 tools/*.zip
 tools/*.tar.gz
 
-# Python
-.venv/
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
+# Keep root config & sources, ignore node_modules in subdirectories
+mobile/node_modules/
 
-# Jupyter
-.ipynb_checkpoints
-*.ipynb
-
-# Temporary files
-*.tmp
-*.bak
-*_old
-*_backup
-*.orig
-
-# Logs
-*.log
-logs/
-*.log.*
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Prisma
-prisma/dev.db
-prisma/dev.db-journal
-
-# Mobile
-mobile/.expo/
-mobile/.expo-shared/
-
-# Package manager
-.pnpm-store/
-.yarn/cache/
-.yarn/unplugged/
-.yarn/build-state.yml
-.yarn/install-state.gz
+################################################################################
+# FILE PATTERNS TO ALWAYS IGNORE
+################################################################################
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
