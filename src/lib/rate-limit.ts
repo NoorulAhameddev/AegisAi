@@ -1,10 +1,11 @@
 import { NextRequest } from "next/server";
 import Redis from "ioredis";
 import { logger } from "./logger";
+import { env } from "@/lib/env";
 
 // Use Redis for distributed rate limiting
-const redis = process.env.REDIS_URL
-    ? new Redis(process.env.REDIS_URL, { maxRetriesPerRequest: null })
+const redis = env.REDIS_URL
+    ? new Redis(env.REDIS_URL, { maxRetriesPerRequest: null })
     : null;
 
 interface RateLimitConfig {
@@ -54,7 +55,7 @@ export async function rateLimit(req: NextRequest, config?: RateLimitConfig) {
             return { success: true, remaining };
         } else {
             // Fallback to in-memory (development only)
-            if (process.env.NODE_ENV === 'production') {
+            if (env.NODE_ENV === 'production') {
                 logger.error('FATAL: Redis required for production rate limiting', undefined, { ip });
                 throw new Error('FATAL: Redis required for production rate limiting');
             }
@@ -64,7 +65,7 @@ export async function rateLimit(req: NextRequest, config?: RateLimitConfig) {
     } catch (error) {
         logger.error("Rate limit error", error as Error, { ip });
         // Fail closed in production, fail open in development
-        if (process.env.NODE_ENV === 'production') {
+        if (env.NODE_ENV === 'production') {
             return { success: false, remaining: 0 };
         }
         return { success: true, remaining: 10 };

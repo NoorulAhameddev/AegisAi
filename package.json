@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start -p 3000",
-    "worker": "tsx src/workers/ai.worker.ts",
+    "worker": "tsx src/workers/chat.worker.ts",
+    "worker:rag": "tsx src/workers/rag.worker.ts",
     "lint": "eslint",
     "clean": "node -e \"const fs=require('fs'); const rm=p=>fs.rmSync(p,{recursive:true,force:true}); ['.next','out','dist','build','coverage','logs','data/lancedb','.turbo'].forEach(rm); if(fs.existsSync('uploads')){for(const f of fs.readdirSync('uploads')){if(f!=='.gitkeep')rm('uploads/'+f);}}\"",
     "test": "jest",
@@ -23,6 +24,7 @@
     "docker:down": "docker-compose down"
   },
   "dependencies": {
+    "@aws-sdk/client-kms": "^3.983.0",
     "@lancedb/lancedb": "^0.23.0",
     "@langchain/community": "0.2.0",
     "@langchain/core": "0.3.58",

@@ -1,38 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/services/auth/session";
+import { verifyAuth } from "@/services/auth/auth";
 import { updateProfileSchema } from "@/lib/validations";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export async function PUT(req: NextRequest) {
-    const user = await getUserFromRequest(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await verifyAuth(req);
+    if (!user) return unauthorizedResponse();
 
-    const body = await req.json();
-    const validation = updateProfileSchema.safeParse(body);
+    const { data, response } = await parseBody(req, updateProfileSchema);
+    if (response) return response;
 
-    if (!validation.success) {
-        return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
-    }
-
-    const { name } = validation.data;
+    const { name } = data;
 
     // Only update fields that are provided
     const dataToUpdate: any = {};
     if (name) dataToUpdate.name = name.trim();
 
     if (Object.keys(dataToUpdate).length === 0) {
-        return NextResponse.json({ message: "No changes needed" });
+        return successResponse({ message: "No changes needed" });
     }
 
     try {
         const updated = await prisma.user.update({
-            where: { id: user.userId },
+            where: { id: user.id },
             data: dataToUpdate,
             select: { id: true, name: true, email: true }
         });
 
-        return NextResponse.json(updated);
+        return successResponse(updated);
     } catch (e) {
-        return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
+        logger.error("Update profile failed", e as Error, { userId: user.id });
+        return errorResponse("Failed to update profile", { status: 500 });
     }
 }

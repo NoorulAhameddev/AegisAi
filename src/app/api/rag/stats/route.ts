@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/services/auth/session";
+import { NextRequest } from "next/server";
+import { verifyAuth } from "@/services/auth/auth";
 import { logger } from "@/lib/logger";
 import { getDocumentStats } from "@/ai/rag/vector-store";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 
 /**
  * GET /api/rag/stats
@@ -11,20 +12,17 @@ export async function GET(req: NextRequest) {
     const startTime = Date.now();
 
     try {
-        const user = await getUserFromRequest(req);
+        const user = await verifyAuth(req);
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
-        const stats = await getDocumentStats(user.userId);
+        const stats = await getDocumentStats(user.id);
 
         const duration = Date.now() - startTime;
         logger.api('GET', '/api/rag/stats', 200, duration);
 
-        return NextResponse.json({
-            success: true,
-            stats,
-        });
+        return successResponse({ stats });
 
     } catch (error: any) {
         const duration = Date.now() - startTime;
@@ -32,9 +30,6 @@ export async function GET(req: NextRequest) {
             path: '/api/rag/stats',
             duration
         });
-        return NextResponse.json(
-            { error: error.message || "Failed to get stats" },
-            { status: 500 }
-        );
+        return errorResponse(error.message || "Failed to get stats", { status: 500 });
     }
 }

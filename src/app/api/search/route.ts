@@ -1,31 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { verifyAuth } from "@/services/auth/auth";
+import { parseQuery } from "@/lib/request-validation";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url);
-    const query = searchParams.get("q");
+    const user = await verifyAuth(req);
+    if (!user) return unauthorizedResponse();
 
+    const querySchema = z.object({ q: z.string().optional() });
+    const { data, response } = parseQuery(new URL(req.url), querySchema);
+    if (response) return response;
+
+    const query = data.q?.trim();
     if (!query) {
-        return NextResponse.json({ results: [] });
-    }
-
-    const cookieStore = await cookies();
-    const token = cookieStore.get("auth_access");
-
-    if (!token) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        return successResponse({ results: [] });
     }
 
     try {
-        const payload = jwt.verify(token.value, process.env.JWT_ACCESS_SECRET!) as { userId: string };
-        const userId = payload.userId;
-
         const [chats, files] = await Promise.all([
             prisma.chat.findMany({
                 where: {
-                    userId,
+                    userId: user.id,
                     OR: [
                         { title: { contains: query, mode: "insensitive" } },
                         { Message: { some: { content: { contains: query, mode: "insensitive" } } } }
@@ -36,7 +34,7 @@ export async function GET(req: NextRequest) {
             }),
             prisma.file.findMany({
                 where: {
-                    userId,
+                    userId: user.id,
                     name: { contains: query, mode: "insensitive" }
                 },
                 take: 5,
@@ -49,8 +47,9 @@ export async function GET(req: NextRequest) {
             ...files.map(f => ({ id: f.id, type: "file", title: f.name, subtitle: f.type.toUpperCase() }))
         ];
 
-        return NextResponse.json({ results });
+        return successResponse({ results });
     } catch (error) {
-        return NextResponse.json({ error: "Search failed" }, { status: 500 });
+        logger.error("Search failed", error as Error, { userId: user.id });
+        return errorResponse("Search failed", { status: 500 });
     }
 }

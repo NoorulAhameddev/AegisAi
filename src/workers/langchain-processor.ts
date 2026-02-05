@@ -155,7 +155,7 @@ export async function processChatJobLangChain(job: Job) {
 
         // 8. Save Assistant Response to DB
         const { encrypt } = await import("../lib/encryption");
-        const encryptedResponse = encrypt(finalContent);
+        const encryptedResponse = await encrypt(finalContent);
 
         await prisma.message.create({
             data: {

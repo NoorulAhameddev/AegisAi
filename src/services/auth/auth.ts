@@ -2,17 +2,10 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { env } from "@/lib/env";
 
-// STRICT SECURITY: Fail if secrets are missing in ALL environments
-if (!process.env.JWT_ACCESS_SECRET) {
-  throw new Error("FATAL: JWT_ACCESS_SECRET is not defined. Set it in your .env file.");
-}
-if (!process.env.JWT_REFRESH_SECRET) {
-  throw new Error("FATAL: JWT_REFRESH_SECRET is not defined. Set it in your .env file.");
-}
-
-const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
-const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+const ACCESS_SECRET = env.JWT_ACCESS_SECRET;
+const REFRESH_SECRET = env.JWT_REFRESH_SECRET;
 
 export function hashPassword(password: string) {
   return bcrypt.hash(password, 12);

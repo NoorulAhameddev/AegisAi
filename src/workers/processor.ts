@@ -4,11 +4,13 @@ import { openai } from '../services/ai/openai';
 import { Job } from 'bullmq';
 import { validateInput, detectLeaks } from '../lib/security';
 import { buildPrompt, buildSystemPrompt } from '../services/ai/prompt';
+import { logger } from '../lib/logger';
 
 export async function processChatJob(job: Job) {
     const { chatId, message, fileId, userId, requestId } = job.data;
 
     const logPrefix = `[Worker] [Req:${requestId || 'N/A'}] [Job:${job.id}]`;
+    logger.worker(job.id as string, "started", { userId, chatId, requestId, jobType: "chat" });
     console.log(`${logPrefix} ====== JOB STARTED ======`);
     console.log(`${logPrefix} Chat ID: ${chatId}`);
     console.log(`${logPrefix} User ID: ${userId}`);
@@ -75,10 +77,12 @@ export async function processChatJob(job: Job) {
 
         // Decrypt messages before processing
         const { decrypt } = await import("../lib/encryption");
-        const decryptedMessages = allMessages.map(msg => ({
-            ...msg,
-            content: decrypt(msg.content)
-        }));
+        const decryptedMessages = await Promise.all(
+            allMessages.map(async msg => ({
+                ...msg,
+                content: await decrypt(msg.content)
+            }))
+        );
 
         // 🚀 ENHANCED RAG Context Injection
         let ragContext = "";
@@ -276,7 +280,7 @@ export async function processChatJob(job: Job) {
 
         // 8. Save Assistant Response to DB
         const { encrypt } = await import("../lib/encryption");
-        const encryptedResponse = encrypt(finalContent);
+        const encryptedResponse = await encrypt(finalContent);
 
         await prisma.message.create({
             data: {
@@ -308,10 +312,12 @@ export async function processChatJob(job: Job) {
             });
         }
 
+        logger.worker(job.id as string, "completed", { userId, chatId, requestId, jobType: "chat" });
         console.log(`[Worker] Job ${job.id} COMPLETED.`);
         return { status: 'completed', content: finalContent, chatId };
 
     } catch (err: any) {
+        logger.error("Worker job failed", err as Error, { jobId: job.id, userId, chatId, requestId, jobType: "chat" });
         console.error(`[Worker] Job ${job.id} FAILED:`, err);
         throw err;
     }

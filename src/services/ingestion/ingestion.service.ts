@@ -6,7 +6,7 @@
 import { prisma } from "@/lib/prisma";
 import { extractText, detectLanguage, extractMetadata } from "../files/fileProcessor";
 import { ingestDocument } from "@/ai/rag/vector-store";
-import { encrypt } from "@/lib/encryption";
+import { getEncryptionKey } from "@/lib/secrets";
 import fs from "fs";
 import crypto from "crypto";
 import path from "path";
@@ -56,7 +56,7 @@ export async function ingestFile(
     // Save file with encryption
     if (encryptStorage) {
         // Encrypt file content before storage
-        const encrypted = encryptFileBuffer(buffer);
+        const encrypted = await encryptFileBuffer(buffer);
         encryptedPath = `uploads/encrypted/${safeName}`;
         ensureDir(path.dirname(encryptedPath));
         fs.writeFileSync(encryptedPath, encrypted);
@@ -404,9 +404,9 @@ export async function ingestAudioFile(
 
 // Helper functions
 
-function encryptFileBuffer(buffer: Buffer): Buffer {
+async function encryptFileBuffer(buffer: Buffer): Promise<Buffer> {
     const algorithm = 'aes-256-gcm';
-    const key = Buffer.from(process.env.ENCRYPTION_KEY!, 'utf-8');
+    const key = await getEncryptionKey();
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv(algorithm, key, iv);
 

@@ -1,19 +1,28 @@
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/services/auth/session";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { verifyAuth } from "@/services/auth/auth";
+import { errorResponse, forbiddenResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { requireAdmin } from "@/services/auth/authorization";
+import { logger } from "@/lib/logger";
 
 export async function GET(req: NextRequest) {
-    const user = await getUserFromRequest(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if (user.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    try {
+        const user = await verifyAuth(req);
+        if (!user) return unauthorizedResponse();
+        const adminResponse = requireAdmin(user.role);
+        if (adminResponse) return adminResponse;
 
-    const users = await prisma.user.count();
-    const usage = await prisma.usageMetric.aggregate({
-        _sum: { tokens: true },
-    });
+        const users = await prisma.user.count();
+        const usage = await prisma.usageMetric.aggregate({
+            _sum: { tokens: true },
+        });
 
-    return NextResponse.json({
-        users,
-        totalTokensUsed: usage._sum.tokens || 0,
-    });
+        return successResponse({
+            users,
+            totalTokensUsed: usage._sum.tokens || 0,
+        });
+    } catch (error) {
+        logger.error("Admin metrics failed", error as Error);
+        return errorResponse("Failed to fetch metrics", { status: 500 });
+    }
 }

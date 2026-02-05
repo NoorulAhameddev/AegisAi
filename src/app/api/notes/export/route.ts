@@ -4,29 +4,29 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import * as exportService from "@/services/export/export.service";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
     try {
         const authResult = await verifyAuth(req);
         if (!authResult) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
-        const body = await req.json();
-        const { noteId, format } = body;
+        const bodySchema = z.object({
+            noteId: z.string().min(1),
+            format: z.enum(["pdf", "markdown", "docx"]),
+        });
 
-        if (!noteId || !format) {
-            return NextResponse.json(
-                { error: "Missing required fields: noteId, format" },
-                { status: 400 }
-            );
-        }
+        const { data, response } = await parseBody(req, bodySchema);
+        if (response) return response;
 
-        if (!["pdf", "markdown", "docx"].includes(format)) {
-            return NextResponse.json({ error: "Invalid format" }, { status: 400 });
-        }
+        const { noteId, format } = data;
 
         const userId = authResult.id;
         let result;
@@ -46,10 +46,7 @@ export async function POST(req: NextRequest) {
             },
         });
     } catch (error) {
-        console.error("Export error:", error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Export failed" },
-            { status: 500 }
-        );
+        logger.error("Export error", error as Error);
+        return errorResponse("Export failed", { status: 500 });
     }
 }

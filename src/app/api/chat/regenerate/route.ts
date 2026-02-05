@@ -3,25 +3,31 @@
  * Regenerate the last assistant message in a chat
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import { openai } from "@/services/ai/openai";
 import { prisma } from "@/lib/prisma";
 import { retrieveContext } from "@/lib/rag-retrieval";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
     try {
         const authResult = await verifyAuth(req);
         if (!authResult) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
-        const body = await req.json();
-        const { chatId, projectId } = body;
+        const bodySchema = z.object({
+            chatId: z.string().min(1),
+            projectId: z.string().optional(),
+        });
+        const { data, response } = await parseBody(req, bodySchema);
+        if (response) return response;
 
-        if (!chatId) {
-            return NextResponse.json({ error: "Missing chatId" }, { status: 400 });
-        }
+        const { chatId } = data;
 
         const userId = authResult.id;
 
@@ -36,7 +42,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (!chat || chat.Message.length < 2) {
-            return NextResponse.json({ error: "Chat not found or insufficient messages" }, { status: 404 });
+            return errorResponse("Chat not found or insufficient messages", { status: 404 });
         }
 
         // Find last assistant message
@@ -46,7 +52,7 @@ export async function POST(req: NextRequest) {
             .pop();
 
         if (!lastAssistantMsgIndex) {
-            return NextResponse.json({ error: "No assistant message to regenerate" }, { status: 400 });
+            return errorResponse("No assistant message to regenerate", { status: 400 });
         }
 
         // Delete last assistant message
@@ -60,7 +66,7 @@ export async function POST(req: NextRequest) {
             .pop();
 
         if (!lastUserMsg) {
-            return NextResponse.json({ error: "No user message found" }, { status: 400 });
+            return errorResponse("No user message found", { status: 400 });
         }
 
         // Retrieve RAG context
@@ -74,7 +80,7 @@ export async function POST(req: NextRequest) {
                 sources = Array.from(ragResult.sources);
             }
         } catch (ragError) {
-            console.error("RAG retrieval error:", ragError);
+            logger.error("RAG retrieval error", ragError as Error, { userId });
         }
 
         // Build conversation (exclude deleted message)
@@ -110,15 +116,12 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        return NextResponse.json({
+        return successResponse({
             message: newMessage,
             tokensUsed: completion.usage?.total_tokens,
         });
     } catch (error) {
-        console.error("Regenerate error:", error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Regeneration failed" },
-            { status: 500 }
-        );
+        logger.error("Regenerate error", error as Error);
+        return errorResponse("Regeneration failed", { status: 500 });
     }
 }

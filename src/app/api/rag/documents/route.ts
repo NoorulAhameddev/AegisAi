@@ -1,7 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/services/auth/session";
+import { NextRequest } from "next/server";
+import { z } from "zod";
+import { verifyAuth } from "@/services/auth/auth";
 import { logger } from "@/lib/logger";
 import { deleteDocumentsBySource } from "@/ai/rag/vector-store";
+import { parseQuery } from "@/lib/request-validation";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 
 /**
  * DELETE /api/rag/documents
@@ -11,37 +14,32 @@ export async function DELETE(req: NextRequest) {
     const startTime = Date.now();
 
     try {
-        const user = await getUserFromRequest(req);
+        const user = await verifyAuth(req);
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
-        const { searchParams } = new URL(req.url);
-        const sourceId = searchParams.get('sourceId');
+        const querySchema = z.object({ sourceId: z.string().min(1) });
+        const { data, response } = parseQuery(new URL(req.url), querySchema);
+        if (response) return response;
 
-        if (!sourceId) {
-            return NextResponse.json(
-                { error: "sourceId parameter is required" },
-                { status: 400 }
-            );
-        }
+        const sourceId = data.sourceId;
 
         // Delete documents
-        const deletedCount = await deleteDocumentsBySource(sourceId, user.userId);
+        const deletedCount = await deleteDocumentsBySource(sourceId, user.id);
 
         const duration = Date.now() - startTime;
         logger.api('DELETE', '/api/rag/documents', 200, duration);
         logger.info('Documents deleted from RAG', {
-            userId: user.userId,
+            userId: user.id,
             sourceId,
             deletedCount,
             duration
         });
 
-        return NextResponse.json({
-            success: true,
+        return successResponse({
             deletedCount,
-            message: `Deleted ${deletedCount} document chunks`
+            message: `Deleted ${deletedCount} document chunks`,
         });
 
     } catch (error: any) {
@@ -50,9 +48,6 @@ export async function DELETE(req: NextRequest) {
             path: '/api/rag/documents',
             duration
         });
-        return NextResponse.json(
-            { error: error.message || "Failed to delete documents" },
-            { status: 500 }
-        );
+        return errorResponse(error.message || "Failed to delete documents", { status: 500 });
     }
 }

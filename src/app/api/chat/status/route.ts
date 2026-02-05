@@ -1,33 +1,42 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { chatQueue } from "@/lib/queue";
-import { getUserFromRequest } from "@/services/auth/session";
+import { verifyAuth } from "@/services/auth/auth";
+import { parseQuery } from "@/lib/request-validation";
+import { errorResponse, forbiddenResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export async function GET(req: NextRequest) {
-    const user = await getUserFromRequest(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // const user = { userId: "fe8036b1-afc1-4626-a567-1ebf4ff27f23" };
+    const user = await verifyAuth(req);
+    if (!user) return unauthorizedResponse();
 
-    const { searchParams } = new URL(req.url);
-    const jobId = searchParams.get("jobId");
+    const querySchema = z.object({ jobId: z.string().min(1) });
+    const { data, response } = parseQuery(new URL(req.url), querySchema);
+    if (response) return response;
 
-    if (!jobId) return NextResponse.json({ error: "Missing jobId" }, { status: 400 });
+    const jobId = data.jobId;
 
     const job = await chatQueue.getJob(jobId);
-    if (!job) return NextResponse.json({ error: "Job not found" }, { status: 404 });
+    if (!job) return errorResponse("Job not found", { status: 404 });
 
     const state = await job.getState();
     const result = job.returnvalue;
     const failedReason = job.failedReason;
 
     // Verify ownership? Ideally job has userId.
-    if (job.data.userId !== user.userId) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (job.data.userId !== user.id) {
+        return forbiddenResponse();
     }
 
-    return NextResponse.json({
-        jobId,
-        state,
-        result,
-        error: failedReason
-    });
+    try {
+        return successResponse({
+            jobId,
+            state,
+            result,
+            error: failedReason,
+        });
+    } catch (error) {
+        logger.error("Chat status failed", error as Error, { userId: user.id, jobId });
+        return errorResponse("Failed to fetch status", { status: 500 });
+    }
 }

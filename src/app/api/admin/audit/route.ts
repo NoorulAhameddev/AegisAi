@@ -3,10 +3,14 @@
  * GET /api/admin/audit - Query audit logs
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import { hasAdminPermission } from "@/services/auth/permissions";
 import { queryAuditLogs } from "@/lib/audit";
+import { parseQuery } from "@/lib/request-validation";
+import { errorResponse, forbiddenResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -14,28 +18,30 @@ export async function GET(req: NextRequest) {
     try {
         const user = await verifyAuth(req);
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
         // Check admin permission
         if (!hasAdminPermission(user.role, "AUDIT_VIEW_MAP")) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+            return forbiddenResponse();
         }
 
-        // Parse query parameters
-        const { searchParams } = new URL(req.url);
-        const userId = searchParams.get("userId") || undefined;
-        const action = searchParams.get("action") || undefined;
-        const targetType = searchParams.get("targetType") || undefined;
-        const targetId = searchParams.get("targetId") || undefined;
-        const limit = parseInt(searchParams.get("limit") || "100");
+        const querySchema = z.object({
+            userId: z.string().optional(),
+            action: z.string().optional(),
+            targetType: z.string().optional(),
+            targetId: z.string().optional(),
+            limit: z.coerce.number().int().min(1).max(500).default(100),
+        });
+        const { data, response } = parseQuery(new URL(req.url), querySchema);
+        if (response) return response;
 
         const logs = await queryAuditLogs({
-            userId,
-            action: action as any,
-            targetType,
-            targetId,
-            limit,
+            userId: data.userId,
+            action: data.action as any,
+            targetType: data.targetType,
+            targetId: data.targetId,
+            limit: data.limit,
         });
 
         // Redact sensitive information based on role
@@ -51,12 +57,9 @@ export async function GET(req: NextRequest) {
             return log;
         });
 
-        return NextResponse.json(sanitizedLogs);
+        return successResponse(sanitizedLogs);
     } catch (error) {
-        console.error("[Admin Audit API Error]:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch audit logs" },
-            { status: 500 }
-        );
+        logger.error("Admin audit fetch error", error as Error);
+        return errorResponse("Failed to fetch audit logs", { status: 500 });
     }
 }

@@ -1,19 +1,21 @@
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { verifyAuth } from "@/services/auth/auth";
+import { logger } from "@/lib/logger";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 
 export async function GET(req: NextRequest) {
-    const token = req.cookies.get("auth_access")?.value;
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
     try {
-        const payload: any = jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
+        const user = await verifyAuth(req);
+        if (!user) return unauthorizedResponse();
+
         const files = await prisma.file.findMany({
-            where: { userId: payload.userId },
+            where: { userId: user.id },
             orderBy: { createdAt: "desc" }
         });
-        return NextResponse.json(files);
-    } catch {
-        return NextResponse.json({ error: "Invalid Token" }, { status: 401 });
+        return successResponse(files);
+    } catch (error) {
+        logger.error("Files list fetch failed", error as Error);
+        return errorResponse("Failed to fetch files", { status: 500 });
     }
 }

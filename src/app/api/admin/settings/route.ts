@@ -1,28 +1,43 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/services/auth/session";
+import { NextRequest } from "next/server";
+import { z } from "zod";
+import { verifyAuth } from "@/services/auth/auth";
 import { getSettings, saveSettings } from "@/lib/settings";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, forbiddenResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export async function GET(req: NextRequest) {
-    const user = await getUserFromRequest(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await verifyAuth(req);
+    if (!user) return unauthorizedResponse();
 
     const { hasPermission } = await import("@/services/auth/rbac");
-    if (!hasPermission(user.role as any, "settings:manage")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!hasPermission(user.role as any, "settings:manage")) return forbiddenResponse();
 
-    return NextResponse.json(getSettings());
+    return successResponse(getSettings());
 }
 
 export async function POST(req: NextRequest) {
-    const user = await getUserFromRequest(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await verifyAuth(req);
+    if (!user) return unauthorizedResponse();
 
     const { hasPermission } = await import("@/services/auth/rbac");
-    if (!hasPermission(user.role as any, "settings:manage")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!hasPermission(user.role as any, "settings:manage")) return forbiddenResponse();
 
-    const body = await req.json();
+    const bodySchema = z.object({
+        allowRegistrations: z.boolean().optional(),
+        maintenanceMode: z.boolean().optional(),
+    });
+    const { data, response } = await parseBody(req, bodySchema);
+    if (response) return response;
+
     const current = getSettings();
-    const newSettings = { ...current, ...body };
+    const newSettings = { ...current, ...data };
 
-    saveSettings(newSettings);
-    return NextResponse.json(newSettings);
+    try {
+        saveSettings(newSettings);
+        return successResponse(newSettings);
+    } catch (error) {
+        logger.error("Admin settings update failed", error as Error, { adminId: user.id });
+        return errorResponse("Failed to update settings", { status: 500 });
+    }
 }

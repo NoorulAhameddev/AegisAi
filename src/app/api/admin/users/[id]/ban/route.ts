@@ -1,9 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAuth } from "@/services/auth/auth";
 import { hasAdminPermission, canModifyRole } from "@/services/auth/permissions";
 import { createAuditLog } from "@/lib/audit";
 import { banUserSchema } from "@/lib/validations";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, forbiddenResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -14,27 +17,23 @@ export async function POST(
     try {
         const user = await verifyAuth(request);
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
         // Check admin permission
         if (!hasAdminPermission(user.role, "IDENTITY_BAN")) {
-            return NextResponse.json({ error: "Forbidden: Missing Permission" }, { status: 403 });
+            return forbiddenResponse();
         }
 
         const targetUserId = (await params).id;
-        const body = await request.json();
-        const validation = banUserSchema.safeParse(body);
+        const { data, response } = await parseBody(request, banUserSchema);
+        if (response) return response;
 
-        if (!validation.success) {
-            return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
-        }
-
-        const { ban, reason, ticketId } = validation.data;
+        const { ban, reason, ticketId } = data;
 
         // Prevent self-modification
         if (user.id === targetUserId) {
-            return NextResponse.json({ error: "Cannot modify your own account" }, { status: 403 });
+            return errorResponse("Cannot modify your own account", { status: 403 });
         }
 
         // Get target user to check role hierarchy
@@ -44,15 +43,12 @@ export async function POST(
         });
 
         if (!targetUser) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            return errorResponse("User not found", { status: 404 });
         }
 
         // Check role hierarchy - cannot ban higher-level admins
         if (!canModifyRole(user.role, targetUser.role)) {
-            return NextResponse.json(
-                { error: "Cannot modify users with equal or higher privileges" },
-                { status: 403 }
-            );
+            return forbiddenResponse();
         }
 
         // Update user ban status
@@ -81,9 +77,9 @@ export async function POST(
             metadata: { targetEmail: targetUser.email },
         });
 
-        return NextResponse.json({ user: updated });
+        return successResponse({ user: updated });
     } catch (error) {
-        console.error("[Admin Ban User Error]:", error);
-        return NextResponse.json({ error: "Failed to update user status" }, { status: 500 });
+        logger.error("Admin ban user failed", error as Error);
+        return errorResponse("Failed to update user status", { status: 500 });
     }
 }

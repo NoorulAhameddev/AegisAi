@@ -1,20 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
+import { verifyAuth } from "@/services/auth/auth";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export async function GET(req: NextRequest) {
-    const token = req.cookies.get("auth_access")?.value;
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    let payload: any;
-    try {
-        payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
-    } catch {
-        return NextResponse.json({ error: "Invalid Token" }, { status: 401 });
-    }
+    const auth = await verifyAuth(req);
+    if (!auth) return unauthorizedResponse();
 
     const user = await prisma.user.findUnique({
-        where: { id: payload.userId },
+        where: { id: auth.id },
         select: {
             id: true,
             email: true,
@@ -24,7 +19,12 @@ export async function GET(req: NextRequest) {
         }
     });
 
-    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!user) return errorResponse("User not found", { status: 404 });
 
-    return NextResponse.json(user);
+    try {
+        return successResponse(user);
+    } catch (error) {
+        logger.error("Auth me failed", error as Error);
+        return errorResponse("Failed to fetch user", { status: 500 });
+    }
 }

@@ -3,101 +3,48 @@
  * Ensures all required configuration is present and valid
  */
 
-interface EnvConfig {
-    // Authentication
-    JWT_ACCESS_SECRET: string;
-    JWT_REFRESH_SECRET: string;
+import { z } from "zod";
 
-    // Database
-    DATABASE_URL: string;
+const envSchema = z.object({
+    NODE_ENV: z.enum(["development", "production", "test"]),
+    APP_ENV: z.enum(["development", "staging", "production"]),
 
-    // Security
-    ENCRYPTION_KEY: string;
+    DATABASE_URL: z.string().min(1).refine(v => v.startsWith("postgresql://"), {
+        message: "DATABASE_URL must start with postgresql://",
+    }),
 
-    // AI
-    OPENROUTER_API_KEY: string;
+    JWT_ACCESS_SECRET: z.string().min(32),
+    JWT_REFRESH_SECRET: z.string().min(32),
 
-    // Cache/Queue
-    REDIS_URL?: string;
+    OPENROUTER_API_KEY: z.string().min(1).startsWith("sk-"),
 
-    // Environment
-    NODE_ENV: 'development' | 'production' | 'test';
+    REDIS_URL: z.string().min(1),
+    QUEUE_NAME: z.string().min(1).default("chat-queue"),
+
+    SECRET_PROVIDER: z.enum(["aws-kms"]),
+    ENCRYPTION_KEY_CIPHERTEXT: z.string().min(1),
+    AWS_REGION: z.string().min(1),
+
+    MAX_FILE_SIZE: z.coerce.number().int().positive().default(50 * 1024 * 1024),
+    MAX_UPLOADS_PER_MINUTE: z.coerce.number().int().positive().default(20),
+});
+
+const parsed = envSchema.safeParse(process.env);
+if (!parsed.success) {
+    const message = parsed.error.errors
+        .map(e => `- ${e.path.join(".")}: ${e.message}`)
+        .join("\n");
+    throw new Error(`FATAL: Invalid environment configuration:\n${message}`);
 }
 
-function validateEnvironment(): EnvConfig {
-    const errors: string[] = [];
+export const env = parsed.data;
+export type Env = typeof env;
 
-    // Authentication
-    if (!process.env.JWT_ACCESS_SECRET) {
-        errors.push('JWT_ACCESS_SECRET is required');
-    } else if (process.env.JWT_ACCESS_SECRET.length < 32) {
-        errors.push('JWT_ACCESS_SECRET must be at least 32 characters');
-    }
+let config: Env | null = null;
 
-    if (!process.env.JWT_REFRESH_SECRET) {
-        errors.push('JWT_REFRESH_SECRET is required');
-    } else if (process.env.JWT_REFRESH_SECRET.length < 32) {
-        errors.push('JWT_REFRESH_SECRET must be at least 32 characters');
-    }
-
-    // Database
-    if (!process.env.DATABASE_URL) {
-        errors.push('DATABASE_URL is required');
-    } else if (!process.env.DATABASE_URL.startsWith('postgresql://')) {
-        errors.push('DATABASE_URL must be a valid PostgreSQL connection string');
-    }
-
-    // Security
-    if (!process.env.ENCRYPTION_KEY) {
-        errors.push('ENCRYPTION_KEY is required');
-    } else if (process.env.ENCRYPTION_KEY.length !== 32) {
-        errors.push('ENCRYPTION_KEY must be exactly 32 characters');
-    }
-
-    // AI
-    if (!process.env.OPENROUTER_API_KEY) {
-        errors.push('OPENROUTER_API_KEY is required');
-    } else if (!process.env.OPENROUTER_API_KEY.startsWith('sk-')) {
-        errors.push('OPENROUTER_API_KEY appears invalid (should start with sk-)');
-    }
-
-    // Cache/Queue (optional but recommended for production)
-    if (process.env.NODE_ENV === 'production' && !process.env.REDIS_URL) {
-        errors.push('REDIS_URL is required for production deployments');
-    }
-
-    // If in production, fail on any error
-    if (errors.length > 0) {
-        const isProduction = process.env.NODE_ENV === 'production';
-        const message = `Environment Validation Errors:\n${errors.map(e => `  - ${e}`).join('\n')}`;
-
-        if (isProduction) {
-            throw new Error(`FATAL: ${message}`);
-        } else {
-            console.warn(`WARNING: ${message}`);
-        }
-    }
-
-    return {
-        JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET!,
-        JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET!,
-        DATABASE_URL: process.env.DATABASE_URL!,
-        ENCRYPTION_KEY: process.env.ENCRYPTION_KEY!,
-        OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY!,
-        REDIS_URL: process.env.REDIS_URL,
-        NODE_ENV: (process.env.NODE_ENV as any) || 'development',
-    };
-}
-
-// Validate on module load
-let config: EnvConfig | null = null;
-
-export function getEnv(): EnvConfig {
+export function getEnv(): Env {
     if (!config) {
-        config = validateEnvironment();
+        config = env;
     }
     return config;
 }
-
-// Export for use in other modules
-export const env = getEnv();

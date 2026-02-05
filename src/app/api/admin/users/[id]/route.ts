@@ -1,13 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/services/auth/session";
+import { verifyAuth } from "@/services/auth/auth";
+import { errorResponse, forbiddenResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
+import { requireAdmin } from "@/services/auth/authorization";
 
 export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
 
-    const user = await getUserFromRequest(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if (user.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const user = await verifyAuth(req);
+    if (!user) return unauthorizedResponse();
+    const adminResponse = requireAdmin(user.role);
+    if (adminResponse) return adminResponse;
 
     const { id } = params;
 
@@ -15,8 +19,9 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
         await prisma.user.delete({
             where: { id }
         });
-        return NextResponse.json({ success: true });
+        return successResponse({ success: true });
     } catch (e) {
-        return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
+        logger.error("Admin delete user failed", e as Error, { adminId: user.id, targetUserId: id });
+        return errorResponse("Failed to delete", { status: 500 });
     }
 }

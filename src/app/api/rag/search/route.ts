@@ -1,8 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/services/auth/session";
+import { NextRequest } from "next/server";
+import { z } from "zod";
+import { verifyAuth } from "@/services/auth/auth";
 import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { searchSimilar } from "@/ai/rag/vector-store";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 
 /**
  * POST /api/rag/search
@@ -12,32 +15,25 @@ export async function POST(req: NextRequest) {
     const startTime = Date.now();
 
     try {
-        const user = await getUserFromRequest(req);
+        const user = await verifyAuth(req);
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
-        const body = await req.json();
-        const { query, limit = 5, filters } = body;
+        const bodySchema = z.object({
+            query: z.string().min(3),
+            limit: z.coerce.number().int().min(1).max(20).default(5),
+            filters: z.record(z.any()).optional(),
+        });
+        const { data, response } = await parseBody(req, bodySchema);
+        if (response) return response;
 
-        if (!query || typeof query !== 'string') {
-            return NextResponse.json(
-                { error: "Query is required" },
-                { status: 400 }
-            );
-        }
-
-        if (query.length < 3) {
-            return NextResponse.json(
-                { error: "Query too short (minimum 3 characters)" },
-                { status: 400 }
-            );
-        }
+        const { query, limit, filters } = data;
 
         // Search for similar documents
         const results = await searchSimilar(
             query,
-            user.userId,
+            user.id,
             Math.min(limit, 20), // Cap at 20 results
             filters
         );
@@ -55,7 +51,7 @@ export async function POST(req: NextRequest) {
         if (formattedResults.length === 0) {
             const fileResults = await prisma.file.findMany({
                 where: {
-                    userId: user.userId,
+                    userId: user.id,
                     content: {
                         contains: query,
                         mode: "insensitive",
@@ -93,8 +89,7 @@ export async function POST(req: NextRequest) {
         const duration = Date.now() - startTime;
         logger.api('POST', '/api/rag/search', 200, duration);
 
-        return NextResponse.json({
-            success: true,
+        return successResponse({
             results: formattedResults,
             count: formattedResults.length,
         });
@@ -105,9 +100,6 @@ export async function POST(req: NextRequest) {
             path: '/api/rag/search',
             duration
         });
-        return NextResponse.json(
-            { error: error.message || "Search failed" },
-            { status: 500 }
-        );
+        return errorResponse(error.message || "Search failed", { status: 500 });
     }
 }

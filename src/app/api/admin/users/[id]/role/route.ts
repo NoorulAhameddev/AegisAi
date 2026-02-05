@@ -1,34 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/services/auth/session";
+import { verifyAuth } from "@/services/auth/auth";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, forbiddenResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
 
-    const user = await getUserFromRequest(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await verifyAuth(req);
+    if (!user) return unauthorizedResponse();
 
     // RBAC Check
     const { hasPermission } = await import("@/services/auth/rbac");
     if (!hasPermission(user.role as any, "user:promote")) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        return forbiddenResponse();
     }
 
     const { id } = params;
-    const body = await req.json();
-    const { role } = body;
-
-    if (role !== "ADMIN" && role !== "USER") {
-        return NextResponse.json({ error: "Invalid role" }, { status: 400 });
-    }
+    const bodySchema = z.object({
+        role: z.enum(["ADMIN", "USER"]),
+    });
+    const { data, response } = await parseBody(req, bodySchema);
+    if (response) return response;
 
     try {
         const updated = await prisma.user.update({
             where: { id },
-            data: { role: role }
+            data: { role: data.role }
         });
-        return NextResponse.json(updated);
+        return successResponse(updated);
     } catch (e) {
-        return NextResponse.json({ error: "Failed to update" }, { status: 500 });
+        logger.error("Admin update role failed", e as Error, { adminId: user.id, targetUserId: id });
+        return errorResponse("Failed to update", { status: 500 });
     }
 }

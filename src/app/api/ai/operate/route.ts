@@ -3,26 +3,31 @@
  * Endpoints for summaries, notes, extracts, and transformations
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import * as operations from "@/services/ai/operations.service";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
     try {
         const authResult = await verifyAuth(req);
         if (!authResult) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
-        const body = await req.json();
-        const { operation, text, projectId, style } = body;
+        const bodySchema = z.object({
+            operation: z.string().min(1),
+            text: z.string().min(1),
+            projectId: z.string().optional(),
+            style: z.string().optional(),
+        });
+        const { data, response } = await parseBody(req, bodySchema);
+        if (response) return response;
 
-        if (!operation || !text) {
-            return NextResponse.json(
-                { error: "Missing required fields: operation, text" },
-                { status: 400 }
-            );
-        }
+        const { operation, text, projectId, style } = data;
 
         const userId = authResult.id;
         let result;
@@ -69,15 +74,12 @@ export async function POST(req: NextRequest) {
                 result = await operations.generateExamNotes(text, userId, projectId);
                 break;
             default:
-                return NextResponse.json({ error: "Invalid operation" }, { status: 400 });
+                return errorResponse("Invalid operation", { status: 400 });
         }
 
-        return NextResponse.json(result);
+        return successResponse(result);
     } catch (error) {
-        console.error("AI operation error:", error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Internal server error" },
-            { status: 500 }
-        );
+        logger.error("AI operation error", error as Error);
+        return errorResponse("Internal server error", { status: 500 });
     }
 }

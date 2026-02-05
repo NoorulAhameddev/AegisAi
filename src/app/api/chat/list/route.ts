@@ -1,16 +1,16 @@
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { verifyAuth } from "@/services/auth/auth";
+import { logger } from "@/lib/logger";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 
 export async function GET(req: NextRequest) {
-    const token = req.cookies.get("auth_access")?.value;
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
     try {
-        const payload: any = jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
+        const user = await verifyAuth(req);
+        if (!user) return unauthorizedResponse();
 
         const chats = await prisma.chat.findMany({
-            where: { userId: payload.userId },
+            where: { userId: user.id },
             orderBy: { createdAt: "desc" },
             take: 20,
             select: {
@@ -29,9 +29,9 @@ export async function GET(req: NextRequest) {
             updatedAt: c.updatedAt
         }));
 
-        return NextResponse.json(formatted);
+        return successResponse(formatted);
     } catch (error) {
-        console.error('[ChatList] Error:', error);
-        return NextResponse.json({ error: "Invalid Token" }, { status: 401 });
+        logger.error("Chat list fetch failed", error as Error);
+        return errorResponse("Failed to fetch chat list", { status: 500 });
     }
 }

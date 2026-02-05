@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import Redis from "ioredis";
+import { env } from "@/lib/env";
+import { successResponse } from "@/lib/response";
 
 export async function GET() {
     const checks: any = {
@@ -27,9 +28,9 @@ export async function GET() {
     }
 
     // 2. Redis Check
-    if (process.env.REDIS_URL) {
+    if (env.REDIS_URL) {
         try {
-            const redis = new Redis(process.env.REDIS_URL, {
+            const redis = new Redis(env.REDIS_URL, {
                 maxRetriesPerRequest: 1,
                 connectTimeout: 5000
             });
@@ -54,7 +55,7 @@ export async function GET() {
     }
 
     // 3. OpenAI API Key Check
-    if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.startsWith('sk-')) {
+    if (env.OPENROUTER_API_KEY && env.OPENROUTER_API_KEY.startsWith('sk-')) {
         checks.checks.openai = {
             status: "ok",
             message: "API key configured"
@@ -72,11 +73,13 @@ export async function GET() {
         'DATABASE_URL',
         'JWT_ACCESS_SECRET',
         'JWT_REFRESH_SECRET',
-        'ENCRYPTION_KEY',
-        'OPENAI_API_KEY'
+        'OPENROUTER_API_KEY',
+        'ENCRYPTION_KEY_CIPHERTEXT',
+        'AWS_REGION',
+        'SECRET_PROVIDER'
     ];
 
-    const missingVars = requiredEnvVars.filter(v => !process.env[v]);
+    const missingVars = requiredEnvVars.filter(v => !(env as any)[v]);
 
     if (missingVars.length === 0) {
         checks.checks.environment = {
@@ -92,22 +95,20 @@ export async function GET() {
     }
 
     // 5. Encryption Key Length Check
-    if (process.env.ENCRYPTION_KEY?.length === 32) {
+    if (env.ENCRYPTION_KEY_CIPHERTEXT && env.AWS_REGION) {
         checks.checks.encryption = {
             status: "ok",
-            message: "Encryption key valid"
+            message: "KMS encryption configured"
         };
     } else {
         allHealthy = false;
         checks.checks.encryption = {
             status: "error",
-            message: "Encryption key must be exactly 32 characters"
+            message: "KMS encryption not configured"
         };
     }
 
     checks.status = allHealthy ? "healthy" : "unhealthy";
 
-    return NextResponse.json(checks, {
-        status: allHealthy ? 200 : 503
-    });
+    return successResponse(checks, { status: allHealthy ? 200 : 503 });
 }

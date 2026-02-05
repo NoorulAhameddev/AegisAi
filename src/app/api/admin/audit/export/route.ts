@@ -4,9 +4,13 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import { hasAdminPermission } from "@/services/auth/permissions";
 import { exportAuditLogs, createAuditLog } from "@/lib/audit";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, forbiddenResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -14,16 +18,23 @@ export async function POST(req: NextRequest) {
     try {
         const user = await verifyAuth(req);
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
         // Check admin permission
         if (!hasAdminPermission(user.role, "AUDIT_EXPORT")) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+            return forbiddenResponse();
         }
 
-        const body = await req.json();
-        const { format = "json", filters = {} } = body;
+        const bodySchema = z.object({
+            format: z.enum(["json", "csv"]).default("json"),
+            filters: z.record(z.any()).optional(),
+        });
+        const { data, response } = await parseBody(req, bodySchema);
+        if (response) return response;
+
+        const format = data.format || "json";
+        const filters = data.filters || {};
 
         // Log the export action
         await createAuditLog({
@@ -47,10 +58,7 @@ export async function POST(req: NextRequest) {
 
         return new NextResponse(exportData, { headers });
     } catch (error) {
-        console.error("[Admin Audit Export Error]:", error);
-        return NextResponse.json(
-            { error: "Failed to export audit logs" },
-            { status: 500 }
-        );
+        logger.error("Admin audit export error", error as Error);
+        return errorResponse("Failed to export audit logs", { status: 500 });
     }
 }

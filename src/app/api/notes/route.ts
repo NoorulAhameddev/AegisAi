@@ -3,22 +3,32 @@
  * CRUD operations for AI-generated notes
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import { prisma } from "@/lib/prisma";
+import { parseBody, parseQuery } from "@/lib/request-validation";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 // GET - List user's notes
 export async function GET(req: NextRequest) {
     try {
         const authResult = await verifyAuth(req);
         if (!authResult) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
-        const { searchParams } = new URL(req.url);
-        const projectId = searchParams.get("projectId");
-        const type = searchParams.get("type");
-        const limit = parseInt(searchParams.get("limit") || "50");
+        const querySchema = z.object({
+            projectId: z.string().optional(),
+            type: z.string().optional(),
+            limit: z.coerce.number().int().min(1).max(100).default(50),
+        });
+
+        const { data, response } = parseQuery(new URL(req.url), querySchema);
+        if (response) return response;
+
+        const { projectId, type, limit } = data;
 
         const userId = authResult.id;
         
@@ -44,10 +54,10 @@ export async function GET(req: NextRequest) {
             },
         });
 
-        return NextResponse.json({ notes });
+        return successResponse({ notes });
     } catch (error) {
-        console.error("Get notes error:", error);
-        return NextResponse.json({ error: "Failed to fetch notes" }, { status: 500 });
+        logger.error("Get notes error", error as Error);
+        return errorResponse("Failed to fetch notes", { status: 500 });
     }
 }
 
@@ -56,18 +66,21 @@ export async function POST(req: NextRequest) {
     try {
         const authResult = await verifyAuth(req);
         if (!authResult) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
-        const body = await req.json();
-        const { title, content, type, projectId, tags } = body;
+        const bodySchema = z.object({
+            title: z.string().min(1),
+            content: z.string().min(1),
+            type: z.string().min(1),
+            projectId: z.string().nullable().optional(),
+            tags: z.array(z.string()).optional(),
+        });
 
-        if (!title || !content || !type) {
-            return NextResponse.json(
-                { error: "Missing required fields: title, content, type" },
-                { status: 400 }
-            );
-        }
+        const { data, response } = await parseBody(req, bodySchema);
+        if (response) return response;
+
+        const { title, content, type, projectId, tags } = data;
 
         const userId = authResult.id;
         const note = await prisma.note.create({
@@ -81,10 +94,10 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        return NextResponse.json({ note });
+        return successResponse({ note });
     } catch (error) {
-        console.error("Create note error:", error);
-        return NextResponse.json({ error: "Failed to create note" }, { status: 500 });
+        logger.error("Create note error", error as Error);
+        return errorResponse("Failed to create note", { status: 500 });
     }
 }
 
@@ -93,15 +106,20 @@ export async function PATCH(req: NextRequest) {
     try {
         const authResult = await verifyAuth(req);
         if (!authResult) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
-        const body = await req.json();
-        const { noteId, title, content, tags } = body;
+        const bodySchema = z.object({
+            noteId: z.string().min(1),
+            title: z.string().optional(),
+            content: z.string().optional(),
+            tags: z.array(z.string()).optional(),
+        });
 
-        if (!noteId) {
-            return NextResponse.json({ error: "Note ID required" }, { status: 400 });
-        }
+        const { data, response } = await parseBody(req, bodySchema);
+        if (response) return response;
+
+        const { noteId, title, content, tags } = data;
 
         const userId = authResult.id;
 
@@ -111,7 +129,7 @@ export async function PATCH(req: NextRequest) {
         });
 
         if (!existing) {
-            return NextResponse.json({ error: "Note not found" }, { status: 404 });
+            return errorResponse("Note not found", { status: 404 });
         }
 
         const note = await prisma.note.update({
@@ -124,10 +142,10 @@ export async function PATCH(req: NextRequest) {
             },
         });
 
-        return NextResponse.json({ note });
+        return successResponse({ note });
     } catch (error) {
-        console.error("Update note error:", error);
-        return NextResponse.json({ error: "Failed to update note" }, { status: 500 });
+        logger.error("Update note error", error as Error);
+        return errorResponse("Failed to update note", { status: 500 });
     }
 }
 
@@ -136,15 +154,14 @@ export async function DELETE(req: NextRequest) {
     try {
         const authResult = await verifyAuth(req);
         if (!authResult) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
-        const { searchParams } = new URL(req.url);
-        const noteId = searchParams.get("id");
+        const querySchema = z.object({ id: z.string().min(1) });
+        const { data, response } = parseQuery(new URL(req.url), querySchema);
+        if (response) return response;
 
-        if (!noteId) {
-            return NextResponse.json({ error: "Note ID required" }, { status: 400 });
-        }
+        const noteId = data.id;
 
         const userId = authResult.id;
 
@@ -154,16 +171,16 @@ export async function DELETE(req: NextRequest) {
         });
 
         if (!note) {
-            return NextResponse.json({ error: "Note not found" }, { status: 404 });
+            return errorResponse("Note not found", { status: 404 });
         }
 
         await prisma.note.delete({
             where: { id: noteId },
         });
 
-        return NextResponse.json({ success: true });
+        return successResponse({ success: true });
     } catch (error) {
-        console.error("Delete note error:", error);
-        return NextResponse.json({ error: "Failed to delete note" }, { status: 500 });
+        logger.error("Delete note error", error as Error);
+        return errorResponse("Failed to delete note", { status: 500 });
     }
 }

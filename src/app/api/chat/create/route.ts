@@ -1,35 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/services/auth/session";
+import { verifyAuth } from "@/services/auth/auth";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
-    const user = await getUserFromRequest(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // const user = { userId: "fe8036b1-afc1-4626-a567-1ebf4ff27f23" };
-    // const user = { userId: "fe8036b1-afc1-4626-a567-1ebf4ff27f23" };
+    const user = await verifyAuth(req);
+    if (!user) return unauthorizedResponse();
 
-    let body = {};
+    const bodySchema = z.object({ title: z.string().optional() });
+    const { data, response } = await parseBody(req, bodySchema);
+    if (response) return response;
+
     try {
-        body = await req.json();
-    } catch (e) {
-        // If body is empty/invalid, use defaults
+        const chat = await prisma.chat.create({
+            data: {
+                userId: user.id,
+                title: data.title || "New Conversation",
+            },
+        });
+
+        // Audit (Silent fail is ok for logs)
+        prisma.auditLog.create({
+            data: {
+                userId: user.id,
+                action: `CHAT_CREATE:${chat.id}`,
+            },
+        }).catch(() => { });
+
+        return successResponse({ chatId: chat.id });
+    } catch (error) {
+        logger.error("Chat create failed", error as Error, { userId: user.id });
+        return errorResponse("Failed to create chat", { status: 500 });
     }
-    const { title } = body as any;
-
-    const chat = await prisma.chat.create({
-        data: {
-            userId: user.userId,
-            title: title || "New Conversation"
-        },
-    });
-
-    // Audit (Silent fail is ok for logs)
-    prisma.auditLog.create({
-        data: {
-            userId: user.userId,
-            action: `CHAT_CREATE:${chat.id}`
-        }
-    }).catch(() => { });
-
-    return NextResponse.json({ chatId: chat.id });
 }

@@ -3,12 +3,16 @@
  * Upload multiple files at once
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { verifyAuth } from "@/services/auth/auth";
 import { batchIngestFiles } from "@/services/ingestion/ingestion.service";
 import { writeFile, unlink, mkdir, readFile } from "fs/promises";
 import { join } from "path";
 import { existsSync } from "fs";
+import { errorResponse, rateLimitResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
+import { env } from "@/lib/env";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
     const tempFiles: string[] = [];
@@ -16,7 +20,12 @@ export async function POST(req: NextRequest) {
     try {
         const authResult = await verifyAuth(req);
         if (!authResult) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
+        }
+
+        const limit = await rateLimit(req, { limit: env.MAX_UPLOADS_PER_MINUTE, window: 60 });
+        if (!limit.success) {
+            return rateLimitResponse();
         }
 
         const formData = await req.formData();
@@ -28,6 +37,9 @@ export async function POST(req: NextRequest) {
         for (const [key, value] of formData.entries()) {
             if (key.startsWith("file-") && value instanceof File) {
                 const file = value as File;
+                if (file.size > env.MAX_FILE_SIZE) {
+                    return errorResponse("File too large", { status: 413 });
+                }
                 const bytes = await file.arrayBuffer();
                 const buffer = Buffer.from(bytes);
                 
@@ -50,7 +62,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (files.length === 0) {
-            return NextResponse.json({ error: "No files provided" }, { status: 400 });
+            return errorResponse("No files provided", { status: 400 });
         }
 
         const userId = authResult.id;
@@ -74,7 +86,7 @@ export async function POST(req: NextRequest) {
         // Cleanup temp files
         await Promise.all(tempFiles.map((path) => unlink(path).catch(() => {})));
 
-        return NextResponse.json({
+        return successResponse({
             results,
             total: files.length,
             successful: results.filter((r) => r.fileId).length,
@@ -83,11 +95,8 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         // Cleanup on error
         await Promise.all(tempFiles.map((path) => unlink(path).catch(() => {})));
-        
-        console.error("Batch upload error:", error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Batch upload failed" },
-            { status: 500 }
-        );
+
+        logger.error("Batch upload error", error as Error);
+        return errorResponse(error instanceof Error ? error.message : "Batch upload failed", { status: 500 });
     }
 }

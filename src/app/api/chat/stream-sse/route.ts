@@ -4,29 +4,35 @@
  */
 
 import { NextRequest } from "next/server";
+import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import { openai } from "@/services/ai/openai";
 import { prisma } from "@/lib/prisma";
 import { retrieveContext } from "@/lib/rag-retrieval";
+import { parseBody } from "@/lib/request-validation";
+import { badRequestResponse, notFoundResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
+import { decrypt, encrypt } from "@/lib/encryption";
 
 export async function POST(req: NextRequest) {
     try {
         const authResult = await verifyAuth(req);
         if (!authResult) {
-            return new Response(JSON.stringify({ error: "Unauthorized" }), {
-                status: 401,
-                headers: { "Content-Type": "application/json" },
-            });
+            return unauthorizedResponse();
         }
 
-        const body = await req.json();
-        const { chatId, message, projectId } = body;
+        const bodySchema = z.object({
+            chatId: z.string().min(1, "Chat ID is required"),
+            message: z.string().min(1, "Message is required"),
+            projectId: z.string().optional(),
+        }).strict();
+        const { data, response } = await parseBody(req, bodySchema);
+        if (response) return response;
 
-        if (!chatId || !message) {
-            return new Response(JSON.stringify({ error: "Missing chatId or message" }), {
-                status: 400,
-                headers: { "Content-Type": "application/json" },
-            });
+        const { chatId, message } = data;
+        
+        if (!chatId || chatId === "undefined") {
+            return badRequestResponse("Chat ID is required. Please create a new chat first.");
         }
 
         const userId = authResult.id;
@@ -38,18 +44,16 @@ export async function POST(req: NextRequest) {
         });
 
         if (!chat) {
-            return new Response(JSON.stringify({ error: "Chat not found" }), {
-                status: 404,
-                headers: { "Content-Type": "application/json" },
-            });
+            return notFoundResponse();
         }
 
         // Save user message
+        const encryptedMessage = await encrypt(message);
         await prisma.message.create({
             data: {
                 chatId,
                 role: "USER",
-                content: message,
+                content: encryptedMessage,
             },
         });
 
@@ -69,14 +73,16 @@ export async function POST(req: NextRequest) {
                             sources = Array.from(ragResult.sources);
                         }
                     } catch (ragError) {
-                        console.error("RAG retrieval error:", ragError);
+                        logger.error("RAG retrieval error", ragError as Error, { userId });
                     }
 
                     // Build conversation history
-                    const conversationMessages = chat.Message.map((msg: any) => ({
-                        role: msg.role.toLowerCase() as "user" | "assistant",
-                        content: msg.content,
-                    }));
+                    const conversationMessages = await Promise.all(
+                        chat.Message.map(async (msg: any) => ({
+                            role: msg.role.toLowerCase() as "user" | "assistant",
+                            content: await decrypt(msg.content),
+                        }))
+                    );
 
                     // Add current message with RAG context
                     const systemPrompt = ragContext
@@ -109,11 +115,12 @@ export async function POST(req: NextRequest) {
                     }
 
                     // Save assistant message
+                    const encryptedResponse = await encrypt(fullResponse);
                     await prisma.message.create({
                         data: {
                             chatId,
                             role: "ASSISTANT",
-                            content: fullResponse,
+                            content: encryptedResponse,
                         },
                     });
 
@@ -126,7 +133,7 @@ export async function POST(req: NextRequest) {
                     controller.enqueue(encoder.encode(`data: ${finalData}\n\n`));
                     controller.close();
                 } catch (error) {
-                    console.error("SSE stream error:", error);
+                    logger.error("SSE stream error", error as Error, { userId, chatId });
                     const errorData = JSON.stringify({
                         error: error instanceof Error ? error.message : "Stream failed",
                     });
@@ -144,7 +151,7 @@ export async function POST(req: NextRequest) {
             },
         });
     } catch (error) {
-        console.error("SSE endpoint error:", error);
+        logger.error("SSE endpoint error", error as Error);
         return new Response(JSON.stringify({ error: "Internal server error" }), {
             status: 500,
             headers: { "Content-Type": "application/json" },

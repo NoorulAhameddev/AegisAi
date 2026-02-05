@@ -3,35 +3,38 @@
  * Ingest transcripts from YouTube URLs
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import { ingestYouTubeURL } from "@/services/ingestion/ingestion.service";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
     try {
         const user = await verifyAuth(req);
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
-        const body = await req.json();
-        const { url, projectId } = body;
+        const bodySchema = z.object({
+            url: z.string().min(1),
+            projectId: z.string().optional(),
+        });
+        const { data, response } = await parseBody(req, bodySchema);
+        if (response) return response;
 
-        if (!url) {
-            return NextResponse.json({ error: "Missing YouTube URL" }, { status: 400 });
-        }
+        const { url, projectId } = data;
         const result = await ingestYouTubeURL(url, {
             userId: user.id,
             projectId: projectId || undefined,
             enableRAG: true,
         });
 
-        return NextResponse.json(result);
+        return successResponse(result);
     } catch (error) {
-        console.error("YouTube ingestion error:", error);
-        return NextResponse.json(
-            { error: error instanceof Error ? error.message : "Ingestion failed" },
-            { status: 500 }
-        );
+        logger.error("YouTube ingestion error", error as Error);
+        return errorResponse(error instanceof Error ? error.message : "Ingestion failed", { status: 500 });
     }
 }

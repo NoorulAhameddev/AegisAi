@@ -1,10 +1,11 @@
 import { Queue } from 'bullmq';
 import Redis from 'ioredis';
+import { env } from '@/lib/env';
 
-const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-const queueName = process.env.QUEUE_NAME || 'chat-queue';
+const redisUrl = env.REDIS_URL;
+const queueName = env.QUEUE_NAME;
 
-let connection: Redis;
+export let connection: Redis;
 
 try {
     connection = new Redis(redisUrl, {
@@ -39,6 +40,26 @@ export const chatQueue = new Queue(queueName, {
             type: 'exponential',
             delay: 1000,
         },
+    },
+});
+
+export const ragQueue = new Queue('rag-queue', {
+    connection,
+    defaultJobOptions: {
+        attempts: 5,
+        backoff: {
+            type: 'exponential',
+            delay: 1000,
+        },
+        removeOnComplete: { count: 100, age: 3600 },
+        removeOnFail: { count: 1000, age: 7 * 24 * 3600 },
+    },
+});
+
+export const dlqQueue = new Queue('dlq-queue', {
+    connection,
+    defaultJobOptions: {
+        removeOnComplete: { count: 1000, age: 30 * 24 * 3600 },
     },
 });
 

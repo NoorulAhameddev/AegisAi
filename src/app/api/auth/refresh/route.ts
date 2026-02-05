@@ -1,18 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import {
-  verifyRefreshToken,
-  signAccessToken,
-  signRefreshToken,
-} from "@/services/auth/auth";
+import { verifyRefreshToken } from "@/services/auth/auth";
+import { env } from "@/lib/env";
+import { errorResponse, forbiddenResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
 
   const token = req.cookies.get("auth_refresh")?.value;
-  if (!token) return NextResponse.json({ error: "No token" }, { status: 401 });
+  if (!token) return unauthorizedResponse();
 
   try {
-    const { verifyRefreshToken, signAccessToken, signRefreshToken } = await import("@/services/auth/auth");
     const { hashToken, createSession } = await import("@/services/auth/session");
 
     // 1. Verify Signature
@@ -29,27 +27,27 @@ export async function POST(req: NextRequest) {
       // SECURITY ACTION: Invalidate all sessions for this user?
       // YES, aggressive security is required.
       await prisma.session.deleteMany({ where: { userId: payload.userId } });
-      console.warn(`[Security] Refresh Token Reuse attempt for User: ${payload.userId}. ALL SESSIONS REVOKED.`);
-      return NextResponse.json({ error: "Invalid Session - Reuse Detected" }, { status: 401 });
+      logger.security("Refresh token reuse detected", { userId: payload.userId });
+      return errorResponse("Invalid Session - Reuse Detected", { status: 401 });
     }
 
     // 3. Check Expiry (DB side)
     if (new Date() > session.expiresAt) {
       await prisma.session.delete({ where: { id: session.id } });
-      return NextResponse.json({ error: "Session Expired" }, { status: 401 });
+      return errorResponse("Session Expired", { status: 401 });
     }
 
     // 4. Fetch User to check Version
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (!user) return NextResponse.json({ error: "User not found" }, { status: 401 });
+    if (!user) return errorResponse("User not found", { status: 401 });
 
     if (user.tokenVersion !== payload.tokenVersion) {
       // Global revocation occurred
       await prisma.session.delete({ where: { id: session.id } });
-      return NextResponse.json({ error: "Session Revoked" }, { status: 401 });
+      return errorResponse("Session Revoked", { status: 401 });
     }
 
-    if ((user as any).isBanned) return NextResponse.json({ error: "Banned" }, { status: 403 });
+    if ((user as any).isBanned) return forbiddenResponse();
 
     // 5. ROTATION: Delete old, Create New
     // Transactional consistency is best
@@ -63,9 +61,9 @@ export async function POST(req: NextRequest) {
     // Create New Session
     const { accessToken, refreshToken } = await createSession(user.id, userAgent, ip);
 
-    const res = NextResponse.json({ message: "Refreshed" });
+    const res = successResponse({ message: "Refreshed" });
 
-    const isProd = process.env.NODE_ENV === "production";
+    const isProd = env.NODE_ENV === "production";
 
     res.cookies.set("auth_access", accessToken, {
       httpOnly: true,
@@ -85,7 +83,7 @@ export async function POST(req: NextRequest) {
 
     return res;
   } catch (e) {
-    console.error("Refresh Error", e);
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    logger.error("Refresh Error", e as Error);
+    return errorResponse("Invalid token", { status: 401 });
   }
 }

@@ -1,66 +1,64 @@
-import crypto from 'crypto';
-import { logger } from './logger';
+import crypto from "crypto";
+import { logger } from "./logger";
+import { getEncryptionKey } from "./secrets";
 
-const ALGORITHM = 'aes-256-gcm';
-const CURRENT_KEY_VERSION = 'v1';
+const ALGORITHM = "aes-256-gcm";
+const CURRENT_KEY_VERSION = "v1";
 
-// STRICT: Fail if encryption key is not set
-if (!process.env.ENCRYPTION_KEY) {
-    throw new Error('FATAL: ENCRYPTION_KEY environment variable is required');
+let cachedKeyVersions: Record<string, Buffer> | null = null;
+
+async function getKeyVersions(): Promise<Record<string, Buffer>> {
+    if (cachedKeyVersions) return cachedKeyVersions;
+
+    const v1 = await getEncryptionKey();
+    cachedKeyVersions = {
+        v1,
+        // Future versions can be loaded here (v2, v3...) with separate ciphertext envs
+    };
+
+    return cachedKeyVersions;
 }
 
-if (process.env.ENCRYPTION_KEY.length !== 32) {
-    throw new Error('FATAL: ENCRYPTION_KEY must be exactly 32 characters');
-}
+export async function encrypt(text: string): Promise<string> {
+    if (!text) throw new Error("Cannot encrypt empty string");
 
-const SECRET_KEY = Buffer.from(process.env.ENCRYPTION_KEY, 'utf-8');
-
-// Support for key rotation - can add new keys as needed
-const KEY_VERSIONS: Record<string, Buffer> = {
-    'v1': SECRET_KEY,
-    // 'v2': Buffer.from(process.env.ENCRYPTION_KEY_V2 || '', 'utf-8'), // Add future keys here
-};
-
-export function encrypt(text: string): string {
-    if (!text) throw new Error('Cannot encrypt empty string');
+    const keys = await getKeyVersions();
+    const key = keys[CURRENT_KEY_VERSION];
+    if (!key) throw new Error(`Unknown key version: ${CURRENT_KEY_VERSION}`);
 
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv(ALGORITHM, SECRET_KEY, iv);
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
 
-    let encrypted = cipher.update(text, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
+    let encrypted = cipher.update(text, "utf8", "hex");
+    encrypted += cipher.final("hex");
 
-    const authTag = cipher.getAuthTag().toString('hex');
-    
-    // Format: version:iv:authTag:encrypted
-    // Version allows us to decrypt old messages even if key changes
-    return `${CURRENT_KEY_VERSION}:${iv.toString('hex')}:${authTag}:${encrypted}`;
+    const authTag = cipher.getAuthTag().toString("hex");
+
+    return `${CURRENT_KEY_VERSION}:${iv.toString("hex")}:${authTag}:${encrypted}`;
 }
 
-export function decrypt(text: string): string {
-    if (!text) throw new Error('Cannot decrypt empty string');
+export async function decrypt(text: string): Promise<string> {
+    if (!text) throw new Error("Cannot decrypt empty string");
 
-    const parts = text.split(':');
-    
-    // Support both old format (3 parts: iv:authTag:encrypted) and new format (4 parts: version:iv:authTag:encrypted)
+    const parts = text.split(":");
+
     let version = CURRENT_KEY_VERSION;
     let ivHex: string;
     let authTagHex: string;
     let encryptedHex: string;
 
     if (parts.length === 4) {
-        // New format with version
         [version, ivHex, authTagHex, encryptedHex] = parts;
     } else if (parts.length === 3) {
-        // Old format without version (assume v1)
         [ivHex, authTagHex, encryptedHex] = parts;
-        version = 'v1';
+        version = "v1";
     } else {
-        throw new Error('Invalid encrypted format - expected 3 or 4 parts separated by colons');
+        throw new Error("Invalid encrypted format - expected 3 or 4 parts separated by colons");
     }
 
     try {
-        const key = KEY_VERSIONS[version];
+        const keyVersions = await getKeyVersions();
+        const key = keyVersions[version];
         if (!key) {
             throw new Error(`Unknown key version: ${version}`);
         }
@@ -68,21 +66,19 @@ export function decrypt(text: string): string {
         const decipher = crypto.createDecipheriv(
             ALGORITHM,
             key,
-            Buffer.from(ivHex, 'hex')
+            Buffer.from(ivHex, "hex")
         );
-        decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
+        decipher.setAuthTag(Buffer.from(authTagHex, "hex"));
 
-        let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
-        decrypted += decipher.final('utf8');
+        let decrypted = decipher.update(encryptedHex, "hex", "utf8");
+        decrypted += decipher.final("utf8");
         return decrypted;
     } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-            logger.debug('[Encryption] Decryption failed', { 
-                error: (error as Error).message,
-                version 
-            });
-        }
-        throw new Error('Decryption failed - data may be corrupted or key is incorrect');
+        logger.debug("[Encryption] Decryption failed", {
+            error: (error as Error).message,
+            version,
+        });
+        throw new Error("Decryption failed - data may be corrupted or key is incorrect");
     }
 }
 
@@ -109,12 +105,12 @@ export function needsKeyRotation(encryptedText: string): boolean {
 /**
  * Rotate encrypted data from old key version to new key version
  */
-export function rotateKey(encryptedText: string): string {
+export async function rotateKey(encryptedText: string): Promise<string> {
     try {
-        const plaintext = decrypt(encryptedText);
+        const plaintext = await decrypt(encryptedText);
         return encrypt(plaintext);
     } catch (error) {
-        logger.error('[Encryption] Key rotation failed', error as Error);
+        logger.error("[Encryption] Key rotation failed", error as Error);
         throw error;
     }
 }

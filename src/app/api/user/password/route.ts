@@ -1,36 +1,33 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/services/auth/session";
-import { hashPassword, comparePassword } from "@/services/auth/auth";
+import { hashPassword, comparePassword, verifyAuth } from "@/services/auth/auth";
 import { changePasswordSchema } from "@/lib/validations";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 
 export async function PUT(req: NextRequest) {
-    const session = await getUserFromRequest(req);
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const session = await verifyAuth(req);
+    if (!session) return unauthorizedResponse();
 
-    const body = await req.json();
-    const validation = changePasswordSchema.safeParse(body);
+    const { data, response } = await parseBody(req, changePasswordSchema);
+    if (response) return response;
 
-    if (!validation.success) {
-        return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
-    }
+    const { currentPassword, newPassword } = data;
 
-    const { currentPassword, newPassword } = validation.data;
-
-    const user = await prisma.user.findUnique({ where: { id: session.userId } });
-    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    const user = await prisma.user.findUnique({ where: { id: session.id } });
+    if (!user) return errorResponse("User not found", { status: 404 });
 
     const valid = await comparePassword(currentPassword, user.password);
     if (!valid) {
-        return NextResponse.json({ error: "Incorrect current password" }, { status: 400 });
+        return errorResponse("Incorrect current password", { status: 400 });
     }
 
     const hashedPassword = await hashPassword(newPassword);
 
     await prisma.user.update({
-        where: { id: session.userId },
+        where: { id: session.id },
         data: { password: hashedPassword }
     });
 
-    return NextResponse.json({ message: "Password updated successfully" });
+    return successResponse({ message: "Password updated successfully" });
 }

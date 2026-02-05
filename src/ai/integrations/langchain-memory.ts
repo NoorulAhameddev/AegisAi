@@ -26,7 +26,7 @@ export async function createChatMemory(chatId: string, maxMessages: number = 10)
     const chatHistory = new ChatMessageHistory();
     
     for (const msg of messages) {
-        const decryptedContent = decrypt(msg.content);
+        const decryptedContent = await decrypt(msg.content);
         
         if (msg.role === "USER") {
             await chatHistory.addMessage(new HumanMessage(decryptedContent));
@@ -62,7 +62,7 @@ export async function createSummaryMemory(chatId: string, llm: any) {
     const chatHistory = new ChatMessageHistory();
     
     for (const msg of messages) {
-        const decryptedContent = decrypt(msg.content);
+        const decryptedContent = await decrypt(msg.content);
         
         if (msg.role === "USER") {
             await chatHistory.addMessage(new HumanMessage(decryptedContent));
@@ -97,7 +97,7 @@ export async function createWindowMemory(chatId: string, windowSize: number = 5)
     
     // Reverse to get chronological order
     for (const msg of messages.reverse()) {
-        const decryptedContent = decrypt(msg.content);
+        const decryptedContent = await decrypt(msg.content);
         
         if (msg.role === "USER") {
             await chatHistory.addMessage(new HumanMessage(decryptedContent));

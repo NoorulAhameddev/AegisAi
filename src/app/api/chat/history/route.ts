@@ -1,39 +1,33 @@
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { decrypt } from "@/lib/encryption";
+import { verifyAuth } from "@/services/auth/auth";
+import { logger } from "@/lib/logger";
+import { parseQuery } from "@/lib/request-validation";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 
 export async function GET(req: NextRequest) {
-    const token = req.cookies.get("auth_access")?.value;
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await verifyAuth(req);
+    if (!user) return unauthorizedResponse();
 
-    let payload: any;
-    try {
-        payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
-    } catch (err) {
-        return NextResponse.json({ error: "Invalid Token" }, { status: 401 });
-    }
+    const querySchema = z.object({
+        chatId: z.string().min(1),
+        page: z.coerce.number().int().min(1).default(1),
+        limit: z.coerce.number().int().min(1).max(100).default(50),
+    });
 
-    const { searchParams } = new URL(req.url);
-    const chatId = searchParams.get("chatId");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "50");
+    const { data, response } = parseQuery(new URL(req.url), querySchema);
+    if (response) return response;
 
-    if (!chatId) {
-        return NextResponse.json({ error: "Chat ID required" }, { status: 400 });
-    }
-
-    // Validate pagination params
-    if (page < 1 || limit < 1 || limit > 100) {
-        return NextResponse.json({ error: "Invalid pagination parameters" }, { status: 400 });
-    }
+    const { chatId, page, limit } = data;
 
     try {
         // Get total count for pagination metadata
         const totalCount = await prisma.message.count({
             where: {
                 chatId,
-                Chat: { userId: payload.userId }
+                Chat: { userId: user.id }
             }
         });
 
@@ -41,44 +35,45 @@ export async function GET(req: NextRequest) {
         const messages = await prisma.message.findMany({
             where: {
                 chatId,
-                Chat: { userId: payload.userId } // Ensure user owns this chat
+                Chat: { userId: user.id } // Ensure user owns this chat
             },
             orderBy: { createdAt: "asc" },
             skip: (page - 1) * limit,
             take: limit,
         });
 
-        // Decrypt messages before sending to frontend
-        const decryptedMessages = messages.map(msg => {
-            try {
-                return {
-                    ...msg,
-                    content: decrypt(msg.content),
-                    role: msg.role.toLowerCase() // Normalize role for frontend
-                };
-            } catch (error) {
-                console.error(`[ChatHistory] Failed to decrypt message ${msg.id}:`, error);
-                return {
-                    ...msg,
-                    content: "[Decryption Error]",
-                    role: msg.role.toLowerCase()
-                };
-            }
-        });
+        const decryptedMessages = await Promise.all(
+            messages.map(async (msg) => {
+                try {
+                    return {
+                        ...msg,
+                        content: await decrypt(msg.content),
+                        role: msg.role.toLowerCase(),
+                    };
+                } catch (error) {
+                    logger.error("Chat history decrypt failed", error as Error, { messageId: msg.id });
+                    return {
+                        ...msg,
+                        content: "[Decryption Error]",
+                        role: msg.role.toLowerCase(),
+                    };
+                }
+            })
+        );
 
         // Return with pagination metadata
-        return NextResponse.json({
+        return successResponse({
             messages: decryptedMessages,
             pagination: {
                 page,
                 limit,
                 total: totalCount,
                 totalPages: Math.ceil(totalCount / limit),
-                hasMore: page * limit < totalCount
-            }
+                hasMore: page * limit < totalCount,
+            },
         });
     } catch (error) {
-        console.error('[ChatHistory] Error fetching messages:', error);
-        return NextResponse.json({ error: "Failed to fetch chat history" }, { status: 500 });
+        logger.error("Chat history fetch failed", error as Error);
+        return errorResponse("Failed to fetch chat history", { status: 500 });
     }
 }

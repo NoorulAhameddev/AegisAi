@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 import { logger } from "./src/lib/logger";
+import { env } from "./src/lib/env";
+import { isAdminRole } from "./src/services/auth/permissions";
 
 export async function middleware(req: NextRequest) {
 	const ip = req.headers.get("x-forwarded-for")?.split(',')[0] || "unknown";
@@ -36,7 +38,7 @@ export async function middleware(req: NextRequest) {
 	}
 
 	// Diagnostic Log (development only)
-	if (process.env.NODE_ENV === 'development') {
+	if (env.NODE_ENV === 'development') {
 		console.log(`[DEBUG] Middleware: ${req.method} ${path} from ${ip}`);
 	}
 
@@ -47,6 +49,21 @@ export async function middleware(req: NextRequest) {
 			const url = req.nextUrl.clone();
 			url.pathname = "/login";
 			return NextResponse.redirect(url);
+		}
+
+		if (path.startsWith("/admin")) {
+			try {
+				const payload = jwt.verify(token, env.JWT_ACCESS_SECRET) as any;
+				if (!isAdminRole(payload.role)) {
+					const url = req.nextUrl.clone();
+					url.pathname = "/dashboard";
+					return NextResponse.redirect(url);
+				}
+			} catch {
+				const url = req.nextUrl.clone();
+				url.pathname = "/login";
+				return NextResponse.redirect(url);
+			}
 		}
 	}
 
@@ -73,12 +90,15 @@ export async function middleware(req: NextRequest) {
 
 		// Verify JWT signature and expiration
 		try {
-			const accessSecret = process.env.JWT_ACCESS_SECRET;
-			if (!accessSecret) {
-				throw new Error('JWT_ACCESS_SECRET not configured');
-			}
+			const payload = jwt.verify(token, env.JWT_ACCESS_SECRET) as any;
 
-			const payload = jwt.verify(token, accessSecret) as any;
+			if (path.startsWith("/api/admin") && !isAdminRole(payload.role)) {
+				logger.security('Forbidden admin API access attempt', { path, ip, requestId });
+				return NextResponse.json(
+					{ success: false, error: "Forbidden", timestamp: new Date().toISOString(), requestId },
+					{ status: 403 }
+				);
+			}
 			
 			// Check token version hasn't been revoked (will verify in route handler against DB)
 			const requestHeaders = new Headers(req.headers);

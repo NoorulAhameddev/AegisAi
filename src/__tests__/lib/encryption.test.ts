@@ -6,61 +6,57 @@ describe('Encryption Module', () => {
   let encryptedMessage: string;
 
   describe('encrypt', () => {
-    it('should encrypt a message', () => {
-      encryptedMessage = encrypt(testMessage);
+    it('should encrypt a message', async () => {
+      encryptedMessage = await encrypt(testMessage);
       expect(encryptedMessage).toBeDefined();
       expect(encryptedMessage).not.toBe(testMessage);
     });
 
-    it('should throw on empty string', () => {
-      expect(() => encrypt('')).toThrow('Cannot encrypt empty string');
+    it('should throw on empty string', async () => {
+      await expect(encrypt('')).rejects.toThrow('Cannot encrypt empty string');
     });
 
-    it('should include version in encrypted output', () => {
-      const encrypted = encrypt(testMessage);
+    it('should include version in encrypted output', async () => {
+      const encrypted = await encrypt(testMessage);
       expect(encrypted).toMatch(/^v\d+:/);
     });
 
-    it('should produce different output for same input (due to random IV)', () => {
-      const enc1 = encrypt(testMessage);
-      const enc2 = encrypt(testMessage);
+    it('should produce different output for same input (due to random IV)', async () => {
+      const enc1 = await encrypt(testMessage);
+      const enc2 = await encrypt(testMessage);
       expect(enc1).not.toBe(enc2);
     });
   });
 
   describe('decrypt', () => {
-    beforeEach(() => {
-      encryptedMessage = encrypt(testMessage);
+    beforeEach(async () => {
+      encryptedMessage = await encrypt(testMessage);
     });
 
-    it('should decrypt an encrypted message', () => {
-      const decrypted = decrypt(encryptedMessage);
+    it('should decrypt an encrypted message', async () => {
+      const decrypted = await decrypt(encryptedMessage);
       expect(decrypted).toBe(testMessage);
     });
 
-    it('should throw on invalid format', () => {
-      expect(() => decrypt('invalid')).toThrow('Invalid encrypted format');
+    it('should throw on invalid format', async () => {
+      await expect(decrypt('invalid')).rejects.toThrow('Invalid encrypted format');
     });
 
-    it('should throw on corrupted data', () => {
+    it('should throw on corrupted data', async () => {
       const parts = encryptedMessage.split(':');
       const corrupted = [parts[0], parts[1], parts[2], 'corrupted'].join(':');
-      expect(() => decrypt(corrupted)).toThrow();
+      await expect(decrypt(corrupted)).rejects.toThrow();
     });
 
-    it('should handle both old and new formats', () => {
-      // New format: v1:iv:authTag:encrypted
-      const newFormat = encrypt(testMessage);
-      expect(decrypt(newFormat)).toBe(testMessage);
-
-      // Old format would be: iv:authTag:encrypted
-      // (We can't easily test this without modifying the encrypt function)
+    it('should handle both old and new formats', async () => {
+      const newFormat = await encrypt(testMessage);
+      expect(await decrypt(newFormat)).toBe(testMessage);
     });
   });
 
   describe('isEncrypted', () => {
-    it('should identify encrypted strings', () => {
-      const encrypted = encrypt(testMessage);
+    it('should identify encrypted strings', async () => {
+      const encrypted = await encrypt(testMessage);
       expect(isEncrypted(encrypted)).toBe(true);
     });
 
@@ -76,9 +72,8 @@ describe('Encryption Module', () => {
   });
 
   describe('needsKeyRotation', () => {
-    it('should detect if key rotation is needed', () => {
-      const encrypted = encrypt(testMessage);
-      // Current version is v1, so should not need rotation
+    it('should detect if key rotation is needed', async () => {
+      const encrypted = await encrypt(testMessage);
       expect(needsKeyRotation(encrypted)).toBe(false);
     });
 
@@ -88,15 +83,15 @@ describe('Encryption Module', () => {
   });
 
   describe('rotateKey', () => {
-    it('should rotate encrypted data to new key', () => {
-      const original = encrypt(testMessage);
-      const rotated = rotateKey(original);
+    it('should rotate encrypted data to new key', async () => {
+      const original = await encrypt(testMessage);
+      const rotated = await rotateKey(original);
       expect(rotated).not.toBe(original);
-      expect(decrypt(rotated)).toBe(testMessage);
+      expect(await decrypt(rotated)).toBe(testMessage);
     });
 
-    it('should throw on invalid input', () => {
-      expect(() => rotateKey('invalid')).toThrow();
+    it('should throw on invalid input', async () => {
+      await expect(rotateKey('invalid')).rejects.toThrow();
     });
   });
 });

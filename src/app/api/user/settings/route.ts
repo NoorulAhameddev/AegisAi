@@ -3,9 +3,13 @@
  * Manage user preferences and settings
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import { prisma } from "@/lib/prisma";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export interface UserSettings {
   userId: string;
@@ -24,7 +28,7 @@ export async function GET(req: NextRequest) {
   try {
     const authResult = await verifyAuth(req);
     if (!authResult) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedResponse();
     }
 
     const userId = authResult.id;
@@ -54,16 +58,13 @@ export async function GET(req: NextRequest) {
     }
 
     const settingsData = JSON.parse(settings.value);
-    return NextResponse.json({
+    return successResponse({
       userId,
       ...settingsData,
     });
   } catch (error) {
-    console.error("Get settings error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch settings" },
-      { status: 500 }
-    );
+    logger.error("Get settings error", error as Error);
+    return errorResponse("Failed to fetch settings", { status: 500 });
   }
 }
 
@@ -72,22 +73,34 @@ export async function PUT(req: NextRequest) {
   try {
     const authResult = await verifyAuth(req);
     if (!authResult) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedResponse();
     }
 
     const userId = authResult.id;
-    const body = await req.json();
+    const settingsSchema = z.object({
+      theme: z.enum(["light", "dark", "auto"]).optional(),
+      notifications: z.boolean().optional(),
+      emailDigest: z.boolean().optional(),
+      enableRAG: z.boolean().optional(),
+      encryptStorage: z.boolean().optional(),
+      autoIngest: z.boolean().optional(),
+      language: z.string().min(2).max(10).optional(),
+      metadata: z.record(z.any()).optional(),
+    });
+
+    const { data, response } = await parseBody(req, settingsSchema);
+    if (response) return response;
 
     // Validate settings
     const validSettings = {
-      theme: body.theme || "dark",
-      notifications: body.notifications !== undefined ? body.notifications : true,
-      emailDigest: body.emailDigest !== undefined ? body.emailDigest : false,
-      enableRAG: body.enableRAG !== undefined ? body.enableRAG : true,
-      encryptStorage: body.encryptStorage !== undefined ? body.encryptStorage : true,
-      autoIngest: body.autoIngest !== undefined ? body.autoIngest : true,
-      language: body.language || "en",
-      metadata: body.metadata || {},
+      theme: data.theme || "dark",
+      notifications: data.notifications !== undefined ? data.notifications : true,
+      emailDigest: data.emailDigest !== undefined ? data.emailDigest : false,
+      enableRAG: data.enableRAG !== undefined ? data.enableRAG : true,
+      encryptStorage: data.encryptStorage !== undefined ? data.encryptStorage : true,
+      autoIngest: data.autoIngest !== undefined ? data.autoIngest : true,
+      language: data.language || "en",
+      metadata: data.metadata || {},
     };
 
     // Update or create settings
@@ -103,17 +116,14 @@ export async function PUT(req: NextRequest) {
     });
 
     const settingsData = JSON.parse(settings.value);
-    return NextResponse.json({
+    return successResponse({
       userId,
       ...settingsData,
       success: true,
     });
   } catch (error) {
-    console.error("Update settings error:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to update settings" },
-      { status: 500 }
-    );
+    logger.error("Update settings error", error as Error);
+    return errorResponse("Failed to update settings", { status: 500 });
   }
 }
 
@@ -122,7 +132,7 @@ export async function DELETE(req: NextRequest) {
   try {
     const authResult = await verifyAuth(req);
     if (!authResult) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedResponse();
     }
 
     const userId = authResult.id;
@@ -133,12 +143,9 @@ export async function DELETE(req: NextRequest) {
       // Settings might not exist, that's OK
     });
 
-    return NextResponse.json({ success: true });
+    return successResponse({ success: true });
   } catch (error) {
-    console.error("Delete settings error:", error);
-    return NextResponse.json(
-      { error: "Failed to reset settings" },
-      { status: 500 }
-    );
+    logger.error("Delete settings error", error as Error);
+    return errorResponse("Failed to reset settings", { status: 500 });
   }
 }

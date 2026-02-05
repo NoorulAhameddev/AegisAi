@@ -3,16 +3,20 @@
  * CRUD operations for projects
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import { prisma } from "@/lib/prisma";
+import { parseBody, parseQuery } from "@/lib/request-validation";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 // GET - List user's projects
 export async function GET(req: NextRequest) {
     try {
         const authResult = await verifyAuth(req);
         if (!authResult) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
         const userId = authResult.id;
@@ -30,10 +34,10 @@ export async function GET(req: NextRequest) {
             },
         });
 
-        return NextResponse.json({ projects });
+        return successResponse({ projects });
     } catch (error) {
-        console.error("Get projects error:", error);
-        return NextResponse.json({ error: "Failed to fetch projects" }, { status: 500 });
+        logger.error("Get projects error", error as Error);
+        return errorResponse("Failed to fetch projects", { status: 500 });
     }
 }
 
@@ -42,29 +46,30 @@ export async function POST(req: NextRequest) {
     try {
         const authResult = await verifyAuth(req);
         if (!authResult) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
-        const body = await req.json();
-        const { name, description } = body;
+        const bodySchema = z.object({
+            name: z.string().min(1),
+            description: z.string().optional(),
+        });
 
-        if (!name || !name.trim()) {
-            return NextResponse.json({ error: "Project name is required" }, { status: 400 });
-        }
+        const { data, response } = await parseBody(req, bodySchema);
+        if (response) return response;
 
         const userId = authResult.id;
         const project = await prisma.project.create({
             data: {
                 userId,
-                name: name.trim(),
-                description: description?.trim() || null,
+                name: data.name.trim(),
+                description: data.description?.trim() || null,
             },
         });
 
-        return NextResponse.json({ project });
+        return successResponse({ project });
     } catch (error) {
-        console.error("Create project error:", error);
-        return NextResponse.json({ error: "Failed to create project" }, { status: 500 });
+        logger.error("Create project error", error as Error);
+        return errorResponse("Failed to create project", { status: 500 });
     }
 }
 
@@ -73,15 +78,14 @@ export async function DELETE(req: NextRequest) {
     try {
         const authResult = await verifyAuth(req);
         if (!authResult) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
-        const { searchParams } = new URL(req.url);
-        const projectId = searchParams.get("id");
+        const querySchema = z.object({ id: z.string().min(1) });
+        const { data, response } = parseQuery(new URL(req.url), querySchema);
+        if (response) return response;
 
-        if (!projectId) {
-            return NextResponse.json({ error: "Project ID required" }, { status: 400 });
-        }
+        const projectId = data.id;
 
         const userId = authResult.id;
 
@@ -91,16 +95,16 @@ export async function DELETE(req: NextRequest) {
         });
 
         if (!project) {
-            return NextResponse.json({ error: "Project not found" }, { status: 404 });
+            return errorResponse("Project not found", { status: 404 });
         }
 
         await prisma.project.delete({
             where: { id: projectId },
         });
 
-        return NextResponse.json({ success: true });
+        return successResponse({ success: true });
     } catch (error) {
-        console.error("Delete project error:", error);
-        return NextResponse.json({ error: "Failed to delete project" }, { status: 500 });
+        logger.error("Delete project error", error as Error);
+        return errorResponse("Failed to delete project", { status: 500 });
     }
 }

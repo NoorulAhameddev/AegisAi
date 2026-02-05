@@ -1,26 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { extractText } from "@/services/files/fileProcessor";
-import { getUserFromRequest } from "@/services/auth/session";
+import { verifyAuth } from "@/services/auth/auth";
 import fs from "fs";
 import crypto from "crypto";
+import { errorResponse, rateLimitResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
+import { env } from "@/lib/env";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
     try {
-        fs.appendFileSync('server_debug.log', `[UPLOAD] Start upload request\n`);
+        logger.info("Upload start");
 
-        const user = await getUserFromRequest(req);
-        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const user = await verifyAuth(req);
+        if (!user) return unauthorizedResponse();
+
+        const limit = await rateLimit(req, { limit: env.MAX_UPLOADS_PER_MINUTE, window: 60 });
+        if (!limit.success) {
+            return rateLimitResponse();
+        }
 
         const formData = await req.formData();
         const file = formData.get("file") as File;
 
         if (!file) {
-            fs.appendFileSync('server_debug.log', `[UPLOAD] No file found in form data\n`);
-            return NextResponse.json({ error: "No file" }, { status: 400 });
+            return errorResponse("No file", { status: 400 });
         }
 
-        fs.appendFileSync('server_debug.log', `[UPLOAD] File received: ${file.name}, Type: ${file.type}\n`);
+        if (file.size > env.MAX_FILE_SIZE) {
+            return errorResponse("File too large", { status: 413 });
+        }
+
+        logger.info("Upload file received", { fileName: file.name, fileType: file.type });
 
         const buffer = Buffer.from(await file.arrayBuffer());
         const uniqueId = crypto.randomUUID();
@@ -34,21 +46,21 @@ export async function POST(req: NextRequest) {
         }
 
         fs.writeFileSync(filePath, buffer);
-        fs.appendFileSync('server_debug.log', `[UPLOAD] Saved to ${filePath}\n`);
+        logger.info("Upload saved", { filePath });
 
         let text = "";
         try {
             text = await extractText(filePath, file.type);
-            fs.appendFileSync('server_debug.log', `[UPLOAD] Text extracted (${text.length} chars)\n`);
+            logger.info("Upload text extracted", { length: text.length });
         } catch (e: any) {
-            fs.appendFileSync('server_debug.log', `[UPLOAD] Extraction failed: ${e.message}\n`);
+            logger.warn("Upload extraction failed", { message: e.message });
             // Don't fail the upload, just have empty text
             text = "";
         }
 
         const saved = await prisma.file.create({
             data: {
-                userId: user.userId,
+                userId: user.id,
                 name: file.name,
                 type: file.type,
                 content: text,
@@ -56,7 +68,7 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        fs.appendFileSync('server_debug.log', `[UPLOAD] Saved to DB with ID ${saved.id}\n`);
+        logger.info("Upload saved to DB", { fileId: saved.id });
 
         // 🚀 ENHANCED: Ingest into RAG Vector Store with smart chunking
         let ragIngested = false;
@@ -77,7 +89,7 @@ export async function POST(req: NextRequest) {
                         sourceId: saved.id,
                         type: 'file',
                     },
-                    user.userId
+                    user.id
                 );
                 
                 ragIngested = true;
@@ -95,22 +107,21 @@ export async function POST(req: NextRequest) {
                     }
                 });
                 
-                fs.appendFileSync('server_debug.log', `[UPLOAD] RAG Ingested: ${documentIds.length} chunks\n`);
+                logger.info("Upload RAG ingested", { chunks: documentIds.length, fileId: saved.id });
             } else {
-                fs.appendFileSync('server_debug.log', `[UPLOAD] RAG Ingestion skipped (type: ${file.type}, size: ${file.size}, textLen: ${text.length})\n`);
+                logger.info("Upload RAG skipped", { fileType: file.type, size: file.size, textLen: text.length });
             }
         } catch (ingestErr: any) {
-            console.error("RAG Ingestion failed", ingestErr);
-            fs.appendFileSync('server_debug.log', `[UPLOAD] RAG Ingestion Failed: ${ingestErr.message}\n`);
+            logger.error("RAG Ingestion failed", ingestErr);
         }
 
-        return NextResponse.json({ 
+        return successResponse({
             fileId: saved.id,
             ragIngested,
             ragChunks,
         });
     } catch (error: any) {
-        fs.appendFileSync('server_debug.log', `[UPLOAD ERROR] ${error.message}\n${error.stack}\n`);
-        return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
+        logger.error("Upload error", error as Error);
+        return errorResponse("Internal Server Error", { status: 500 });
     }
 }

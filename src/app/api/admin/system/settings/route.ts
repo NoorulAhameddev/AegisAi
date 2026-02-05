@@ -3,11 +3,15 @@
  * POST /api/admin/system/settings - Update system-wide settings
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import { hasAdminPermission } from "@/services/auth/permissions";
 import { createAuditLog } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, forbiddenResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -15,20 +19,24 @@ export async function POST(req: NextRequest) {
     try {
         const user = await verifyAuth(req);
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
         // Check admin permission
         if (!hasAdminPermission(user.role, "CONFIG_TOGGLE")) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+            return forbiddenResponse();
         }
 
-        const body = await req.json();
-        const { key, value, reason, ticketId } = body;
+        const bodySchema = z.object({
+            key: z.string().min(1),
+            value: z.any(),
+            reason: z.string().optional(),
+            ticketId: z.string().optional(),
+        });
+        const { data, response } = await parseBody(req, bodySchema);
+        if (response) return response;
 
-        if (!key || value === undefined) {
-            return NextResponse.json({ error: "Key and value are required" }, { status: 400 });
-        }
+        const { key, value, reason, ticketId } = data;
 
         // Get previous state
         const previousSetting = await prisma.systemSetting.findUnique({
@@ -57,12 +65,9 @@ export async function POST(req: NextRequest) {
             userAgent: req.headers.get("user-agent") || undefined,
         });
 
-        return NextResponse.json({ setting: updated });
+        return successResponse({ setting: updated });
     } catch (error) {
-        console.error("[Admin System Settings Error]:", error);
-        return NextResponse.json(
-            { error: "Failed to update system setting" },
-            { status: 500 }
-        );
+        logger.error("Admin system settings error", error as Error);
+        return errorResponse("Failed to update system setting", { status: 500 });
     }
 }

@@ -1,18 +1,20 @@
 import { prisma } from "@/lib/prisma";
-import { getUserFromRequest } from "@/services/auth/session";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { verifyAuth } from "@/services/auth/auth";
+import { errorResponse, forbiddenResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 import { requirePermission } from "@/services/auth/rbac";
 import { Role } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
-    const user = await getUserFromRequest(req);
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await verifyAuth(req);
+    if (!user) return unauthorizedResponse();
 
     try {
         requirePermission(user.role as Role, "user:read");
     } catch (e) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        return forbiddenResponse();
     }
 
     try {
@@ -39,9 +41,9 @@ export async function GET(req: NextRequest) {
             }
         }));
 
-        return NextResponse.json(formattedUsers);
+        return successResponse(formattedUsers);
     } catch (error) {
-        console.error("Error fetching users:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        logger.error("Admin users fetch failed", error as Error, { adminId: user.id });
+        return errorResponse("Internal Server Error", { status: 500 });
     }
 }

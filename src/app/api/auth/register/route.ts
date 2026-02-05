@@ -1,29 +1,27 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/services/auth/auth";
 import { getSettings } from "@/lib/settings";
-
+import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, forbiddenResponse, successResponse } from "@/lib/response";
 import { registerSchema } from "@/lib/validations";
 
 export async function POST(req: Request) {
   try {
     const settings = getSettings();
     if (!settings.allowRegistrations) {
-      return NextResponse.json({ error: "Registrations are currently disabled." }, { status: 403 });
+      return forbiddenResponse();
     }
 
-    const body = await req.json();
-    const validation = registerSchema.safeParse(body);
+    const { data, response } = await parseBody(req, registerSchema);
+    if (response) return response;
 
-    if (!validation.success) {
-      return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
-    }
-
-    const { name, email, password } = validation.data;
+    const { name, email, password } = data;
 
     const exists = await prisma.user.findUnique({ where: { email } });
     if (exists) {
-      return NextResponse.json({ error: "Email exists" }, { status: 409 });
+      return errorResponse("Email exists", { status: 409 });
     }
 
     const hashed = await hashPassword(password);
@@ -49,9 +47,9 @@ export async function POST(req: Request) {
       data: { userId: user.id, action: "REGISTER" }
     });
 
-    const res = NextResponse.json({ message: "Registered & Logged in" }, { status: 201 });
+    const res = successResponse({ message: "Registered & Logged in" }, { status: 201 });
 
-    const isProd = process.env.NODE_ENV === "production";
+    const isProd = env.NODE_ENV === "production";
 
     res.cookies.set("auth_access", accessToken, {
       httpOnly: true,
@@ -71,7 +69,7 @@ export async function POST(req: Request) {
 
     return res;
   } catch (e: any) {
-    console.error(e);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    logger.error("Auth: register failed", e);
+    return errorResponse("Server error", { status: 500 });
   }
 }

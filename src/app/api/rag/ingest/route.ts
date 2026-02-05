@@ -1,12 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getUserFromRequest } from "@/services/auth/session";
+import { NextRequest } from "next/server";
+import { z } from "zod";
+import { verifyAuth } from "@/services/auth/auth";
 import { logger } from "@/lib/logger";
 import { ingestDocument } from "@/ai/rag/vector-store";
 import { extractText } from "@/services/files/fileProcessor";
 import { prisma } from "@/lib/prisma";
-import { isSupportedFileType, isValidFileSize } from "@/services/rag/rag-config";
-import path from "path";
+import { isSupportedFileType } from "@/services/rag/rag-config";
 import fs from "fs";
+import { parseBody } from "@/lib/request-validation";
+import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 
 /**
  * POST /api/rag/ingest
@@ -16,20 +18,22 @@ export async function POST(req: NextRequest) {
     const startTime = Date.now();
 
     try {
-        const user = await getUserFromRequest(req);
+        const user = await verifyAuth(req);
         if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return unauthorizedResponse();
         }
 
-        const body = await req.json();
-        const { fileId, text, metadata } = body;
+        const bodySchema = z.object({
+            fileId: z.string().optional(),
+            text: z.string().optional(),
+            metadata: z.record(z.any()).optional(),
+        }).refine((data) => !!data.fileId || !!data.text, {
+            message: "Either fileId or text must be provided",
+        });
+        const { data, response } = await parseBody(req, bodySchema);
+        if (response) return response;
 
-        if (!fileId && !text) {
-            return NextResponse.json(
-                { error: "Either fileId or text must be provided" },
-                { status: 400 }
-            );
-        }
+        const { fileId, text, metadata } = data;
 
         let contentToIngest = text;
         let fileMetadata: any = metadata || {};
@@ -37,22 +41,16 @@ export async function POST(req: NextRequest) {
         // If fileId provided, fetch file and extract content
         if (fileId) {
             const file = await prisma.file.findUnique({
-                where: { id: fileId, userId: user.userId }
+                where: { id: fileId, userId: user.id }
             });
 
             if (!file) {
-                return NextResponse.json(
-                    { error: "File not found" },
-                    { status: 404 }
-                );
+                return errorResponse("File not found", { status: 404 });
             }
 
             // Validate file type
             if (!isSupportedFileType(file.type)) {
-                return NextResponse.json(
-                    { error: `File type ${file.type} not supported for RAG` },
-                    { status: 400 }
-                );
+                return errorResponse(`File type ${file.type} not supported for RAG`, { status: 400 });
             }
 
             // Size validation would be done during upload
@@ -63,23 +61,14 @@ export async function POST(req: NextRequest) {
                     contentToIngest = await extractText(file.path, file.type);
                     
                     if (!contentToIngest || contentToIngest.length < 10) {
-                        return NextResponse.json(
-                            { error: "Could not extract meaningful content from file" },
-                            { status: 400 }
-                        );
+                        return errorResponse("Could not extract meaningful content from file", { status: 400 });
                     }
                 } catch (error: any) {
                     logger.error("File extraction error", error);
-                    return NextResponse.json(
-                        { error: "Failed to extract text from file" },
-                        { status: 500 }
-                    );
+                    return errorResponse("Failed to extract text from file", { status: 500 });
                 }
             } else {
-                return NextResponse.json(
-                    { error: "File not found on disk" },
-                    { status: 404 }
-                );
+                return errorResponse("File not found on disk", { status: 404 });
             }
 
             fileMetadata = {
@@ -103,7 +92,7 @@ export async function POST(req: NextRequest) {
         const documentIds = await ingestDocument(
             contentToIngest,
             fileMetadata,
-            user.userId
+            user.id
         );
 
         // Update file metadata if it's a file ingestion
@@ -126,17 +115,16 @@ export async function POST(req: NextRequest) {
         const duration = Date.now() - startTime;
         logger.api('POST', '/api/rag/ingest', 200, duration);
         logger.info('Document ingested', {
-            userId: user.userId,
+            userId: user.id,
             fileId,
             chunks: documentIds.length,
             duration
         });
 
-        return NextResponse.json({
-            success: true,
+        return successResponse({
             documentIds,
             chunks: documentIds.length,
-            message: `Successfully ingested document into ${documentIds.length} chunks`
+            message: `Successfully ingested document into ${documentIds.length} chunks`,
         });
 
     } catch (error: any) {
@@ -145,9 +133,6 @@ export async function POST(req: NextRequest) {
             path: '/api/rag/ingest',
             duration
         });
-        return NextResponse.json(
-            { error: error.message || "Failed to ingest document" },
-            { status: 500 }
-        );
+        return errorResponse(error.message || "Failed to ingest document", { status: 500 });
     }
 }

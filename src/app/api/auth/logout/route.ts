@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { successResponse } from "@/lib/response";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
     // Ignore
   }
 
-  const res = NextResponse.json({ message: "Logged out" });
+  const res = successResponse({ message: "Logged out" });
   res.cookies.set("auth_access", "", { maxAge: 0, path: '/' });
   res.cookies.set("auth_refresh", "", { maxAge: 0, path: '/' });
   return res;
