@@ -11,201 +11,426 @@ Web Request → API Route → BullMQ Job → Worker Process → Streaming Respon
 Next.js Edge   Enqueue Job   Redis Queue   AI Worker    SSE/EventStream
 ```
 
-**Key Principle**: AI processing happens in `src/workers/ai.worker.ts`, NOT in API routes. API routes only enqueue jobs and return job IDs or establish SSE streams.
+**Key Principle**: AI processing happens in background workers (`src/workers/*.worker.ts`), NOT in API routes. API routes either enqueue jobs to Redis queues or establish SSE streams for real-time responses.
 
 ## Critical File Structure
 
 ```
 src/
-├── app/api/                    # Next.js API routes (enqueue jobs, light validation)
-│   ├── chat/stream-sse/        # SSE endpoint for real-time AI streaming
-│   ├── auth/                   # Authentication endpoints
-│   ├── rag/                    # RAG knowledge base management
-│   └── admin/                  # Admin operations
-├── services/                   # Business logic (auth, ingestion, export, RAG)
-│   ├── auth/                   # session.ts, auth.ts (JWT, sessions)
-│   ├── rag/                    # RAG retrieval, embeddings, chunking
-│   └── ingestion/              # File/web/YouTube content processing
-├── workers/                    # Background job processors
-│   └── ai.worker.ts           # Main AI chat processor (THIS is where LLM calls happen)
-├── lib/                       # Shared utilities
-│   ├── encryption.ts          # AES-256-GCM with key versioning (v1:iv:authTag:encrypted)
-│   ├── logger.ts              # Structured logging (logger.auth, logger.db, logger.security)
-│   ├── response.ts            # Standardized API responses (successResponse, errorResponse)
-│   └── vector-store-server.ts # LanceDB vector store (server-side only)
-└── tools/                     # AI function tools (calculator, web search, image gen)
+├── app/api/                    # Next.js API routes
+│   ├── chat/                   # Chat endpoints
+│   │   ├── stream/            # Job-based: enqueues to chatQueue (polling)
+│   │   ├── stream-sse/        # Streaming: inline SSE (real-time, no worker)
+│   │   ├── status/            # Query job status by jobId
+│   │   ├── history/           # Retrieve conversation messages
+│   │   ├── create/            # Create new chat
+│   │   ├── delete/            # Delete chat (soft delete)
+│   │   ├── export/            # Export as PDF/Markdown
+│   │   └── regenerate/        # Regenerate last response
+│   ├── auth/                   # Login, register, logout, refresh tokens
+│   ├── rag/                    # RAG: ingest, search, manage knowledge base
+│   ├── admin/                  # Admin: user management, audit logs
+│   ├── ai/                     # Model configuration endpoints
+│   ├── memory/                 # Long-term memory management
+│   ├── ingest/                 # File/web content ingestion triggers
+│   ├── search/                 # Cross-project search
+│   ├── mcp/                    # Model Context Protocol endpoints
+│   └── files/                  # File upload/download
+├── services/                   # Business logic
+│   ├── auth/                   # JWT creation, token rotation, session mgmt
+│   ├── rag/                    # Retrieval, embeddings, chunking, sanitization
+│   ├── billing/                # Token budget tracking and rate limiting
+│   ├── ingestion/              # Extract text from files/web/YouTube
+│   ├── export/                 # PDF/Markdown generation
+│   ├── files/                  # File processing (upload, storage, cleanup)
+│   └── ai/                     # Prompt building, memory extraction, moderation
+├── workers/                    # BullMQ background job processors
+│   ├── chat.worker.ts          # Listens to chatQueue, calls processChatJob
+│   ├── rag.worker.ts           # Listens to ragQueue (auto-ingest on file upload)
+│   ├── processor.ts            # Core chat job processor: RAG, security, safety, LLM call
+│   ├── langchain-processor.ts  # Experimental LangChain-based processor (unused)
+│   └── cleanup.ts              # Session cleanup and maintenance tasks
+├── lib/                        # Shared utilities
+│   ├── encryption.ts           # AES-256-GCM (supports key rotation)
+│   ├── logger.ts               # Structured: logger.auth, logger.db, logger.security, logger.worker
+│   ├── response.ts             # successResponse, errorResponse, forbiddenResponse, withRateLimitHeaders
+│   ├── queue.ts                # BullMQ setup: chatQueue, ragQueue, dlqQueue
+│   ├── security.ts             # Input validation, leak detection, moderation checks
+│   ├── response-safety.ts       # Content validation, boundary detection, redaction
+│   ├── rag-retrieval.ts        # Query LanceDB, retrieve context, manage embeddings
+│   ├── moderation.ts           # OpenAI moderation API integration
+│   └── prisma.ts               # Prisma client singleton
+└── tools/                      # AI executable tools (registered for function calling)
+    ├── calculator.ts           # Math operations
+    ├── image-generator.ts      # DALL-E integration
+    ├── web-browser.ts          # Web search + page reading
+    ├── code-review.ts          # Static code analysis (SAFE: no execution)
+    └── code-formatter.ts       # Code formatting (SAFE: no execution)
 ```
+
+**CRITICAL SECURITY NOTE**: `CodeCompilerTool` is intentionally EXCLUDED. Reason: prevents arbitrary code execution, ensures students use their IDE, protects against sandbox bypass. Register only safe tools (static analysis, formatting, search).
 
 ## Development Workflows
 
 ### Running the Application
 ```bash
 npm run dev          # Start Next.js dev server (port 3000)
-npm run worker       # Start AI worker process (REQUIRED for chat to work)
+npm run worker       # Start chat worker (REQUIRED for /api/chat/stream polling)
+npm run worker:rag   # Start RAG worker (processes file ingestion async)
 npm run migrate      # Run Prisma migrations
-npm run studio       # Open Prisma Studio (database GUI)
+npm run studio       # Open Prisma Studio database GUI
+npm run clean        # Remove .next, logs, uploads, LanceDB cache
 ```
 
-**Critical**: The worker MUST be running alongside `npm run dev` for chat functionality. The worker listens on the `chat-queue` and processes AI requests.
+**CRITICAL**: 
+- **For SSE streaming** (`/api/chat/stream-sse`): Worker NOT needed; processes inline
+- **For polling** (`/api/chat/stream`): Worker MUST run or jobs stack in Redis queue
+- Both endpoints exist; prefer SSE for real-time interactivity
 
 ### Testing
 ```bash
-npm test              # Run all Jest tests
-npm run test:watch    # Watch mode
-npm run test:coverage # Coverage report
-npm run test:mcp      # Test MCP server integration
+npm test              # Run all Jest tests in src/__tests__/
+npm run test:watch    # Watch mode for development
+npm run test:coverage # Generate coverage report
+npm run test:mcp      # Validate MCP server connectivity
+npm run test:edge     # Test Edge Runtime compatibility
 ```
 
-Tests are in `src/__tests__/` and use Jest with `@testing-library/jest-dom`.
-
 ### Database Operations
-- **Schema**: `prisma/schema.prisma` (13+ indexes for performance)
+- **Schema**: `prisma/schema.prisma` (complex: 13+ indexes, soft deletes, encryption fields)
 - **Migrations**: Always run `npm run migrate` after schema changes
-- **Encryption**: Use `encrypt()`/`decrypt()` from `@/lib/encryption` for sensitive fields
-- **Audit Logs**: All admin actions MUST create an `AuditLog` entry
+- **Encryption**: Sensitive data encrypted with `encrypt()/decrypt()` from `@/lib/encryption`
+- **Audit Logging**: Admin actions create `AuditLog` entries (includes `integrityHash`, `mfaVerified`)
+- **Soft Deletes**: Chat and File models use `deletedAt` field (indexed for fast filtering)
 
 ## Key Conventions
 
 ### 1. Authentication & Authorization
-- **Middleware**: `middleware.ts` handles JWT verification for protected routes and sets `x-user-id`, `x-token-version`, `x-request-id` headers
-- **Auth Service**: Use `verifyAuth(req)` from `@/services/auth/auth` in API routes
-- **Token Format**: Access token (10min) + Refresh token (7 days) stored in HTTP-only cookies
+- **Middleware**: `middleware.ts` validates JWT, sets `x-user-id`, `x-token-version`, `x-request-id` headers
+- **Verification**: Import `verifyAuth(req)` from `@/services/auth/auth` in protected routes
+- **Tokens**: 
+  - Access: 10 minutes (JWT in Authorization header or cookie)
+  - Refresh: 7 days (HTTP-only cookie)
 - **Session Management**: 
-  - `createSession()` - Create new JWT pair with DB session record
-  - `rotateTokens()` - Refresh tokens
-  - `revokeAllSessions()` - Force logout (increment user.tokenVersion)
-- **Token Version**: User model has `tokenVersion` field - increment it to instantly invalidate all tokens
+  - `createSession()` → Create JWT pair + DB record
+  - `rotateTokens()` → Issue fresh pair
+  - `revokeAllSessions()` → Increment `user.tokenVersion` to invalidate all sessions instantly
+- **Password Hashing**: bcrypt with 14 rounds (standard 12 + 2 for 2026+ security)
 
 ### 2. API Response Pattern
-Always use standardized responses from `@/lib/response`:
+Always return standardized responses from `@/lib/response`:
 ```typescript
-import { successResponse, errorResponse, unauthorizedResponse } from '@/lib/response';
+import { 
+  successResponse, errorResponse, unauthorizedResponse, 
+  forbiddenResponse, notFoundResponse 
+} from '@/lib/response';
 
 export async function POST(req: NextRequest) {
   try {
     const user = await verifyAuth(req);
-    if (!user) return unauthorizedResponse();
+    if (!user) return unauthorizedResponse({ requestId: req.headers.get('x-request-id') });
     
-    // Process request
-    return successResponse({ data: result });
+    // Process business logic
+    return successResponse(result, { requestId: req.headers.get('x-request-id') });
   } catch (error) {
-    return errorResponse('Something went wrong', { status: 500 });
+    logger.error('Route handler failed', error as Error);
+    return errorResponse('Operation failed', { status: 500 });
   }
 }
 ```
 
-Response structure:
+Response envelope:
 ```typescript
-{ success: boolean, data?: T, error?: string, timestamp: string, requestId?: string }
+{
+  success: boolean,
+  data?: T,
+  error?: string,
+  message?: string,
+  timestamp: string,
+  requestId?: string
+}
 ```
 
-### 3. RAG (Retrieval Augmented Generation)
-- **Vector Store**: LanceDB in `data/lancedb/` (server-side only, external in webpack)
-- **Ingestion**: `ingestFile(fileId, content, userId)` from `@/services/rag/ingest`
-- **Retrieval**: `retrieveContext(userId, query, topK)` from `@/services/rag/rag-retrieval`
-- **Auto-ingest**: File uploads automatically trigger RAG ingestion if file type is supported
-- **Worker Integration**: `processor.ts` uses `retrieveContext()` to augment AI prompts
-- **Query Detection**: `shouldUseRAG(message)` skips RAG for greetings/commands
+### 3. Chat Processing Paths
+**Two different architectures** - choose based on use case:
 
-### 4. Encryption & Security
-- **Encryption Format**: `v1:iv:authTag:encrypted` (supports key rotation)
-- **Functions**: `encrypt(text)`, `decrypt(text)` from `@/lib/encryption`
-- **Environment**: `ENCRYPTION_KEY` must be exactly 32 characters
-- **Use Cases**: User messages, file content, sensitive metadata
-- **Security Headers**: `next.config.js` sets HSTS, CSP, X-Frame-Options, etc.
+**Path A: `/api/chat/stream-sse` (Preferred for real-time)**
+- Server-Sent Events (SSE) streaming
+- No BullMQ queuing; processes inline
+- Immediate token-by-token response
+- Built into `processor.ts` with:
+  - RAG context retrieval via `retrieveContext(userId, query, topK)`
+  - OpenAI moderation check via `checkModeration(text)`
+  - Response content validation via `validateResponseContent()`
+  - Memory extraction via `extractAndSaveMemory()`
+  - Boundary detection via `detectBoundaryBreaks()`
 
-### 5. Worker Job Processing
-When creating AI-related features:
-1. **API Route**: Enqueue job with BullMQ (`await chatQueue.add(...)`)
-2. **Worker**: Process in `src/workers/processor.ts` or similar
-3. **Error Handling**: Jobs return `{ success, error, data }` - worker logs failures
-4. **Streaming**: Use SSE endpoint (`/api/chat/stream-sse`) for real-time responses
+**Path B: `/api/chat/stream` (For async/polling)**
+- Enqueues job to `chatQueue`
+- Returns `{ success, jobId }` immediately
+- Client polls `GET /api/chat/status/{jobId}` for updates
+- Worker processes via `processChatJob(job)` in `processor.ts`
+- Use when: long operations, batching, or client-side polling preferred
 
-Example job structure:
-```typescript
-const job = await chatQueue.add('process-chat', {
-  chatId, userId, message, projectId, requestId
-});
+Example decision tree:
+```
+Real-time interactive chat? → Use /stream-sse
+Long-running processing? → Use /stream, client polls /status
+Batch operations? → Use /stream, queue can accumulate jobs
 ```
 
-### 6. Logging Standards
-Use structured logger from `@/lib/logger`:
+### 4. RAG (Retrieval Augmented Generation)
+- **Vector Store**: LanceDB in `data/lancedb/` (server-side only; marked external in Next.js config)
+- **Retrieval**: `retrieveContext(userId, query, topK)` from `@/lib/rag-retrieval`
+  - Queries LanceDB for semantic similarity
+  - Returns top-K documents with scores
+- **Ingestion**: Two paths:
+  - Auto: File upload → triggers `ragQueue` worker
+  - Manual: Call `ingestFile(fileId, content, userId)` from `@/services/rag/ingest`
+- **Prompt Injection Prevention**: `processor.ts` sanitizes RAG context by removing instruction-like patterns (ignore/override/act-as/roleplay)
+- **Query Detection**: `shouldUseRAG(message)` returns false for greetings/chitchat to save embeddings quota
+
+### 5. Encryption & Security
+- **Format**: `v1:iv:authTag:encrypted` (version prefix allows key rotation without downtime)
+- **Algorithm**: AES-256-GCM (authenticated encryption; built-in tamper detection)
+- **Functions**: 
+  ```typescript
+  import { encrypt, decrypt } from '@/lib/encryption';
+  const ciphertext = encrypt(sensitiveData);  // Returns v1:...
+  const plaintext = decrypt(ciphertext);       // Auto-detects version
+  ```
+- **Environment**: 
+  - `ENCRYPTION_KEY_CIPHERTEXT` (AWS KMS encrypted for production)
+  - Regular `ENCRYPTION_KEY` for local dev (must be 32 chars)
+- **Use Cases**: User messages, file paths, API keys, credit cards, personally identifiable information
+- **Security Headers** (set in `next.config.js`):
+  - HSTS: 2 years, includeSubDomains, preload
+  - CSP: Strict (no unsafe-inline)
+  - X-Frame-Options: DENY
+  - X-XSS-Protection: enabled
+  - X-DNS-Prefetch-Control: on
+- **Audit Integrity**: `AuditLog.integrityHash` computed via SHA-256 of log data + secret; verify before trusting logs
+
+### 6. Worker Job Processing
+Creating a new background job type:
+1. **Define Queue** in `src/lib/queue.ts`:
+   ```typescript
+   export const myQueue = new Queue('my-queue-name', { connection });
+   ```
+2. **Create Worker** at `src/workers/my.worker.ts`:
+   ```typescript
+   const worker = new Worker(myQueue.name, async job => 
+     processMyJob(job), { connection });
+   ```
+3. **Implement Processor** (e.g., `processor.ts`):
+   ```typescript
+   export async function processMyJob(job: Job) {
+     const { data } = job;
+     // Long-running logic here
+     return { success: true, data: result };
+   }
+   ```
+4. **Enqueue from API**:
+   ```typescript
+   const job = await myQueue.add('my-job-type', 
+     { param1, param2 }, 
+     { jobId: uniqueId } // Deduplicates by jobId
+   );
+   return successResponse({ jobId: job.id });
+   ```
+5. **Error Handling**: Failed jobs automatically move to `dlqQueue`; worker logs via `logger.worker(jobId, 'failed', { error })`
+
+### 7. Logging Standards
+Structured logging from `@/lib/logger`:
 ```typescript
-logger.auth('User logged in', { userId });
-logger.db('SELECT', 'users', duration);
-logger.security('Unauthorized access attempt', { ip, path });
-logger.error('Operation failed', error, { context });
+logger.auth('User login', { userId, ipAddress });           // Auth events
+logger.db('Query', tableName, durationMs);                  // Database operations
+logger.security('Suspicious behavior', { userId, reason });  // Security incidents
+logger.error('Operation failed', error as Error, { context }); // Errors
+logger.worker(jobId, 'completed', { status, duration });    // Worker events
+logger.warn('Deprecated API used', { endpoint, user });     // Warnings
 ```
 
-### 7. File Handling
-- **Uploads**: Stored in `uploads/` directory with UUID filenames
-- **Processing**: Use `extractText(filePath, mimeType)` from `@/services/files/fileProcessor`
-- **Supported Types**: PDF, DOCX, TXT, images (OCR via Tesseract), audio transcription
-- **Size Limits**: Configured in RAG config (default 50MB)
+All logs include timestamp, request ID (if available), and structured context.
+
+### 8. File Handling & Content Extraction
+- **Upload Flow**: POST `/api/files` → Save to `uploads/UUID.ext` → Encrypt path → Create DB record → Trigger `ragQueue` (if RAG enabled)
+- **Supported Formats** via `extractText(filePath, mimeType)`:
+  - PDF: pdf-parse library
+  - DOCX: mammoth library  
+  - TXT: plain text
+  - Images: tesseract.js (OCR)
+  - Audio/Video: youtube-transcript (transcripts only)
+- **Size Limits**: Configured per type; default 50MB
+- **Encryption**: File paths stored encrypted in DB (`File.encryptedPath`)
+- **Lifecycle**: Soft delete via `deletedAt` timestamp (GDPR compliance)
+
+### 9. Tool Development & Registration
+Creating an AI tool:
+```typescript
+// src/tools/my-tool.ts
+import { Tool } from "./index";
+
+export const MyTool: Tool = {
+  name: "my-tool",
+  description: "Does something useful safely",
+  parameters: {
+    type: "object",
+    properties: {
+      input: { type: "string", description: "..." }
+    },
+    required: ["input"]
+  },
+  execute: async (args) => {
+    // MUST be safe: no arbitrary code execution
+    // Only static analysis, formatting, lookups allowed
+    return { result: "..." };
+  }
+};
+```
+
+Register in `src/tools/index.ts`:
+```typescript
+export function registerAllTools() {
+  registerTool(MyTool);  // Automatically picked up by worker
+}
+```
+
+**Safety Constraints**:
+- ✅ Static analysis (code review, linting)
+- ✅ Formatting and transformation
+- ✅ Data lookups and searches
+- ⛔ Code execution (removed CodeCompilerTool deliberately)
+- ⛔ System commands
+- ⛔ Arbitrary file writes
 
 ## Integration Points
 
 ### MCP (Model Context Protocol)
-- **Config**: `mcp-servers.json` defines available MCP servers (filesystem, github, puppeteer)
-- **Testing**: `npm run test:mcp` validates MCP server connectivity
-- **Usage**: MCP servers provide additional context/tools to AI agents
+- **Config**: `mcp-servers.json` lists available MCP servers
+- **Current Servers**: 
+  - `@modelcontextprotocol/server-filesystem` - File system access
+  - `@modelcontextprotocol/server-github` - GitHub integration
+  - `@modelcontextprotocol/server-puppeteer` - Web automation
+- **Testing**: `npm run test:mcp` validates connectivity
+- **Extension**: Add new servers to `mcp-servers.json`; they auto-register
 
 ### External Services
-- **OpenRouter**: AI model provider (requires `OPENROUTER_API_KEY`)
-- **Redis**: Required for BullMQ job queue and rate limiting (`REDIS_URL`)
-- **PostgreSQL**: Primary database (`DATABASE_URL`)
+- **OpenRouter API**: AI models via OpenAI SDK
+  - Config: `OPENROUTER_API_KEY` in `.env`
+  - Models: GPT-4o, Claude, etc.
+- **Redis**: Queue processing + caching + sessions
+  - Config: `REDIS_URL` (e.g., `redis://localhost:6379`)
+  - Queues: chatQueue, ragQueue, dlqQueue
+- **PostgreSQL**: Primary application database
+  - Config: `DATABASE_URL` (e.g., `postgresql://user:pass@localhost/aegis`)
+  - ORM: Prisma
+- **AWS KMS**: Optional encryption key management (production)
+  - Config: `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
 
 ## Common Patterns
 
 ### Adding a New API Route
-1. Create route in `src/app/api/[feature]/route.ts`
-2. Use `verifyAuth(req)` for authentication
-3. Return standardized responses from `@/lib/response`
-4. Add middleware matcher if route needs JWT verification
-5. If AI processing needed, enqueue to BullMQ instead of direct LLM call
+1. Create file: `src/app/api/[feature]/route.ts`
+2. Import auth helper:
+   ```typescript
+   import { verifyAuth } from "@/services/auth/auth";
+   ```
+3. Implement handler with auth + responses:
+   ```typescript
+   export async function POST(req: NextRequest) {
+     try {
+       const user = await verifyAuth(req);
+       if (!user) return unauthorizedResponse();
+       
+       // Business logic
+       return successResponse({ ... });
+     } catch (error) {
+       return errorResponse('Failed', { status: 500 });
+     }
+   }
+   ```
+4. Add middleware matcher if auth-required (in `middleware.ts`)
+5. If heavy processing: enqueue to appropriate queue instead of blocking
+
+### Adding a New Database Model
+1. Update `prisma/schema.prisma`:
+   ```typescript
+   model MyEntity {
+     id String @id @default(uuid())
+     userId String
+     data String @db.Text
+     createdAt DateTime @default(now())
+     
+     @@index([userId, createdAt])  // Index query patterns
+   }
+   ```
+2. Run `npm run migrate` (creates migration file auto)
+3. For sensitive fields, encrypt in service layer before storing
+4. If admin action, create corresponding `AuditLog` entry
 
 ### Adding a New AI Tool
-1. Create tool in `src/tools/[tool-name].ts`
-2. Export tool definition with OpenAI function schema
-3. Register in `src/tools/index.ts` with `registerTool()`
-4. Worker automatically picks up registered tools via `getOpenAITools()`
-
-### Adding Database Models
-1. Update `prisma/schema.prisma`
-2. Run `npm run migrate` (creates migration)
-3. Use `prisma` client imported from `@/lib/prisma`
-4. Add indexes for commonly queried fields
-5. Consider encryption for sensitive fields
+1. Create tool file: `src/tools/my-tool.ts`
+2. Define and export `Tool` interface
+3. Register in `src/tools/index.ts` via `registerTool()`
+4. Tool auto-loads in worker via `getOpenAITools()`
+5. OpenAI API receives tool definition + calls `execute()` when selected
 
 ## Project-Specific Notes
 
-- **LanceDB External**: Vector store is marked `serverExternalPackages: ["@lancedb/lancedb"]` in Next.js config to prevent bundling issues
-- **Dual Processor**: `processor.ts` (working) vs `langchain-processor.ts` (experimental) - default uses OpenAI SDK directly
-- **Mobile Support**: `mobile/` directory contains React Native/Expo app (separate package.json)
-- **Docker**: `docker-compose.yml` includes PostgreSQL, Redis, and app services
-- **Security**: All sensitive data at rest is AES-256-GCM encrypted, JWT secrets required, rate limiting via Redis
-- **TypeScript Paths**: Use `@/*` alias for `src/*` imports (configured in tsconfig.json)
+- **LanceDB Integration**: Marked external in webpack config (`serverExternalPackages`) to prevent bundling issues
+- **Dual Processors**: `processor.ts` (production OpenAI SDK) vs `langchain-processor.ts` (experimental); default uses direct SDK
+- **Mobile App**: `mobile/` contains separate React Native/Expo project (own `package.json`, build pipeline)
+- **Docker Support**: `docker-compose.yml` orchestrates PostgreSQL + Redis + app; `Dockerfile` for containerization
+- **GDPR Compliance**: Soft deletes via `deletedAt` field (indexed); never hard-delete user data
+- **TypeScript Aliases**: Use `@/` prefix for `src/` imports (configured in `tsconfig.json`)
+- **Response Safety**: `processor.ts` validates response content (redaction), checks boundaries (prompt leakage), runs moderation
+- **Token Budget**: `tokenBudgetManager` tracks usage per user; enforces rate limits via Redis
 
 ## Troubleshooting
 
-### Chat Not Working
-- Verify worker is running (`npm run worker`)
-- Check Redis connection (`REDIS_URL` in .env)
-- Check OpenRouter API key validity
-- Review worker logs for errors
+### Chat Not Streaming
+- If using `/api/chat/stream-sse`:
+  - Check browser network tab for SSE connection
+  - Verify OpenRouter API key is valid
+  - Check logs: `logger.error` for stream failures
+- If using `/api/chat/stream`:
+  - Verify worker is running: `npm run worker`
+  - Check Redis queue: `redis-cli LLEN chat-queue`
+  - Check job status: `GET /api/chat/status/{jobId}`
 
-### Database Errors
+### RAG Not Retrieving Documents
+- Check file was ingested:
+  - Verify `File` record exists in database
+  - Check `data/lancedb/` directory has vector data
+  - Run `npm run worker:rag` for auto-ingestion
+- Check RAG query detection:
+  - Log shows `shouldUseRAG() = false` for small queries
+  - Context retrieval may return empty if no semantic match
+- Sanitization filtering context:
+  - Logs show "[DOCUMENT TEXT FILTERED - POTENTIAL INSTRUCTION]" if injection attempt detected
+
+### Database Connection Issues
 - Run migrations: `npm run migrate`
-- Check `DATABASE_URL` format: `postgresql://user:pass@host:port/dbname`
-- Verify 13+ indexes exist in schema
+- Verify `DATABASE_URL`: `postgresql://[user]:[pass]@[host]:[port]/[db]`
+- Check Prisma Studio: `npm run studio`
+- Ensure 13+ indexes exist (check schema)
+
+### Redis/Queue Issues
+- Verify Redis running: `redis-cli ping`
+- Check `REDIS_URL` format and connection
+- Clear queue if stuck: `redis-cli DEL chat-queue rag-queue dlq-queue`
+- Monitor queue: `redis-cli LLEN chat-queue`
 
 ### Vector Store Issues
-- LanceDB data in `data/lancedb/` (create if missing)
-- Server-side only - don't import in client components
-- Check OpenAI embeddings API key
+- Create `data/lancedb/` if missing
+- LanceDB is server-side only; don't import in client components
+- Check OpenAI embeddings API quota
+- Verify LanceDB marked external in Next.js config
 
-## Documentation
-- `docs/IMPLEMENTATION_GUIDE.md` - Quick reference for fixes and patterns
-- `docs/RAG_IMPLEMENTATION.md` - RAG system architecture
-- `docs/ADMIN_GUIDE.md` - Admin dashboard usage
-- `README.md` - Setup and deployment instructions
+## Documentation References
+- **[README.md](../README.md)** - Setup, features, deployment
+- **[docs/IMPLEMENTATION_GUIDE.md](../docs/IMPLEMENTATION_GUIDE.md)** - Common patterns and quick fixes
+- **[docs/RAG_IMPLEMENTATION.md](../docs/RAG_IMPLEMENTATION.md)** - RAG architecture and ingestion
+- **[docs/ADMIN_GUIDE.md](../docs/admin/ADMIN_GUIDE.md)** - Admin dashboard features
+- **[docs/SECURITY.md](../docs/SECURITY.md)** - Security architecture

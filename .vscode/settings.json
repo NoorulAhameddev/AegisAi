@@ -7,5 +7,17 @@
     },
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "explicit"
+    },
+    // Antigravity Kit Configuration
+    "files.exclude": {
+        // Keep .agent folder visible for AI indexing
+    },
+    "search.exclude": {
+        // Keep .agent folder searchable
+    },
+    // GitHub Copilot settings for .agent folder
+    "github.copilot.enable": {
+        "*": true,
+        ".agent": true
     }
 }

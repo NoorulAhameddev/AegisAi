@@ -48,19 +48,32 @@ model Project {
 
 model Chat {
   id        String    @id @default(uuid())
-  userId    String
+  userId    String    // Chat owner
   projectId String?
   title     String?   @db.VarChar(255)
+  
+  // Collaboration fields
+  isShared  Boolean   @default(false)  // Whether chat is shared with others
+  shareToken String?  @unique @db.VarChar(255) // Public share link token (optional)
+  
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?  // Soft delete timestamp for GDPR compliance
+  
   User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   Project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
   Message   Message[]
+  ConversationSummary ConversationSummary[]
+  UserPresence UserPresence[]
+  ChatPermission ChatPermission[]  // Who has access and their roles
+  ChatActivity   ChatActivity[]    // Activity log for shared chats
+  ChatInvitation ChatInvitation[]  // Pending invitations
 
   @@index([userId, createdAt])
   @@index([projectId])
   @@index([deletedAt]) // Index soft delete for fast filtering
+  @@index([isShared])
+  @@index([shareToken])
 }
 
 model File {
@@ -80,8 +93,7 @@ model File {
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime? // Soft delete timestamp for GDPR compliance
   Project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)  versions    FileVersion[]
   @@index([userId, createdAt])
   @@index([projectId])
   @@index([tags])
@@ -89,9 +101,24 @@ model File {
   @@unique([userId, name], name: "File_userId_name_key") // Prevent duplicate file uploads
 }
 
-  @@index([userId, createdAt])
-  @@index([projectId])
-  @@index([tags])
+model FileVersion {
+  id              String   @id @default(uuid())
+  fileId          String
+  versionNumber   Int
+  fileName        String   @db.VarChar(255)
+  mimeType        String   @db.VarChar(100)
+  size            Int
+  hash            String   @db.VarChar(64)
+  filePath        String   @db.Text
+  createdBy       String
+  createdAt       DateTime @default(now())
+  changeLog       String?  @db.Text
+  isCurrentVersion Boolean  @default(false)
+  File            File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([fileId, versionNumber])
+  @@index([createdAt])
+  @@unique([fileId, versionNumber])
 }
 
 model Memory {
@@ -121,6 +148,25 @@ model Message {
   @@index([deletedAt]) // Index soft delete for fast filtering
 }
 
+model ConversationSummary {
+  id              String   @id @default(uuid())
+  chatId          String   @unique
+  summaryIndex    Int      @default(1) // Which compression cycle (1st = messages 1-30, 2nd = 31-60, etc)
+  startMessageId  String
+  endMessageId    String
+  startTimestamp  DateTime
+  endTimestamp    DateTime
+  summary         String   @db.Text // The actual summary text
+  messageCount    Int      // How many messages were summarized
+  tokensSaved     Int      // Estimated tokens saved by compression
+  createdAt       DateTime @default(now())
+  Chat            Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, summaryIndex])
+  @@index([chatId])
+  @@index([createdAt])
+}
+
 model Session {
   id         String   @id @default(uuid())
   userId     String
@@ -135,6 +181,104 @@ model Session {
   @@index([userId])
   @@index([token])
   @@index([expiresAt])
+}
+
+model UserPresence {
+  id        String   @id @default(uuid())
+  userId    String
+  chatId    String
+  status    String   @db.VarChar(20) @default("online") // online, away, offline, typing
+  lastSeen  DateTime @default(now())
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chatId])
+  @@index([chatId, status])
+  @@index([userId, status])
+  @@index([lastSeen])
+}
+
+model CacheEntry {
+  id         String   @id @default(uuid())
+  cacheKey   String   @unique
+  resourceId String
+  userId     String
+  createdAt  DateTime @default(now())
+  purgedAt   DateTime?
+
+  @@index([userId, createdAt])
+  @@index([resourceId])
+}
+
+model ServerlessFunction {
+  id                  String   @id @default(uuid())
+  userId              String
+  name                String   @db.VarChar(255)
+  description         String?  @db.Text
+  code                String   @db.Text
+  runtime             String   @db.VarChar(50)
+  environmentVariables String? @db.Text
+  timeout             Int      @default(30000) // milliseconds
+  memory              Int      @default(128) // MB
+  status              String   @db.VarChar(50) @default("draft") // draft, active, disabled
+  executions          FunctionExecution[]
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+model FunctionExecution {
+  id           String   @id @default(uuid())
+  functionId   String
+  function     ServerlessFunction @relation(fields: [functionId], references: [id], onDelete: Cascade)
+  status       String   @db.VarChar(50)
+  input        Json?
+  output       Json?
+  error        String?  @db.Text
+  duration     Int      @default(0) // milliseconds
+  memoryUsed   Int      @default(0) // MB
+  executedAt   DateTime @default(now())
+
+  @@index([functionId])
+  @@index([executedAt])
+  @@index([status])
+}
+
+model EdgeFunction {
+  id                   String   @id @default(uuid())
+  userId               String
+  name                 String   @db.VarChar(255)
+  slug                 String   @db.VarChar(100)
+  code                 String   @db.Text
+  regions              String[] @default(["global"])
+  environmentVariables String?  @db.Text
+  routes               String[] @default(["/api/function"])
+  cacheControl         String?  @db.VarChar(255)
+  status               String   @db.VarChar(50) @default("draft") // draft, deployed, archived
+  deployments          EdgeDeployment[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([userId])
+  @@unique([userId, slug])
+}
+
+model EdgeDeployment {
+  id         String   @id @default(uuid())
+  functionId String
+  function   EdgeFunction @relation(fields: [functionId], references: [id], onDelete: Cascade)
+  region     String   @db.VarChar(50)
+  version    Int      @default(1)
+  url        String   @db.VarChar(500)
+  status     String   @db.VarChar(50) // deploying, deployed, failed
+  deployedAt DateTime @default(now())
+
+  @@index([functionId])
+  @@index([region])
+  @@unique([functionId, region])
 }
 
 model SystemSetting {
@@ -175,24 +319,91 @@ model Note {
   @@index([tags])
 }
 
+model GeneratedImage {
+  id           String   @id @default(uuid())
+  userId       String
+  prompt       String   @db.Text
+  revisedPrompt String?  @db.Text
+  imageUrl     String   @db.Text
+  generatedAt  DateTime @default(now())
+  deletedAt    DateTime?
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, generatedAt])
+  @@index([deletedAt])
+}
+
+model ImageFile {
+  id         String   @id @default(uuid())
+  userId     String
+  fileId     String   @unique
+  fileName   String   @db.VarChar(255)
+  mimeType   String   @db.VarChar(100)
+  size       Int
+  hash       String   @db.VarChar(64)
+  filePath   String   @db.Text
+  metadata   Json?
+  uploadedAt DateTime @default(now())
+  deletedAt  DateTime?
+  User       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, uploadedAt])
+  @@index([hash])
+  @@index([deletedAt])
+}
+
+model Document {
+  id              String   @id @default(uuid())
+  text            String   @db.Text
+  vector          Vector   @db.VectorType
+  textEmbedding   Vector?  @db.VectorType // For text-embedding-3-large (3072 dims)
+  imageEmbedding  Vector?  @db.VectorType // For image embeddings (CLIP, 1536 dims)
+  metadata        Json?
+  imageData       String?  @db.Text       // Base64 encoded image
+  imageMimeType   String?                 // e.g., "image/jpeg", "image/png"
+  userId          String
+  sourceId        String?
+  chunkIndex      Int?
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, sourceId])
+  @@index([createdAt])
+}
+
 model User {
-  id           String        @id @default(uuid())
-  name         String
-  email        String        @unique
-  password     String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  role         Role          @default(USER)
-  isBanned     Boolean       @default(false)
-  tokenVersion Int           @default(0)
-  Chat         Chat[]
-  Memory       Memory[]
-  Session      Session[]
-  UsageMetric  UsageMetric[]
-  Project      Project[]
-  Note         Note[]
+  id                  String        @id @default(uuid())
+  name                String
+  email               String        @unique
+  password            String
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  role                Role          @default(USER)
+  isBanned            Boolean       @default(false)
+  tokenVersion        Int           @default(0)
+  
+  // Monetization fields
+  plan                PricingTier   @default(FREE)
+  stripeCustomerId    String?       @unique @db.VarChar(255) // Stripe customer ID for payment processing
+  subscriptionEndsAt  DateTime?     // When current subscription expires (null = never)
+  monthlyTokenLimit   Int?          // Override default token limit (null = use tier default)
+  
+  // Relations
+  Chat                 Chat[]
+  Memory              Memory[]
+  Session             Session[]
+  UsageMetric         UsageMetric[]
+  Project             Project[]
+  Note                Note[]
+  UserPresence        UserPresence[]
+  GeneratedImage      GeneratedImage[]
+  ImageFile           ImageFile[]
+  Subscription        Subscription[] // History of subscription changes
+  Payment             Payment[]      // Payment history
 
   @@index([email])
+  @@index([plan])
+  @@index([subscriptionEndsAt])
 }
 
 enum NoteType {
@@ -221,6 +432,20 @@ enum MessageRole {
   SYSTEM
 }
 
+enum PricingTier {
+  FREE      // Free tier
+  PRO       // Pro tier ($9.99/month)
+  ENTERPRISE // Enterprise tier (custom pricing)
+}
+
+enum ChatRole {
+  VIEWER    // Can only view messages
+  COMMENTER // Can view and add comments
+  EDITOR    // Can add messages and edit
+  ADMIN     // Full control (can manage permissions)
+  OWNER     // Chat creator (highest privilege)
+}
+
 enum Role {
   USER
   ADMIN
@@ -241,4 +466,99 @@ model FeatureFlag {
 
   @@index([name])
   @@index([enabled])
+}
+// Monetization: Subscription tracking
+model Subscription {
+  id                String   @id @default(uuid())
+  userId            String
+  plan              PricingTier
+  startDate         DateTime @default(now())
+  endDate           DateTime? // Null for active subscriptions
+  stripeSessionId   String?  @db.VarChar(255) // Stripe checkout session ID
+  stripePriceId     String?  @db.VarChar(255) // Stripe price ID
+  status            String   @db.VarChar(50) // active, cancelled, past_due
+  autoRenew         Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  cancelledAt       DateTime?
+  cancelReason      String?  @db.Text
+  
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([plan])
+  @@index([startDate, endDate])
+}
+
+// Monetization: Payment history
+model Payment {
+  id                String   @id @default(uuid())
+  userId            String
+  amount            Float    // Amount in cents (e.g., 999 = $9.99)
+  currency          String   @db.VarChar(3) @default("USD")
+  status            String   @db.VarChar(50) // succeeded, failed, pending
+  stripePaymentId   String?  @unique @db.VarChar(255) // Stripe payment intent ID
+  invoiceId         String?  @db.VarChar(255) // Invoice reference
+  description       String?  @db.Text
+  metadata          Json?    // Additional metadata (subscription ID, etc)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Real-time Collaboration: Chat permissions and access control
+model ChatPermission {
+  id        String   @id @default(uuid())
+  chatId    String
+  userId    String
+  role      ChatRole @default(VIEWER)
+  invitedBy String?  // User ID who invited this person
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  Chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  
+  @@unique([chatId, userId]) // One role per user per chat
+  @@index([chatId])
+  @@index([userId])
+  @@index([role])
+}
+
+// Real-time Collaboration: Activity tracking for shared chats
+model ChatActivity {
+  id        String   @id @default(uuid())
+  chatId    String
+  userId    String
+  action    String   @db.VarChar(100) // joined, left, edited, deleted_message, etc.
+  metadata  Json?    // Additional context (message ID, old value, etc.)
+  createdAt DateTime @default(now())
+  
+  Chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  
+  @@index([chatId, createdAt])
+  @@index([userId])
+}
+
+// Real-time Collaboration: Pending chat invitations
+model ChatInvitation {
+  id         String   @id @default(uuid())
+  chatId     String
+  inviterId  String  // User who sent invitation
+  inviteeEmail String @db.VarChar(255) // Email of invited person
+  status     String   @db.VarChar(50) @default("pending") // pending, accepted, declined
+  message    String?  @db.Text // Optional invitation message
+  expiresAt  DateTime // Expiration timestamp
+  createdAt  DateTime @default(now())
+  acceptedAt DateTime?
+  
+  Chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  
+  @@unique([chatId, inviteeEmail]) // One pending invite per email per chat
+  @@index([chatId])
+  @@index([inviteeEmail, status])
+  @@index([status])
 }

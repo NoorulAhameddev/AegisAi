@@ -80,6 +80,16 @@ Start with: [DOCUMENTATION.md](./DOCUMENTATION.md) → Run `npm run diagnose-ai`
 |----------|---------|-----------|
 | [COMPLETE_REPORT.md](./COMPLETE_REPORT.md) | Complete organization report | 15 min |
 | [This File](./INDEX.md) | Documentation index & navigation | 10 min |
+[reports/COMPLETE_REPORT.md](./reports/COMPLETE_REPORT.md) | Complete organization report | 15 min |
+[reports/IMPLEMENTATION_SUMMARY.md](./reports/IMPLEMENTATION_SUMMARY.md) | Implementation summary | 10 min |
+[reports/IMPLEMENTATION_VALIDATION.md](./reports/IMPLEMENTATION_VALIDATION.md) | Implementation validation | 10 min |
+[reports/ENHANCEMENT_COMPLETION_REPORT.md](./reports/ENHANCEMENT_COMPLETION_REPORT.md) | Enhancement completion | 10 min |
+[reports/AUDIT_COMPLETION_REPORT.md](./reports/AUDIT_COMPLETION_REPORT.md) | Audit completion | 10 min |
+[reports/SECURITY_FIXES_IMPLEMENTATION.md](./reports/SECURITY_FIXES_IMPLEMENTATION.md) | Security fixes implementation | 10 min |
+[reports/SECURITY_FIXES_QUICK_START.md](./reports/SECURITY_FIXES_QUICK_START.md) | Security fixes quick start | 5 min |
+[reports/RAG_ENHANCEMENT_DETAILED_REPORT.md](./reports/RAG_ENHANCEMENT_DETAILED_REPORT.md) | RAG enhancement details | 10 min |
+[archive/README.md](./archive/README.md) | Archive scope | 2 min |
+[This File](./INDEX.md) | Documentation index & navigation | 10 min |
 
 ---
 
@@ -118,7 +128,7 @@ Start with: [DOCUMENTATION.md](./DOCUMENTATION.md) → Run `npm run diagnose-ai`
 
 ### Reference
 1. [docs/CHANGELOG.md](./docs/CHANGELOG.md) - History
-2. [COMPLETE_REPORT.md](./COMPLETE_REPORT.md) - Organization report
+2. [reports/COMPLETE_REPORT.md](./reports/COMPLETE_REPORT.md) - Organization report
 3. [docs/archive/](./docs/archive/) - Archived docs
 
 ---

@@ -13,6 +13,8 @@
 
 [🚀 Quick Start](#-quick-start) • [📚 Documentation](#-documentation) • [🏗️ Architecture](#-architecture) • [🔒 Security](#-security) • [🤝 Contributing](#-contributing)
 
+> **📦 Monorepo Structure**: This project now uses a monorepo structure for better scalability. See [MONOREPO_STRUCTURE.md](./MONOREPO_STRUCTURE.md) and [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) for details.
+
 </div>
 
 ---
@@ -71,6 +73,13 @@ Whether you're building an internal knowledge base chatbot, customer support sys
 - **Offline Support** - Messages cache locally while offline
 - **Push Notifications** - Real-time notifications for important events
 - **Biometric Auth** - Face/Touch ID authentication on mobile
+
+### 🤖 AI-Powered Development (NEW!)
+- **Antigravity Kit Integration** - 20 specialist AI agents for development
+- **Workflow Commands** - `/plan`, `/create`, `/debug`, `/test`, and more
+- **Domain Skills** - 37 specialized knowledge modules for various domains
+- **Auto Agent Selection** - AI automatically picks the right specialist
+- **[📖 Learn More](./ANTIGRAVITY_KIT_GUIDE.md)** - Complete Antigravity Kit guide
 
 ---
 
