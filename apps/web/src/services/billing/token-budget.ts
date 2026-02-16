@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { getMonthlyTokenLimit, getRateLimit, PricingTier } from "@/lib/pricing";
+import { Prisma } from "@prisma/client";
 import type { PricingTier as DbPricingTier } from "@prisma/client";
 
 /**
@@ -33,12 +34,23 @@ export class TokenBudgetManager {
         this.limits = limits;
     }
 
+    private getWindowBoundaries(base: Date) {
+        const hourStart = new Date(base);
+        hourStart.setMinutes(0, 0, 0);
+
+        const dayStart = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+
+        const monthStart = new Date(base.getFullYear(), base.getMonth(), 1);
+
+        return { hourStart, dayStart, monthStart };
+    }
+
     /**
      * Get effective limits for a user based on their tier
      */
-    async getUserLimits(userId: string): Promise<TokenLimits> {
+    async getUserLimits(userId: string, client: Prisma.TransactionClient | typeof prisma = prisma): Promise<TokenLimits> {
         try {
-            const user = await prisma.user.findUnique({
+            const user = await client.user.findUnique({
                 where: { id: userId },
                 select: { plan: true }
             });
@@ -115,6 +127,114 @@ export class TokenBudgetManager {
     }
 
     /**
+     * Atomically reserve token budget for a request
+     * Prevents concurrent requests from exceeding limits
+     */
+    async reserveBudget(
+        userId: string,
+        estimatedTokens: number
+    ): Promise<{ approved: boolean; reason?: string; tierInfo?: string; reservedAt?: Date }> {
+        const reservedAt = new Date();
+        const { hourStart, dayStart, monthStart } = this.getWindowBoundaries(reservedAt);
+
+        return prisma.$transaction(async (tx) => {
+            // Serialize budget checks per user to ensure atomicity
+            await tx.$executeRaw`SELECT id FROM "User" WHERE id = ${userId} FOR UPDATE`;
+
+            const userLimits = await this.getUserLimits(userId, tx);
+
+            if (estimatedTokens > userLimits.perRequest) {
+                return {
+                    approved: false,
+                    reason: `Request exceeds per-request limit (${estimatedTokens}/${userLimits.perRequest} tokens)`,
+                    tierInfo: `Your tier allows max ${userLimits.perRequest} tokens per request`
+                };
+            }
+
+            let counter = await tx.tokenUsageCounter.findUnique({
+                where: { userId }
+            });
+
+            if (!counter) {
+                counter = await tx.tokenUsageCounter.create({
+                    data: {
+                        userId,
+                        hourStart,
+                        dayStart,
+                        monthStart,
+                        hourlyTokens: 0,
+                        dailyTokens: 0,
+                        monthlyTokens: 0,
+                    }
+                });
+            }
+
+            let hourlyTokens = counter.hourlyTokens;
+            let dailyTokens = counter.dailyTokens;
+            let monthlyTokens = counter.monthlyTokens;
+            const updateData: {
+                hourStart?: Date;
+                dayStart?: Date;
+                monthStart?: Date;
+                hourlyTokens?: number;
+                dailyTokens?: number;
+                monthlyTokens?: number;
+            } = {};
+
+            if (counter.hourStart < hourStart) {
+                hourlyTokens = 0;
+                updateData.hourStart = hourStart;
+            }
+
+            if (counter.dayStart < dayStart) {
+                dailyTokens = 0;
+                updateData.dayStart = dayStart;
+            }
+
+            if (counter.monthStart < monthStart) {
+                monthlyTokens = 0;
+                updateData.monthStart = monthStart;
+            }
+
+            if (monthlyTokens + estimatedTokens > userLimits.monthly) {
+                const remaining = Math.max(0, userLimits.monthly - monthlyTokens);
+                return {
+                    approved: false,
+                    reason: `Monthly budget exceeded. Usage: ${monthlyTokens}/${userLimits.monthly} tokens`,
+                    tierInfo: `${remaining} tokens remaining this month. Upgrade your tier for more.`
+                };
+            }
+
+            if (dailyTokens + estimatedTokens > userLimits.daily) {
+                return {
+                    approved: false,
+                    reason: `Daily budget exceeded. Usage: ${dailyTokens}/${userLimits.daily} tokens`,
+                    tierInfo: `Try again tomorrow or upgrade your tier`
+                };
+            }
+
+            if (hourlyTokens + estimatedTokens > userLimits.hourly) {
+                return {
+                    approved: false,
+                    reason: `Hourly budget exceeded. Usage: ${hourlyTokens}/${userLimits.hourly} tokens`,
+                    tierInfo: `Wait a bit before making another request`
+                };
+            }
+
+            updateData.hourlyTokens = hourlyTokens + estimatedTokens;
+            updateData.dailyTokens = dailyTokens + estimatedTokens;
+            updateData.monthlyTokens = monthlyTokens + estimatedTokens;
+
+            await tx.tokenUsageCounter.update({
+                where: { userId },
+                data: updateData,
+            });
+
+            return { approved: true, reservedAt };
+        }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    }
+
+    /**
      * Record token usage after a request
      */
     async recordUsage(userId: string, tokensUsed: number, metadata?: { model?: string; chatId?: string }): Promise<void> {
@@ -128,6 +248,101 @@ export class TokenBudgetManager {
         });
 
         logger.info("Token usage recorded", { userId, tokens: tokensUsed, ...metadata });
+    }
+
+    /**
+     * Finalize token usage after a reserved request
+     * Adjusts counters by the delta between estimated and actual tokens
+     */
+    async finalizeUsage(
+        userId: string,
+        estimatedTokens: number,
+        actualTokens: number,
+        metadata?: { model?: string; chatId?: string },
+        reservedAt?: Date
+    ): Promise<void> {
+        const now = new Date();
+        const referenceTime = reservedAt ?? now;
+        const { hourStart, dayStart, monthStart } = this.getWindowBoundaries(referenceTime);
+
+        await prisma.$transaction(async (tx) => {
+            await tx.$executeRaw`SELECT id FROM "User" WHERE id = ${userId} FOR UPDATE`;
+
+            let counter = await tx.tokenUsageCounter.findUnique({
+                where: { userId }
+            });
+
+            if (!counter) {
+                counter = await tx.tokenUsageCounter.create({
+                    data: {
+                        userId,
+                        hourStart,
+                        dayStart,
+                        monthStart,
+                        hourlyTokens: 0,
+                        dailyTokens: 0,
+                        monthlyTokens: 0,
+                    }
+                });
+            }
+
+            const { hourStart: currentHourStart, dayStart: currentDayStart, monthStart: currentMonthStart } =
+                this.getWindowBoundaries(now);
+
+            let hourlyTokens = counter.hourlyTokens;
+            let dailyTokens = counter.dailyTokens;
+            let monthlyTokens = counter.monthlyTokens;
+            const updateData: {
+                hourStart?: Date;
+                dayStart?: Date;
+                monthStart?: Date;
+                hourlyTokens?: number;
+                dailyTokens?: number;
+                monthlyTokens?: number;
+            } = {};
+
+            if (counter.hourStart < currentHourStart) {
+                hourlyTokens = 0;
+                updateData.hourStart = currentHourStart;
+            }
+
+            if (counter.dayStart < currentDayStart) {
+                dailyTokens = 0;
+                updateData.dayStart = currentDayStart;
+            }
+
+            if (counter.monthStart < currentMonthStart) {
+                monthlyTokens = 0;
+                updateData.monthStart = currentMonthStart;
+            }
+
+            const delta = actualTokens - estimatedTokens;
+            updateData.hourlyTokens = Math.max(0, hourlyTokens + delta);
+            updateData.dailyTokens = Math.max(0, dailyTokens + delta);
+            updateData.monthlyTokens = Math.max(0, monthlyTokens + delta);
+
+            await tx.tokenUsageCounter.update({
+                where: { userId },
+                data: updateData,
+            });
+
+            await tx.usageMetric.create({
+                data: {
+                    userId,
+                    tokens: actualTokens,
+                    model: metadata?.model || "gpt-4o-mini",
+                    metadata: metadata ? JSON.stringify(metadata) : undefined,
+                }
+            });
+        }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+
+        logger.info("Token usage finalized", {
+            userId,
+            estimatedTokens,
+            actualTokens,
+            delta: actualTokens - estimatedTokens,
+            ...metadata
+        });
     }
 
     /**

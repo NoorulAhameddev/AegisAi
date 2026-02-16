@@ -3,7 +3,7 @@
  * Tests the security system against various prompt injection and jailbreak attempts
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
 import { validateInput } from '@/lib/security';
 import { checkIntent } from '@/lib/security-agent';
 import { detectBoundaryBreaks } from '@/lib/response-boundary';

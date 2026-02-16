@@ -4,8 +4,14 @@ import { verifyRefreshToken } from "@/services/auth/auth";
 import { env } from "@/lib/env";
 import { errorResponse, forbiddenResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 import { logger } from "@/lib/logger";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  // Rate limiting: 30 refreshes per minute (prevent token refresh abuse)
+  const rateLimitResult = await rateLimit(req, { limit: 30, window: 60 });
+  if (!rateLimitResult.success) {
+    return errorResponse("Rate limit exceeded", { status: 429 });
+  }
 
   const token = req.cookies.get("auth_refresh")?.value;
   if (!token) return unauthorizedResponse();

@@ -1,10 +1,20 @@
 import "dotenv/config";
+import * as dotenv from "dotenv";
+import * as path from "path";
+
+// Load .env.local from root for monorepo setup
+dotenv.config({ path: path.resolve(__dirname, "../../../../.env.local") });
+
 import { Worker } from "bullmq";
 import { chatQueue, dlqQueue, connection } from "@/lib/queue";
 import { processChatJob } from "@/workers/processor";
 import { logger } from "@/lib/logger";
 import { startCleanupTask } from "@/workers/cleanup";
 import { env } from "@/lib/env";
+import { setupGlobalErrorHandlers } from "@/lib/global-error-handlers";
+
+// Setup global error handlers to catch unhandled rejections and exceptions
+setupGlobalErrorHandlers('chat-worker');
 
 // CRITICAL: Validate all required environment variables at startup
 try {
@@ -41,6 +51,12 @@ startCleanupTask();
 
 const worker = new Worker(chatQueue.name, async job => processChatJob(job), {
     connection,
+    concurrency: env.WORKER_CONCURRENCY,
+    settings: {
+        stalledInterval: 60000, // Check for stalled jobs every 60s
+        maxStalledCount: 2, // Retry stalled jobs twice before DLQ
+    },
+    lockDuration: 180000, // 3 minutes - max time for job processing
 });
 
 worker.on("completed", job => {

@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger";
 import { deleteDocumentsBySource } from "@/ai/rag/vector-store";
 import { parseQuery } from "@/lib/request-validation";
 import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * DELETE /api/rag/documents
@@ -14,6 +15,12 @@ export async function DELETE(req: NextRequest) {
     const startTime = Date.now();
 
     try {
+        // Rate limiting: 20 deletions per minute
+        const rateLimitResult = await rateLimit(req, { limit: 20, window: 60 });
+        if (!rateLimitResult.success) {
+            return errorResponse("Rate limit exceeded", { status: 429 });
+        }
+
         const user = await verifyAuth(req);
         if (!user) {
             return unauthorizedResponse();

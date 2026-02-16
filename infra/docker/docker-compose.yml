@@ -1,10 +1,10 @@
-version: "3.9"
-
 services:
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
     container_name: aegis-postgres
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
@@ -28,7 +28,9 @@ services:
   redis:
     image: redis:7-alpine
     container_name: aegis-redis
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    env_file:
+      - .env
+    command: ["sh", "-c", "redis-server --appendonly yes${REDIS_PASSWORD:+ --requirepass $REDIS_PASSWORD}"]
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
@@ -45,10 +47,13 @@ services:
   # Next.js Application
   app:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: infra/docker/Dockerfile
       args:
         NODE_ENV: production
+    image: aegis-ai
+    env_file:
+      - .env
     container_name: aegis-app
     environment:
       NODE_ENV: production
@@ -68,8 +73,8 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ./uploads:/app/uploads
-      - ./data:/app/data
+      - ../../uploads:/app/uploads
+      - ../../data:/app/data
     restart: unless-stopped
     networks:
       - aegis-network
@@ -79,10 +84,74 @@ services:
       timeout: 10s
       retries: 3
 
+  # Chat Worker
+  worker:
+    image: aegis-ai
+    container_name: aegis-worker
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-aegis_ai}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
+      SITE_NAME: ${SITE_NAME:-Aegis AI}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    command: ["npm", "run", "worker"]
+    volumes:
+      - ../../uploads:/app/uploads
+      - ../../data:/app/data
+    restart: unless-stopped
+    networks:
+      - aegis-network
+
+  # RAG Worker
+  worker-rag:
+    image: aegis-ai
+    container_name: aegis-worker-rag
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-aegis_ai}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
+      SITE_NAME: ${SITE_NAME:-Aegis AI}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    command: ["npm", "run", "worker:rag"]
+    volumes:
+      - ../../uploads:/app/uploads
+      - ../../data:/app/data
+    restart: unless-stopped
+    networks:
+      - aegis-network
+
   # Optional: pgAdmin for Database Management
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: aegis-pgadmin
+    env_file:
+      - .env
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@aegis.local}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}

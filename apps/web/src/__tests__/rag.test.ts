@@ -66,7 +66,7 @@ describe('Document Chunker', () => {
     });
 
     it('should add metadata to chunks', () => {
-        const text = 'Test text. ' . repeat(100);
+        const text = 'Test text. '.repeat(100);
         const chunks = chunker.chunkText(text);
         
         chunks.forEach((chunk: TextChunk, idx: number) => {

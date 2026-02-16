@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { openai } from '@/lib/openai';
+import { openai } from '@/services/ai/openai';
 import { logger } from '@/lib/logger';
 
 interface CompressionResult {

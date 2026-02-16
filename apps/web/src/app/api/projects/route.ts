@@ -7,6 +7,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import { prisma } from "@/lib/prisma";
+import { readPrisma } from "@/lib/read-replicas";
 import { parseBody, parseQuery } from "@/lib/request-validation";
 import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 import { logger } from "@/lib/logger";
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
         }
 
         const userId = authResult.id;
-        const projects = await prisma.project.findMany({
+        const projects = await readPrisma.project.findMany({
             where: { userId },
             orderBy: { createdAt: "desc" },
             include: {

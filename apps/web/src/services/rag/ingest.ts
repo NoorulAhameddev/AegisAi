@@ -1,7 +1,8 @@
-import { addDocument, addMultiModalDocument } from "../../ai/rag/vector-store";
-import { getDocumentChunker } from "./chunker";
+import { addDocument, addMultiModalDocument } from "@/ai/rag/vector-store";
+import { getDocumentChunker } from "@/services/rag/chunker";
 import { logger } from "@/lib/logger";
-import { getRAGConfig } from "./rag-config";
+import { getRAGConfig } from "@/services/rag/rag-config";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Ingest file with support for multi-modal content (text + images)
@@ -37,6 +38,8 @@ export async function ingestFile(
             imagesFound: images.length,
         });
 
+        const validChunkIndexes: number[] = [];
+
         // Ingest text chunks with optional image embeddings
         for (let i = 0; i < chunks.length; i++) {
             const chunk = chunks[i];
@@ -49,6 +52,8 @@ export async function ingestFile(
                 startChar: chunk.metadata.startChar,
                 endChar: chunk.metadata.endChar,
             };
+
+            validChunkIndexes.push(i);
 
             // Check if this chunk has associated image data
             if (enableImages && chunk.metadata.imageData && chunk.metadata.imageMimeType) {
@@ -83,6 +88,8 @@ export async function ingestFile(
                     chunkIndex: chunks.length + i, // Continue indexing after text chunks
                 };
 
+                validChunkIndexes.push(chunks.length + i);
+
                 logger.debug('[Ingest] Adding standalone image', {
                     imageId: image.id,
                     mimeType: image.mimeType,
@@ -97,6 +104,17 @@ export async function ingestFile(
                     image.mimeType
                 );
             }
+        }
+
+        // Cleanup stale chunks from previous ingestions
+        if (validChunkIndexes.length > 0) {
+            await prisma.document.deleteMany({
+                where: {
+                    userId,
+                    sourceId: fileId,
+                    chunkIndex: { notIn: validChunkIndexes },
+                },
+            });
         }
 
         logger.info('[Ingest] Ingestion complete', {

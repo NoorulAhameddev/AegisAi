@@ -6,6 +6,11 @@
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
+// Mock secrets (for encryption operations if needed)
+jest.mock('@/lib/secrets', () => ({
+    getEncryptionKey: jest.fn(() => Promise.resolve(Buffer.from('a'.repeat(32)))),
+}));
+
 // Mock vector store
 jest.mock('@/ai/rag/vector-store', () => ({
     addDocument: jest.fn(() => Promise.resolve({ success: true })),

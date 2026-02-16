@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { readPrisma } from "@/lib/read-replicas";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { decrypt } from "@/lib/encryption";
@@ -6,8 +6,15 @@ import { verifyAuth } from "@/services/auth/auth";
 import { logger } from "@/lib/logger";
 import { parseQuery } from "@/lib/request-validation";
 import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(req: NextRequest) {
+    // Rate limiting: 30 history requests per minute
+    const rateLimitResult = await rateLimit(req, { limit: 30, window: 60 });
+    if (!rateLimitResult.success) {
+        return errorResponse("Rate limit exceeded", { status: 429 });
+    }
+
     const user = await verifyAuth(req);
     if (!user) return unauthorizedResponse();
 
@@ -24,7 +31,7 @@ export async function GET(req: NextRequest) {
 
     try {
         // Get total count for pagination metadata (exclude soft-deleted messages)
-        const totalCount = await prisma.message.count({
+        const totalCount = await readPrisma.message.count({
             where: {
                 chatId,
                 deletedAt: null, // Exclude soft-deleted messages
@@ -33,13 +40,13 @@ export async function GET(req: NextRequest) {
         });
 
         // Get conversation summaries (if any)
-        const summaries = await prisma.conversationSummary.findMany({
+        const summaries = await readPrisma.conversationSummary.findMany({
             where: { chatId },
             orderBy: { summaryIndex: 'asc' }
         });
 
         // Fetch paginated messages (exclude soft-deleted)
-        const messages = await prisma.message.findMany({
+        const messages = await readPrisma.message.findMany({
             where: {
                 chatId,
                 deletedAt: null, // Exclude soft-deleted messages

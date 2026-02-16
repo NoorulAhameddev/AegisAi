@@ -1,8 +1,15 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { successResponse } from "@/lib/response";
+import { successResponse, errorResponse } from "@/lib/response";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  // Rate limiting: 20 logouts per minute (prevent spam)
+  const rateLimitResult = await rateLimit(req, { limit: 20, window: 60 });
+  if (!rateLimitResult.success) {
+    return errorResponse("Rate limit exceeded", { status: 429 });
+  }
+
   try {
     const token = req.cookies.get("auth_refresh")?.value;
     if (token) {

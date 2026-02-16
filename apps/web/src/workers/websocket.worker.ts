@@ -2,6 +2,10 @@ import { createServer } from 'http';
 import { initializeWebSocketServer, cleanupWebSocket } from '@/lib/websocket';
 import { logger } from '@/lib/logger';
 import { env } from '@/lib/env';
+import { setupGlobalErrorHandlers } from '@/lib/global-error-handlers';
+
+// Setup global error handlers
+setupGlobalErrorHandlers('websocket-worker');
 
 const PORT = env.WEBSOCKET_PORT || 3001;
 
@@ -20,10 +24,11 @@ async function startWebSocketWorker() {
 
     // Start listening
     httpServer.listen(PORT, () => {
-      logger.worker('websocket-worker', 'started', { port: PORT });
-      console.log(`\n🔗 WebSocket server running on port ${PORT}`);
-      console.log(`   Using transports: websocket, polling`);
-      console.log(`   CORS: ${env.FRONTEND_URL || 'http://localhost:3000'}`);
+      logger.worker('websocket-worker', 'started', { 
+        port: PORT,
+        transport: 'websocket,polling',
+        cors: env.FRONTEND_URL || 'http://localhost:3000'
+      });
     });
 
     // Graceful shutdown

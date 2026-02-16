@@ -17,9 +17,9 @@ async function loadLanceDB() {
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
-import { generateEmbedding } from "../../services/rag/embeddings";
-import { getDocumentChunker } from "../../services/rag/chunker";
-import { getRAGConfig } from "../../services/rag/rag-config";
+import { generateEmbedding } from "@/services/rag/embeddings";
+import { getDocumentChunker } from "@/services/rag/chunker";
+import { getRAGConfig } from "@/services/rag/rag-config";
 
 const DB_DIR = path.join(process.cwd(), "data", "lancedb");
 

@@ -3,6 +3,7 @@ import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 import { getCachedEmbedding, setCachedEmbedding, getCachedEmbeddings, setCachedEmbeddings } from '@/lib/embedding-cache';
 import { getRAGConfig, isCachingEnabled } from '@/services/rag/config';
+import { retryWithBackoff, RetryStrategies } from '@/lib/retry';
 
 const isTest = process.env.NODE_ENV === 'test';
 
@@ -114,72 +115,55 @@ export async function generateEmbedding(
 
     const { openai } = await import('../ai/openai');
     
-    let lastError: Error | null = null;
+    try {
+        // Use retry utility with embeddings-specific strategy (5 retries, exponential backoff)
+        const response = await retryWithBackoff(
+            async () => {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
 
-    for (let attempt = 0; attempt < config.maxRetries; attempt++) {
-        try {
-            console.log(
-                `[Embeddings] Generating embedding (attempt ${attempt + 1}/${config.maxRetries})`
+                try {
+                    return await openai.embeddings.create({
+                        model,
+                        input: cleanText.substring(0, 8000), // OpenAI limit is ~8k tokens
+                        encoding_format: 'float',
+                    });
+                } finally {
+                    clearTimeout(timeout);
+                }
+            },
+            RetryStrategies.embeddings,
+            `embedding-${cacheKey || 'no-cache'}`
+        );
+
+        const embedding = response.data[0].embedding;
+        
+        if (!embedding || embedding.length === 0) {
+            throw new Error('Empty embedding returned from API');
+        }
+
+        // Ensure consistent dimensions (in case API returns different size)
+        if (embedding.length !== dimensions) {
+            console.warn(
+                `[Embeddings] Expected ${dimensions} dims, got ${embedding.length}, padding/truncating`
             );
-
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
-
-            try {
-                const response = await openai.embeddings.create({
-                    model,
-                    input: cleanText.substring(0, 8000), // OpenAI limit is ~8k tokens
-                    encoding_format: 'float',
-                });
-
-                clearTimeout(timeout);
-
-                const embedding = response.data[0].embedding;
-                
-                if (!embedding || embedding.length === 0) {
-                    throw new Error('Empty embedding returned from API');
-                }
-
-                // Ensure consistent dimensions (in case API returns different size)
-                if (embedding.length !== dimensions) {
-                    console.warn(
-                        `[Embeddings] Expected ${dimensions} dims, got ${embedding.length}, padding/truncating`
-                    );
-                    if (embedding.length < dimensions) {
-                        embedding.push(...Array(dimensions - embedding.length).fill(0));
-                    }
-                }
-
-                const normalized = embedding.slice(0, dimensions);
-                if (shouldUseCache && cacheKey) {
-                    await setCachedEmbedding(cacheKey, normalized, ragConfig.cacheTTL);
-                }
-
-                return normalized;
-            } finally {
-                clearTimeout(timeout);
-            }
-        } catch (error) {
-            lastError = error as Error;
-            logger.warn('Embedding generation failed', {
-                attempt: attempt + 1,
-                textLength: cleanText.length,
-                error: (error as Error).message,
-            });
-
-            if (attempt < config.maxRetries - 1) {
-                const delay = getBackoffDelay(attempt, config.retryDelayMs);
-                console.log(`[Embeddings] Retrying in ${delay}ms...`);
-                await sleep(delay);
+            if (embedding.length < dimensions) {
+                embedding.push(...Array(dimensions - embedding.length).fill(0));
             }
         }
-    }
 
-    // All retries failed
-    logger.error('Embedding generation failed after all retries', lastError as Error);
-    throw new Error(
-        `Failed to generate embedding after ${config.maxRetries} attempts: ${lastError?.message}`
-    );
+        const normalized = embedding.slice(0, dimensions);
+        if (shouldUseCache && cacheKey) {
+            await setCachedEmbedding(cacheKey, normalized, ragConfig.cacheTTL);
+        }
+
+        return normalized;
+    } catch (error) {
+        logger.error('Embedding generation failed after all retries', error as Error);
+        throw new Error(
+            `Failed to generate embedding: ${(error as Error).message}`
+        );
+    }
 }
 
 /**
@@ -333,71 +317,56 @@ export async function generateEmbeddingsBatch(
         const batchSlice = missingIndexes.slice(i, i + config.batchSizeLimit);
         const batch = batchSlice.map(item => item.text);
 
-        let lastError: Error | null = null;
-
-        for (let attempt = 0; attempt < config.maxRetries; attempt++) {
-            try {
-                console.log(
-                    `[Embeddings] Processing batch ${Math.floor(i / config.batchSizeLimit) + 1} (attempt ${attempt + 1}/${config.maxRetries})`
-                );
-
-                const response = await openai.embeddings.create({
+        try {
+            // Use retry utility with embeddings-specific strategy
+            const response = await retryWithBackoff(
+                async () => openai.embeddings.create({
                     model,
                     input: batch,
-                });
+                }),
+                RetryStrategies.embeddings,
+                `embedding-batch-${Math.floor(i / config.batchSizeLimit)}`
+            );
 
-                // Sort by index to ensure correct order
-                const batchEmbeddings = response.data
-                    .sort((a, b) => a.index - b.index)
-                    .map(d => {
-                        const emb = d.embedding;
-                        if (emb.length !== dimensions) {
-                            if (emb.length < dimensions) {
-                                emb.push(...Array(dimensions - emb.length).fill(0));
-                            }
-                            return emb.slice(0, dimensions);
+            // Sort by index to ensure correct order
+            const batchEmbeddings = response.data
+                .sort((a, b) => a.index - b.index)
+                .map(d => {
+                    const emb = d.embedding;
+                    if (emb.length !== dimensions) {
+                        if (emb.length < dimensions) {
+                            emb.push(...Array(dimensions - emb.length).fill(0));
                         }
-                        return emb;
-                    });
-
-                const cacheEntries: Array<{ key: string; value: number[] }> = [];
-
-                batchEmbeddings.forEach((embedding, idx) => {
-                    const targetIndex = batchSlice[idx]?.idx;
-                    if (targetIndex !== undefined) {
-                        allEmbeddings[targetIndex] = embedding;
-                        if (shouldUseCache) {
-                            cacheEntries.push({ key: cacheKeys[targetIndex], value: embedding });
-                        }
+                        return emb.slice(0, dimensions);
                     }
+                    return emb;
                 });
 
-                if (shouldUseCache && cacheEntries.length > 0) {
-                    await setCachedEmbeddings(cacheEntries, ragConfig.cacheTTL);
-                }
-                break; // Success, move to next batch
-            } catch (error) {
-                lastError = error as Error;
-                logger.warn('Batch embedding failed', {
-                    batchIndex: Math.floor(i / config.batchSizeLimit),
-                    batchSize: batch.length,
-                    attempt: attempt + 1,
-                    error: (error as Error).message,
-                });
+            const cacheEntries: Array<{ key: string; value: number[] }> = [];
 
-                if (attempt < config.maxRetries - 1) {
-                    const delay = getBackoffDelay(attempt, config.retryDelayMs);
-                    await sleep(delay);
-                } else {
-                    // Last attempt failed - add nulls for this batch
-                    console.error(
-                        `[Embeddings] Batch failed after ${config.maxRetries} attempts, skipping ${batch.length} items`
-                    );
-                    batchSlice.forEach(item => {
-                        allEmbeddings[item.idx] = null;
-                    });
+            batchEmbeddings.forEach((embedding, idx) => {
+                const targetIndex = batchSlice[idx]?.idx;
+                if (targetIndex !== undefined) {
+                    allEmbeddings[targetIndex] = embedding;
+                    if (shouldUseCache) {
+                        cacheEntries.push({ key: cacheKeys[targetIndex], value: embedding });
+                    }
                 }
+            });
+
+            if (shouldUseCache && cacheEntries.length > 0) {
+                await setCachedEmbeddings(cacheEntries, ragConfig.cacheTTL);
             }
+        } catch (error) {
+            // After all retries failed - add nulls for this batch
+            logger.error('Batch embedding failed after all retries, skipping batch', error as Error, {
+                batchIndex: Math.floor(i / config.batchSizeLimit),
+                batchSize: batch.length
+            });
+            
+            batchSlice.forEach(item => {
+                allEmbeddings[item.idx] = null;
+            });
         }
     }
 

@@ -1,4 +1,4 @@
-import { chatQueue } from "@/lib/queue";
+import { chatQueue, checkQueueBackpressure } from "@/lib/queue";
 import { prisma } from "@/lib/prisma";
 import { verifyAuth } from "@/services/auth/auth";
 import { rateLimit } from "@/lib/rate-limit";
@@ -41,6 +41,16 @@ export async function POST(req: NextRequest) {
     });
     const { data, response } = await parseBody(req, bodySchema);
     if (response) return response;
+
+    // Check queue backpressure before enqueueing
+    const backpressure = await checkQueueBackpressure(chatQueue, 'chat');
+    if (!backpressure.allowed) {
+      logger.warn('Queue backpressure triggered, rejecting request', {
+        userId: user.id,
+        queueDepth: backpressure.depth,
+      });
+      return errorResponse(backpressure.message || 'System overloaded', { status: 503 });
+    }
 
     // Encrypt Message Content (Data Privacy)
     const { encrypt } = await import("@/lib/encryption");

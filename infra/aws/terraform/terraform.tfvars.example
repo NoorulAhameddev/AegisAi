@@ -1,0 +1,53 @@
+# Example Terraform Variables
+# Copy this file to terraform.tfvars and customize for your environment
+
+# Required: Email for alarm notifications
+alarm_email = "alerts@example.com"
+
+# Optional: Slack webhook for deployment notifications
+# slack_webhook_url = "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+
+# AWS Configuration
+aws_region  = "us-east-1"
+environment = "production"
+
+# Database Configuration
+db_instance_class = "db.t4g.large"  # 2 vCPU, 8 GB RAM
+# For higher loads, consider: "db.r6g.xlarge" # 4 vCPU, 32 GB RAM
+
+# Redis Configuration
+redis_node_type = "cache.t4g.medium"  # 2 vCPU, 3.09 GB RAM
+# For higher loads, consider: "cache.r7g.large" # 2 vCPU, 13.07 GB RAM
+
+# ECS Configuration - API Service
+ecs_api_task_count = 2  # Minimum 2 for high availability
+ecs_api_cpu        = 2048  # 2 vCPU
+ecs_api_memory     = 4096  # 4 GB
+
+# ECS Configuration - Chat Workers
+ecs_worker_task_count = 3
+ecs_worker_cpu        = 1024  # 1 vCPU
+ecs_worker_memory     = 2048  # 2 GB
+
+# ECS Configuration - RAG Workers
+ecs_rag_worker_task_count = 2
+ecs_rag_worker_cpu        = 2048  # 2 vCPU (higher for embeddings)
+ecs_rag_worker_memory     = 4096  # 4 GB
+
+# Auto-scaling Configuration
+autoscaling_min_capacity       = 2
+autoscaling_max_capacity       = 10
+autoscaling_target_queue_depth = 50
+
+# Backup Configuration
+backup_retention_days          = 90
+backup_glacier_transition_days = 30
+
+# Tags
+tags = {
+  Project     = "Aegis AI"
+  Environment = "production"
+  ManagedBy   = "Terraform"
+  CostCenter  = "Engineering"
+  Owner       = "devops@example.com"
+}

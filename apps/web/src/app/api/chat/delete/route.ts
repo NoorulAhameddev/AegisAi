@@ -3,9 +3,16 @@ import { verifyAuth } from "@/services/auth/auth";
 import { prisma } from "@/lib/prisma";
 import { successResponse, errorResponse, unauthorizedResponse, notFoundResponse, badRequestResponse } from "@/lib/response";
 import { z } from "zod";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting: 10 deletions per minute
+    const rateLimitResult = await rateLimit(req, { limit: 10, window: 60 });
+    if (!rateLimitResult.success) {
+      return errorResponse("Rate limit exceeded", { status: 429 });
+    }
+
     const user = await verifyAuth(req);
     if (!user) return unauthorizedResponse();
 
@@ -44,16 +51,15 @@ export async function POST(req: NextRequest) {
       prisma.chat.update({
         where: { id: chatId },
         data: { deletedAt: new Date() }
+      }),
+      // Audit log entry
+      prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          action: `CHAT_DELETE:${chatId}`,
+        },
       })
     ]);
-
-    // Audit log entry
-    await prisma.auditLog.create({
-      data: {
-        userId: user.id,
-        action: `CHAT_DELETE:${chatId}`,
-      },
-    });
 
     return successResponse({ deleted: true, chatId });
   } catch (error: any) {

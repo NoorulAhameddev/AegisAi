@@ -92,20 +92,29 @@ export async function rotateTokens(
 /**
  * Revoke all sessions for a user (instant logout everywhere)
  * Used when user changes password or admin force logout
+ * 
+ * ATOMIC OPERATION: Uses transaction to ensure session deletion and tokenVersion increment are atomic
  */
 export async function revokeAllSessions(userId: string, reason?: string): Promise<void> {
   try {
-    await prisma.session.deleteMany({
-      where: { userId }
-    });
+    const { withTransaction } = await import("@/lib/prisma");
+    
+    await withTransaction(
+      async (tx: any) => {
+        await tx.session.deleteMany({
+          where: { userId }
+        });
+
+        await tx.user.update({
+          where: { id: userId },
+          data: { tokenVersion: { increment: 1 } }
+        });
+      },
+      { userId, action: 'revoke-all-sessions', reason },
+      10000 // 10 second timeout
+    );
 
     logger.security('All sessions revoked', { userId, reason });
-
-    // Also increment tokenVersion to invalidate all outstanding JWTs
-    await prisma.user.update({
-      where: { id: userId },
-      data: { tokenVersion: { increment: 1 } }
-    });
   } catch (error) {
     logger.error('Failed to revoke all sessions', error as Error, { userId });
     throw error;

@@ -1,9 +1,25 @@
+jest.mock('@/lib/secrets');
+
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { encrypt, decrypt, isEncrypted, needsKeyRotation, rotateKey } from '@/lib/encryption';
+import * as secretsModule from '@/lib/secrets';
+
+// Setup mock implementations
+const mockGetEncryptionKey = secretsModule.getEncryptionKey as jest.MockedFunction<typeof secretsModule.getEncryptionKey>;
 
 describe('Encryption Module', () => {
   const testMessage = 'This is a sensitive message';
   let encryptedMessage: string;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Setup mock for each test - getEncryptionKey returns Buffer directly
+    mockGetEncryptionKey.mockResolvedValue(Buffer.from('a'.repeat(32))); // 32 byte key for AES-256
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   describe('encrypt', () => {
     it('should encrypt a message', async () => {

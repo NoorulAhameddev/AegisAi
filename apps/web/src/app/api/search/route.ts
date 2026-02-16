@@ -1,12 +1,19 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
+import { readPrisma } from "@/lib/read-replicas";
 import { verifyAuth } from "@/services/auth/auth";
 import { parseQuery } from "@/lib/request-validation";
 import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 import { logger } from "@/lib/logger";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(req: NextRequest) {
+    // Rate limiting: 30 searches per minute
+    const rateLimitResult = await rateLimit(req, { limit: 30, window: 60 });
+    if (!rateLimitResult.success) {
+        return errorResponse("Rate limit exceeded", { status: 429 });
+    }
+
     const user = await verifyAuth(req);
     if (!user) return unauthorizedResponse();
 
@@ -21,9 +28,10 @@ export async function GET(req: NextRequest) {
 
     try {
         const [chats, files] = await Promise.all([
-            prisma.chat.findMany({
+            readPrisma.chat.findMany({
                 where: {
                     userId: user.id,
+                    deletedAt: null,
                     OR: [
                         { title: { contains: query, mode: "insensitive" } },
                         { Message: { some: { content: { contains: query, mode: "insensitive" } } } }
@@ -32,9 +40,10 @@ export async function GET(req: NextRequest) {
                 take: 5,
                 select: { id: true, title: true, createdAt: true }
             }),
-            prisma.file.findMany({
+            readPrisma.file.findMany({
                 where: {
                     userId: user.id,
+                    deletedAt: null,
                     name: { contains: query, mode: "insensitive" }
                 },
                 take: 5,

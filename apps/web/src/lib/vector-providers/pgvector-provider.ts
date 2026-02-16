@@ -55,27 +55,57 @@ export class PgvectorProvider implements IVectorDBProvider {
         }
     ): Promise<string> {
         const docId = crypto.randomUUID();
+        const sourceId = metadata.sourceId || metadata.fileId || null;
+        const chunkIndex = metadata.chunkIndex ?? null;
+        const contentHash = crypto
+            .createHash('sha256')
+            .update(text)
+            .update(options?.imageData || '')
+            .digest('hex');
 
         console.log(`[PgvectorProvider] Adding document ${docId.substring(0, 8)} for userId ${userId.substring(0, 8)}`);
 
         try {
-            // Use Prisma to insert document with vector and multi-modal embeddings
-            const result = await (prisma as any).document.create({
-                data: {
-                    id: docId,
-                    text,
-                    vector,
-                    textEmbedding: options?.textEmbedding || null,
-                    imageEmbedding: options?.imageEmbedding || null,
-                    imageData: options?.imageData || null,
-                    imageMimeType: options?.imageMimeType || null,
-                    metadata,
-                    userId,
-                    sourceId: metadata.sourceId || metadata.fileId || null,
-                    chunkIndex: metadata.chunkIndex || null,
-                    createdAt: new Date(),
-                },
-            });
+            const data = {
+                id: docId,
+                text,
+                vector,
+                textEmbedding: options?.textEmbedding || null,
+                imageEmbedding: options?.imageEmbedding || null,
+                imageData: options?.imageData || null,
+                imageMimeType: options?.imageMimeType || null,
+                metadata,
+                userId,
+                sourceId,
+                chunkIndex,
+                contentHash,
+                createdAt: new Date(),
+            };
+
+            // Use upsert when sourceId and chunkIndex are present (idempotent)
+            const result = sourceId && chunkIndex !== null
+                ? await (prisma as any).document.upsert({
+                    where: {
+                        userId_sourceId_chunkIndex: {
+                            userId,
+                            sourceId,
+                            chunkIndex,
+                        }
+                    },
+                    create: data,
+                    update: {
+                        text,
+                        vector,
+                        textEmbedding: options?.textEmbedding || null,
+                        imageEmbedding: options?.imageEmbedding || null,
+                        imageData: options?.imageData || null,
+                        imageMimeType: options?.imageMimeType || null,
+                        metadata,
+                        contentHash,
+                        createdAt: new Date(),
+                    }
+                })
+                : await (prisma as any).document.create({ data });
 
             console.log(`[PgvectorProvider] Successfully added document ${docId.substring(0, 8)}`);
             return result.id;
@@ -145,42 +175,46 @@ export class PgvectorProvider implements IVectorDBProvider {
         const vector = await generateEmbedding(query);
 
         try {
-            // Use pgvector cosine distance (<-> operator)
+            // Use optimized database function for similarity search
             console.log(`[PgvectorProvider] Running vector search with limit ${limit}`);
 
+            // Use the helper function created in pgvector-setup.sql
+            // Falls back to direct query if function doesn't exist
             const results = await (prisma as any).$queryRaw`
                 SELECT 
                     id, 
                     text, 
-                    vector, 
+                    1 - (vector <=> ${JSON.stringify(vector)}::vector) AS similarity,
                     metadata, 
                     "userId", 
                     "createdAt",
                     "sourceId",
-                    "chunkIndex",
-                    (vector <-> ${JSON.stringify(vector)}::vector) AS distance
+                    "chunkIndex"
                 FROM "Document"
                 WHERE "userId" = ${userId}
-                ${filters?.sourceId ? `AND "sourceId" = ${filters.sourceId}` : ''}
-                ORDER BY distance ASC
-                LIMIT ${limit * 2}
+                    AND vector IS NOT NULL
+                    ${filters?.sourceId ? `AND "sourceId" = ${filters.sourceId}` : ''}
+                    AND (1 - (vector <=> ${JSON.stringify(vector)}::vector)) >= 0.7
+                ORDER BY vector <=> ${JSON.stringify(vector)}::vector
+                LIMIT ${limit}
             `;
 
             console.log(`[PgvectorProvider] Found ${results.length} results`);
 
-            // Convert distance back to similarity score (1 - distance)
+            // Format results for return
             const formattedResults = (results as any[]).map(doc => ({
                 id: doc.id,
                 text: doc.text,
-                vector: doc.vector,
-                metadata: typeof doc.metadata === 'string' ? doc.metadata : JSON.stringify(doc.metadata),
+                vector: doc.vector || [],
+                similarity: doc.similarity,
+                metadata: typeof doc.metadata === 'string' ? doc.metadata : JSON.stringify(doc.metadata || {}),
                 userId: doc.userId,
                 createdAt: new Date(doc.createdAt).getTime(),
                 sourceId: doc.sourceId,
                 chunkIndex: doc.chunkIndex,
             })) as VectorDocument[];
 
-            return formattedResults.slice(0, limit);
+            return formattedResults;
         } catch (error) {
             console.error('[PgvectorProvider] Search failed:', error);
             return [];

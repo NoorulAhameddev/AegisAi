@@ -14,6 +14,9 @@ const envSchema = z.object({
     DATABASE_URL: z.string().min(1).refine(v => v.startsWith("postgresql://"), {
         message: "DATABASE_URL must start with postgresql:// with optional connectionLimit and idleTimeout params",
     }),
+    // Optional read replica URLs for read scaling
+    DATABASE_REPLICA_1_URL: z.string().optional(),
+    DATABASE_REPLICA_2_URL: z.string().optional(),
 
     JWT_ACCESS_SECRET: z.string().min(32),
     JWT_REFRESH_SECRET: z.string().min(32),
@@ -26,10 +29,11 @@ const envSchema = z.object({
     // WebSocket configuration
     WEBSOCKET_PORT: z.coerce.number().int().positive().default(3001),
     FRONTEND_URL: z.string().url().optional().default("http://localhost:3000"),
+    SITE_URL: z.string().url().optional().default("http://localhost:3000"),
 
-    SECRET_PROVIDER: z.enum(["aws-kms"]),
-    ENCRYPTION_KEY_CIPHERTEXT: z.string().min(1),
-    AWS_REGION: z.string().min(1),
+    SECRET_PROVIDER: z.enum(["aws-kms", "local"]).default("local"),
+    ENCRYPTION_KEY_CIPHERTEXT: z.string().optional(),
+    AWS_REGION: z.string().optional(),
 
     MAX_FILE_SIZE: z.coerce.number().int().positive().default(50 * 1024 * 1024),
     MAX_UPLOADS_PER_MINUTE: z.coerce.number().int().positive().default(20),
@@ -50,6 +54,18 @@ const envSchema = z.object({
     DATABASE_POOL_MIN: z.coerce.number().int().positive().default(2),
     DATABASE_POOL_MAX: z.coerce.number().int().positive().default(20),
     
+    // NEW: Enhanced connection pool configuration
+    DB_POOL_SIZE: z.coerce.number().int().positive().default(10), // Max connections, production: 40+
+    DB_POOL_TIMEOUT: z.coerce.number().int().positive().default(30), // Seconds to wait for connection
+    DB_STATEMENT_TIMEOUT: z.coerce.number().int().positive().default(60000), // Milliseconds for query timeout
+    
+    // NEW: Worker configuration
+    WORKER_CONCURRENCY: z.coerce.number().int().positive().default(5), // Jobs per worker
+    
+    // NEW: AWS CloudWatch configuration (optional, auto-detected in ECS)
+    AWS_ECS_FARGATE: z.string().optional(), // Auto-set by ECS
+    AWS_EXECUTION_ENV: z.string().optional(), // Auto-set by AWS Lambda/ECS
+    
     // Vector Database Configuration (Phase 1)
     VECTOR_DB_PROVIDER: z.enum(["lancedb", "pgvector"]).default("lancedb"),
     PGVECTOR_HOST: z.string().optional(),
@@ -65,6 +81,20 @@ const envSchema = z.object({
     
     // Semantic Cache Configuration (Phase 4)
     SEMANTIC_CACHE_TTL: z.coerce.number().int().positive().default(86400),
+    
+    // CRITICAL SECURITY: Serverless function execution (vm2 CVE-2023-37466 mitigation)
+    // Set to false to disable serverless functions due to vm2 sandbox escape vulnerability
+    ENABLE_SERVERLESS_FUNCTIONS: z.coerce.boolean().default(false),
+    
+    // Monitoring and Error Tracking
+    SENTRY_DSN: z.string().url().optional(),
+    SENTRY_RELEASE: z.string().optional(),
+    SENTRY_AUTH_TOKEN: z.string().optional(), // For source maps upload
+    
+    // Google OAuth Configuration (optional)
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
+    GOOGLE_REDIRECT_URI: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

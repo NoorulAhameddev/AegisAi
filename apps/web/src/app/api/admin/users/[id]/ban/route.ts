@@ -7,6 +7,7 @@ import { banUserSchema } from "@/lib/validations";
 import { parseBody } from "@/lib/request-validation";
 import { errorResponse, forbiddenResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 import { logger } from "@/lib/logger";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -15,6 +16,12 @@ export async function POST(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        // Rate limiting: 100 req/min for admin operations
+        const rateLimitResult = await rateLimit(request, { limit: 100, window: 60 });
+        if (!rateLimitResult.success) {
+            return errorResponse("Rate limit exceeded", { status: 429 });
+        }
+
         const user = await verifyAuth(request);
         if (!user) {
             return unauthorizedResponse();

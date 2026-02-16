@@ -5,8 +5,15 @@ import { verifyAuth } from "@/services/auth/auth";
 import { parseBody } from "@/lib/request-validation";
 import { errorResponse, forbiddenResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 import { logger } from "@/lib/logger";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+    // Rate limiting: 100 req/min for admin operations
+    const rateLimitResult = await rateLimit(req, { limit: 100, window: 60 });
+    if (!rateLimitResult.success) {
+        return errorResponse("Rate limit exceeded", { status: 429 });
+    }
+
     const params = await props.params;
 
     const user = await verifyAuth(req);

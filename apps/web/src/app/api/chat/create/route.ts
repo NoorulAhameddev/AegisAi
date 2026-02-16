@@ -15,24 +15,23 @@ export async function POST(req: NextRequest) {
     if (response) return response;
 
     try {
-        const chat = await prisma.chat.create({
-            data: {
-                userId: user.id,
-                title: data.title || "New Conversation",
-            },
-        });
-
-        // CRITICAL: Await audit log to ensure it's created
-        try {
-            await prisma.auditLog.create({
+        const chat = await prisma.$transaction(async (tx) => {
+            const created = await tx.chat.create({
                 data: {
                     userId: user.id,
-                    action: `CHAT_CREATE:${chat.id}`,
+                    title: data.title || "New Conversation",
                 },
             });
-        } catch (auditError) {
-            logger.error("Failed to create audit log for chat", auditError as Error, { userId: user.id, chatId: chat.id });
-        }
+
+            await tx.auditLog.create({
+                data: {
+                    userId: user.id,
+                    action: `CHAT_CREATE:${created.id}`,
+                },
+            });
+
+            return created;
+        });
 
         return successResponse({ chatId: chat.id });
     } catch (error) {

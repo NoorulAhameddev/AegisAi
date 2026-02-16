@@ -1,0 +1,27 @@
+# Services Directory Ignores
+# Applies to all service workers
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Cache
+.cache/
+
+# Testing
+/coverage

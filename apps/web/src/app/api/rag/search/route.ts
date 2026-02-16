@@ -2,10 +2,11 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import { logger } from "@/lib/logger";
-import { prisma } from "@/lib/prisma";
+import { readPrisma } from "@/lib/read-replicas";
 import { retrieveContext } from "@/lib/rag-retrieval";
 import { parseBody } from "@/lib/request-validation";
 import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/rag/search
@@ -15,6 +16,12 @@ export async function POST(req: NextRequest) {
     const startTime = Date.now();
 
     try {
+        // Rate limiting: 30 searches per minute
+        const rateLimitResult = await rateLimit(req, { limit: 30, window: 60 });
+        if (!rateLimitResult.success) {
+            return errorResponse("Rate limit exceeded", { status: 429 });
+        }
+
         const user = await verifyAuth(req);
         if (!user) {
             return unauthorizedResponse();
@@ -45,9 +52,10 @@ export async function POST(req: NextRequest) {
 
         // Fallback to DB keyword search if no results
         if (formattedResults.length === 0) {
-            const fileResults = await prisma.file.findMany({
+            const fileResults = await readPrisma.file.findMany({
                 where: {
                     userId: user.id,
+                    deletedAt: null,
                     content: {
                         contains: query,
                         mode: "insensitive",

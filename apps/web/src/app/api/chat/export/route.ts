@@ -10,9 +10,16 @@ import * as exportService from "@/services/export/export.service";
 import { parseBody } from "@/lib/request-validation";
 import { errorResponse, unauthorizedResponse } from "@/lib/response";
 import { logger } from "@/lib/logger";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
     try {
+        // Rate limiting: 10 exports per minute
+        const rateLimitResult = await rateLimit(req, { limit: 10, window: 60 });
+        if (!rateLimitResult.success) {
+            return errorResponse("Rate limit exceeded", { status: 429 });
+        }
+
         const authResult = await verifyAuth(req);
         if (!authResult) {
             return unauthorizedResponse();

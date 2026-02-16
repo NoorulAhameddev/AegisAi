@@ -1,0 +1,23 @@
+# Packages Directory Ignores
+# Applies to all shared packages
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+lib/
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+/coverage

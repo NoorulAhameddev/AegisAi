@@ -93,7 +93,8 @@ model File {
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime? // Soft delete timestamp for GDPR compliance
   Project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)  versions    FileVersion[]
+  User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  versions    FileVersion[]
   @@index([userId, createdAt])
   @@index([projectId])
   @@index([tags])
@@ -139,6 +140,8 @@ model Message {
   chatId    String
   role      MessageRole
   content   String      @db.Text
+  isPartial Boolean     @default(false) // True if stream was interrupted before completion
+  flagged   Boolean     @default(false) // True if moderation detected policy violations
   createdAt DateTime    @default(now())
   deletedAt DateTime?   // Soft delete timestamp for GDPR compliance
   Chat      Chat        @relation(fields: [chatId], references: [id], onDelete: Cascade)
@@ -146,6 +149,7 @@ model Message {
   @@index([chatId, createdAt])
   @@index([chatId, role])
   @@index([deletedAt]) // Index soft delete for fast filtering
+  @@index([flagged])   // Index for admin moderation review
 }
 
 model ConversationSummary {
@@ -298,6 +302,19 @@ model UsageMetric {
   @@index([userId, createdAt])
 }
 
+model TokenUsageCounter {
+  userId        String   @id
+  hourStart     DateTime
+  dayStart      DateTime
+  monthStart    DateTime
+  hourlyTokens  Int      @default(0)
+  dailyTokens   Int      @default(0)
+  monthlyTokens Int      @default(0)
+  updatedAt     DateTime @updatedAt
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model Note {
   id        String     @id @default(uuid())
   userId    String
@@ -355,10 +372,12 @@ model ImageFile {
 model Document {
   id              String   @id @default(uuid())
   text            String   @db.Text
-  vector          Vector   @db.VectorType
-  textEmbedding   Vector?  @db.VectorType // For text-embedding-3-large (3072 dims)
-  imageEmbedding  Vector?  @db.VectorType // For image embeddings (CLIP, 1536 dims)
+  // pgvector embeddings (production-ready vector storage)
+  vector          Unsupported("vector(1536)")?  // Primary vector (text-embedding-3-small)
+  textEmbedding   Unsupported("vector(3072)")?  // For text-embedding-3-large
+  imageEmbedding  Unsupported("vector(1536)")?  // For image embeddings (CLIP)
   metadata        Json?
+  contentHash     String?  @db.VarChar(64)
   imageData       String?  @db.Text       // Base64 encoded image
   imageMimeType   String?                 // e.g., "image/jpeg", "image/png"
   userId          String
@@ -369,6 +388,7 @@ model Document {
   @@index([userId])
   @@index([userId, sourceId])
   @@index([createdAt])
+  @@unique([userId, sourceId, chunkIndex])
 }
 
 model User {
@@ -393,7 +413,9 @@ model User {
   Memory              Memory[]
   Session             Session[]
   UsageMetric         UsageMetric[]
+  TokenUsageCounter   TokenUsageCounter?
   Project             Project[]
+  File                File[]
   Note                Note[]
   UserPresence        UserPresence[]
   GeneratedImage      GeneratedImage[]
@@ -561,4 +583,20 @@ model ChatInvitation {
   @@index([chatId])
   @@index([inviteeEmail, status])
   @@index([status])
+}
+// PostgreSQL Fallback Queue for Redis outages
+model FallbackQueue {
+  id           String    @id
+  queueName    String    @map("queue_name") @db.VarChar(100)
+  data         Json
+  attempts     Int       @default(0)
+  maxAttempts  Int       @map("max_attempts") @default(3)
+  status       String    @db.VarChar(50) @default("pending") // pending, processing, completed, failed
+  error        String?   @db.Text
+  createdAt    DateTime  @map("created_at") @default(now())
+  processedAt  DateTime? @map("processed_at")
+  
+  @@index([queueName, status, createdAt])
+  @@index([status])
+  @@map("fallback_queue")
 }

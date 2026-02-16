@@ -1,7 +1,16 @@
 import { prisma } from "@/lib/prisma";
+import { getReplicaLag } from "@/lib/read-replicas";
 import Redis from "ioredis";
 import { env } from "@/lib/env";
 import { successResponse } from "@/lib/response";
+import {
+    openaiCircuitBreaker,
+    moderationCircuitBreaker,
+    ragCircuitBreaker,
+    getCircuitState,
+    getCircuitStats,
+} from "@/lib/circuit-breaker";
+import { getRedisHealth } from "@/lib/redis-fallback";
 
 export async function GET() {
     const checks: any = {
@@ -27,7 +36,30 @@ export async function GET() {
         };
     }
 
-    // 2. Redis Check
+    // 2. Read Replica Lag Check
+    try {
+        const { replica1Lag, replica2Lag } = await getReplicaLag();
+        const maxLag = Math.max(replica1Lag ?? 0, replica2Lag ?? 0);
+
+        checks.checks.readReplicas = {
+            status: maxLag > 5 ? "degraded" : "ok",
+            replica1Lag,
+            replica2Lag,
+            message: maxLag > 5 ? "Replica lag above 5s" : "Replica lag within 5s"
+        };
+
+        if (maxLag > 5) {
+            checks.status = "degraded";
+        }
+    } catch (error: any) {
+        checks.checks.readReplicas = {
+            status: "warning",
+            message: error.message || "Replica lag unavailable"
+        };
+    }
+
+    // 3. Redis Check (with fallback tracking)
+    const redisHealth = getRedisHealth();
     if (env.REDIS_URL) {
         try {
             const redis = new Redis(env.REDIS_URL, {
@@ -38,13 +70,16 @@ export async function GET() {
             await redis.quit();
             checks.checks.redis = {
                 status: "ok",
-                message: "Redis connected"
+                message: "Redis connected",
+                failureCount: redisHealth.failureCount,
             };
         } catch (error: any) {
-            allHealthy = false;
+            // Not marking allHealthy = false because fallback exists
             checks.checks.redis = {
-                status: "error",
-                message: error.message
+                status: "degraded",
+                message: "Redis unavailable - using PostgreSQL fallback",
+                failureCount: redisHealth.failureCount,
+                lastFailure: redisHealth.lastFailure,
             };
         }
     } else {
@@ -125,17 +160,77 @@ export async function GET() {
             message: error.message || "Vector store not accessible"
         };
     }
-            message: "KMS encryption configured"
+
+    // 7. Queue Health Check
+    try {
+        const { chatQueue, ragQueue, getQueueMetrics } = await import("@/lib/queue");
+        const chatMetrics = await getQueueMetrics(chatQueue, 'chat');
+        const ragMetrics = await getQueueMetrics(ragQueue, 'rag');
+        
+        checks.checks.queues = {
+            chat: {
+                status: chatMetrics.total > 1000 ? 'critical' : 
+                        chatMetrics.total > 500 ? 'warning' : 'ok',
+                waiting: chatMetrics.waiting,
+                active: chatMetrics.active,
+                failed: chatMetrics.failed,
+                total: chatMetrics.total,
+            },
+            rag: {
+                status: ragMetrics.total > 500 ? 'critical' : 
+                        ragMetrics.total > 250 ? 'warning' : 'ok',
+                waiting: ragMetrics.waiting,
+                active: ragMetrics.active,
+                failed: ragMetrics.failed,
+                total: ragMetrics.total,
+            }
         };
-    } else {
-        allHealthy = false;
-        checks.checks.encryption = {
+        
+        // Mark as degraded if queues are at critical levels
+        if (chatMetrics.total > 1000 || ragMetrics.total > 500) {
+            checks.status = "degraded";
+        }
+    } catch (error: any) {
+        checks.checks.queues = {
             status: "error",
-            message: "KMS encryption not configured"
+            message: error.message
         };
     }
 
-    checks.status = allHealthy ? "healthy" : "unhealthy";
+    // 8. Circuit Breaker Health Check
+    const openaiState = getCircuitState(openaiCircuitBreaker);
+    const openaiStats = getCircuitStats(openaiCircuitBreaker);
+    checks.checks.circuitBreakers = {
+        openai: {
+            state: openaiState,
+            status: openaiState === 'OPEN' ? 'degraded' : 'ok',
+            stats: {
+                successes: openaiStats.successes,
+                failures: openaiStats.failures,
+                rejects: openaiStats.rejects,
+                latencyMean: Math.round(openaiStats.latencyMean),
+            }
+        },
+        moderation: {
+            state: getCircuitState(moderationCircuitBreaker),
+            status: getCircuitState(moderationCircuitBreaker) === 'OPEN' ? 'degraded' : 'ok',
+        },
+        rag: {
+            state: getCircuitState(ragCircuitBreaker),
+            status: getCircuitState(ragCircuitBreaker) === 'OPEN' ? 'degraded' : 'ok',
+        }
+    };
 
-    return successResponse(checks, { status: allHealthy ? 200 : 503 });
+    // Mark as degraded (not unhealthy) if circuit breakers are open
+    if (openaiState === 'OPEN') {
+        checks.status = "degraded";
+    }
+
+    checks.status = allHealthy ? 
+        (openaiState === 'OPEN' ? "degraded" : "healthy") : 
+        "unhealthy";
+
+    return successResponse(checks, { 
+        status: allHealthy ? (openaiState === 'OPEN' ? 200 : 200) : 503 
+    });
 }

@@ -1,13 +1,13 @@
-import { searchSimilar, Document } from "../../ai/rag/vector-store";
-import { getRAGConfig, isSemanticCacheEnabled } from "./rag-config";
-import { rerankDocumentsCrossEncoderWithScores } from "./rerank";
+import { searchSimilar, Document } from "@/ai/rag/vector-store";
+import { getRAGConfig } from "@/services/rag/rag-config";
+import { rerankDocumentsCrossEncoderWithScores } from "@/services/rag/rerank";
 import {
     scoreRAGChunks,
     type RAGChunk,
     type ScoredChunk,
-} from "../../lib/rag-trust-scoring";
-import { generateEmbedding } from "./embeddings";
-import { getSemanticCachedResults, cacheQueryResults } from "./semantic-cache";
+} from "@/lib/rag-trust-scoring";
+import { generateEmbedding } from "@/services/rag/embeddings";
+import { getSemanticCachedResults, cacheQueryResults } from "@/services/rag/semantic-cache";
 import { logger } from "@/lib/logger";
 
 /**

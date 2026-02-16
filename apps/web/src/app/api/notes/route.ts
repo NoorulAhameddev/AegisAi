@@ -7,6 +7,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import { prisma } from "@/lib/prisma";
+import { readPrisma } from "@/lib/read-replicas";
 import { parseBody, parseQuery } from "@/lib/request-validation";
 import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 import { logger } from "@/lib/logger";
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest) {
             where.type = type;
         }
 
-        const notes = await prisma.note.findMany({
+        const notes = await readPrisma.note.findMany({
             where,
             orderBy: { createdAt: "desc" },
             take: limit,

@@ -12,9 +12,16 @@ import { retrieveContext } from "@/lib/rag-retrieval";
 import { parseBody } from "@/lib/request-validation";
 import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 import { logger } from "@/lib/logger";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
     try {
+        // Rate limiting: 5 regenerations per minute (prevents abuse)
+        const rateLimitResult = await rateLimit(req, { limit: 5, window: 60 });
+        if (!rateLimitResult.success) {
+            return errorResponse("Rate limit exceeded", { status: 429 });
+        }
+
         const authResult = await verifyAuth(req);
         if (!authResult) {
             return unauthorizedResponse();

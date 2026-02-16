@@ -84,6 +84,7 @@ export class StudentCodingAgent {
                     error: budgetCheck.reason
                 };
             }
+            const { estimatedTokens, reservedAt } = budgetCheck;
 
             // Stage 3: Build prompt and messages
             const systemPrompt = this.buildSystemPrompt();
@@ -108,9 +109,12 @@ export class StudentCodingAgent {
             });
 
             // Stage 5: Record token usage
-            await tokenBudgetManager.recordUsage(
+            await tokenBudgetManager.finalizeUsage(
                 this.student.id,
-                response.usage?.total_tokens || 0
+                estimatedTokens,
+                response.usage?.total_tokens || 0,
+                { model: response.model },
+                reservedAt
             );
 
             // Stage 6: Handle tool calls if present
@@ -187,7 +191,7 @@ export class StudentCodingAgent {
     private async checkTokenBudget(
         message: string,
         chatHistory: Message[]
-    ): Promise<{ approved: boolean; reason?: string }> {
+    ): Promise<{ approved: boolean; reason?: string; estimatedTokens: number; reservedAt?: Date }> {
         const estimatedTokens = this.estimateTokens([
             { role: "user" as const, content: message },
             ...chatHistory.slice(-10).map((m) => ({
@@ -196,7 +200,14 @@ export class StudentCodingAgent {
             }))
         ]);
 
-        return await tokenBudgetManager.checkBudget(this.student.id, estimatedTokens);
+        const reservation = await tokenBudgetManager.reserveBudget(this.student.id, estimatedTokens);
+
+        return {
+            approved: reservation.approved,
+            reason: reservation.reason,
+            estimatedTokens,
+            reservedAt: reservation.reservedAt
+        };
     }
 
     /**

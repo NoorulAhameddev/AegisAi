@@ -9,6 +9,7 @@ import { isSupportedFileType } from "@/services/rag/rag-config";
 import fs from "fs";
 import { parseBody } from "@/lib/request-validation";
 import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/rag/ingest
@@ -18,6 +19,12 @@ export async function POST(req: NextRequest) {
     const startTime = Date.now();
 
     try {
+        // Rate limiting: 20 ingestions per minute
+        const rateLimitResult = await rateLimit(req, { limit: 20, window: 60 });
+        if (!rateLimitResult.success) {
+            return errorResponse("Rate limit exceeded", { status: 429 });
+        }
+
         const user = await verifyAuth(req);
         if (!user) {
             return unauthorizedResponse();

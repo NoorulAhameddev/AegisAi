@@ -12,41 +12,8 @@ import { extractAndSaveMemory } from '../services/ai/memory-extractor';
 import { checkModeration, formatModerationForLog } from '../lib/moderation';
 import { shouldCompressConversation, compressConversation } from '../services/ai/conversation-compressor';
 import { RequestTracer, globalTraceCollector } from '../lib/request-tracer';
-
-/**
- * Sanitize RAG context by removing instruction-like patterns
- * Prevents prompt injection via malicious documents in knowledge base
- */
-function sanitizeRagContext(context: string): string {
-  // Remove instruction-like patterns that could override system prompt
-  const dangerousPatterns = [
-    /(?:ignore|disregard|forget|overlook).*?(?:previous|prior|earlier).*?(?:instructions|directives|rules|guidelines)/gi,
-    /(?:system|core).*?(?:override|bypass|break|ignore)/gi,
-    /you are now (?:in|operating in|switched to)/gi,
-    /roleplay as|act as if|pretend to be|imagine you're/gi,
-    /(?:my|your) (?:true|real|actual).*?(?:instructions|purpose|role|identity)/gi,
-    /ACT AS IF YOU/gi,
-    /SIMULATE|SIMULATED MODE/gi,
-  ];
-
-  let sanitized = context;
-  for (const pattern of dangerousPatterns) {
-    sanitized = sanitized.replace(pattern, '[DOCUMENT TEXT FILTERED - POTENTIAL INSTRUCTION]');
-  }
-
-  // Clean up multiple spaces
-  sanitized = sanitized.replace(/\s{3,}/g, ' ').trim();
-
-  // Warn if suspicious content was found
-  if (sanitized !== context) {
-    logger.warn('Suspicious patterns found in RAG context - sanitized', {
-      originalLength: context.length,
-      sanitizedLength: sanitized.length
-    });
-  }
-
-  return sanitized;
-}
+import { sanitizeRagContext } from '../lib/rag-sanitizer';
+import { retryWithBackoff, RetryStrategies } from '../lib/retry';
 
 export async function processChatJob(job: Job) {
     const { chatId, message, fileId, userId, requestId } = job.data;
@@ -54,12 +21,7 @@ export async function processChatJob(job: Job) {
     const logPrefix = `[Worker] [Req:${requestId || 'N/A'}] [Job:${job.id}]`;
     const tracer = new RequestTracer(requestId || job.id as string);
     
-    logger.worker(job.id as string, "started", { userId, chatId, requestId, jobType: "chat" });
-    console.log(`${logPrefix} ====== JOB STARTED ======`);
-    console.log(`${logPrefix} Chat ID: ${chatId}`);
-    console.log(`${logPrefix} User ID: ${userId}`);
-    console.log(`${logPrefix} Message: "${message.substring(0, 50)}..."`);
-    console.log(`${logPrefix} Processing Chat: ${chatId}`);
+    logger.worker(job.id as string, "started", { userId, chatId, requestId, jobType: "chat", messagePreview: message.substring(0, 50) });
 
     // 0. Security Input Validation (Regex)
     tracer.startStage('input-validation');
@@ -67,22 +29,23 @@ export async function processChatJob(job: Job) {
     tracer.endStage('input-validation', { valid: validation.valid });
     
     if (!validation.valid) {
-        console.warn(`${logPrefix} REJECTED (Regex): ${validation.error}`);
+        logger.security('Input validation failed (regex)', { jobId: job.id as string, userId, error: validation.error });
         return { status: 'failed', error: validation.error };
     }
 
-    console.log(`${logPrefix} ✓ Passed regex validation`);
+    logger.worker(job.id as string, 'validation-passed', { stage: 'regex' });
+    await job.updateProgress(10); // Input validation complete
 
     // 0.1 AI Sentinel Check (Intent Classification) with Rate Limiting
     try {
         const { checkIntent } = await import("../lib/security-agent");
         const { generateRefusalMessage } = await import("../lib/refusal-messages");
-        console.log(`${logPrefix} Running security-agent intent check...`);
+        logger.worker(job.id as string, 'security-check-start', { stage: 'sentinel' });
         const securityCheck = await checkIntent(message, userId);
-        console.log(`${logPrefix} Security check result: valid=${securityCheck.valid}, intent=${securityCheck.intent}`);
+        logger.worker(job.id as string, 'security-check-result', { valid: securityCheck.valid, intent: securityCheck.intent });
 
         if (!securityCheck.valid) {
-            console.warn(`${logPrefix} REJECTED (Sentinel): ${securityCheck.intent} - ${securityCheck.reason}`);
+            logger.security('Security sentinel blocked request', { jobId: job.id as string, userId, intent: securityCheck.intent, reason: securityCheck.reason });
 
             await prisma.auditLog.create({
                 data: {
@@ -104,32 +67,34 @@ export async function processChatJob(job: Job) {
                 chatId
             };
         }
-        console.log(`${logPrefix} ✓ Passed security agent check`);
+        logger.worker(job.id as string, 'security-check-passed', { stage: 'sentinel' });
     } catch (e) {
-        console.error(`${logPrefix} SENTINEL CRASHED:`, e);
+        logger.error('Security sentinel crashed', e as Error, { jobId: job.id as string, userId });
         return { status: 'failed', error: "Security system malfunction." };
     }
 
     try {
         // TOKEN BUDGET CHECK (CRITICAL FIX #4)
-        const budgetCheck = await tokenBudgetManager.checkBudget(userId, 5000);
+        const estimatedTokens = 5000;
+        const budgetCheck = await tokenBudgetManager.reserveBudget(userId, estimatedTokens);
         if (!budgetCheck.approved) {
-            console.warn(`${logPrefix} BUDGET EXCEEDED: ${budgetCheck.reason}`);
+            logger.worker(job.id as string, 'budget-exceeded', { userId, reason: budgetCheck.reason });
             return {
                 status: 'completed',
                 content: `You've reached your token usage limit. ${budgetCheck.reason}. Please try again tomorrow.`,
                 chatId
             };
         }
-        console.log(`${logPrefix} ✓ Token budget check passed`);
+        const budgetReservedAt = budgetCheck.reservedAt;
+        logger.worker(job.id as string, 'budget-check-passed', { userId });
 
         // 0.5 Ingest User Message into Vector Store (for conversational memory)
         try {
             const { addDocument } = await import("../lib/vector-store");
             await addDocument(message, { role: "user", chatId, fileId, type: "conversation" }, userId);
-            console.log(`${logPrefix} ✓ User message ingested to vector store`);
+            logger.worker(job.id as string, 'vector-store-ingested', { chatId });
         } catch (e) {
-            console.error(`${logPrefix} Failed to ingest message to vector store (non-blocking):`, e);
+            logger.warn('Vector store ingestion failed (non-blocking)', { jobId: job.id as string, error: (e as Error).message });
         }
 
         // 1. Fetch System Prompt
@@ -161,7 +126,7 @@ export async function processChatJob(job: Job) {
             
             // Check if RAG should be used for this query
             if (shouldUseRAG(message)) {
-                console.log(`${logPrefix} 🔍 Retrieving RAG context...`);
+                logger.worker(job.id as string, 'rag-retrieval-start', { userId });
                 const retrievalResult = await retrieveContext(message, userId, {
                     topK: 5,
                     includeMetadata: true,
@@ -179,12 +144,17 @@ export async function processChatJob(job: Job) {
                         trustSummary = ` [Avg Trust: ${avgTrust}%]`;
                     }
 
-                    console.log(`${logPrefix} ✓ RAG: Retrieved ${retrievalResult.documents.length} documents from ${ragSourceCount} sources (${retrievalResult.tokensUsed} tokens)${trustSummary}`);
+                    logger.worker(job.id as string, 'rag-retrieval-success', { 
+                        documentsCount: retrievalResult.documents.length, 
+                        sourcesCount: ragSourceCount, 
+                        tokensUsed: retrievalResult.tokensUsed,
+                        avgTrust: trustSummary 
+                    });
                     
                     // Log injection risks if detected
                     if (retrievalResult.injectionRisks && retrievalResult.injectionRisks.length > 0) {
                         logger.security(`RAG: Injection risks detected in retrieved documents`, {
-                            jobId,
+                            jobId: job.id as string,
                             userId,
                             risksCount: retrievalResult.injectionRisks.length,
                             risks: retrievalResult.injectionRisks,
@@ -199,18 +169,19 @@ export async function processChatJob(job: Job) {
                         injectionRisksDetected: retrievalResult.injectionRisks?.length || 0,
                     });
                 } else {
-                    console.log(`${logPrefix} ℹ️ RAG: No relevant documents found`);
+                    logger.worker(job.id as string, 'rag-retrieval-empty', { reason: 'no-relevant-docs' });
                     tracer.endStage('rag-retrieval', { documentsRetrieved: 0 });
                 }
             } else {
-                console.log(`${logPrefix} ⏭️ RAG: Skipped (query type not suitable)`);
+                logger.worker(job.id as string, 'rag-retrieval-skipped', { reason: 'query-type-not-suitable' });
                 tracer.endStage('rag-retrieval', { skipped: true });
             }
         } catch (e) {
-            console.warn(`${logPrefix} RAG retrieval failed (non-blocking):`, e);
+            logger.warn('RAG retrieval failed (non-blocking)', { jobId: job.id as string, error: (e as Error).message });
             tracer.recordError('rag-retrieval', e as Error);
             // Continue without RAG context - not fatal
         }
+        await job.updateProgress(30); // RAG retrieval complete
 
         // SECURITY: Sanitize RAG context before injection
         let finalSystemPrompt = systemPrompt;
@@ -271,14 +242,15 @@ ${sanitizedRagContext}
         }
 
         // ✅ USE CENTRALIZED OPENAI CLIENT (NOT RAW KEY)
-        console.log(`${logPrefix} Preparing AI call with GPT-4o-mini...`);
+        logger.worker(job.id as string, 'ai-preparation', { model: 'gpt-4o-mini' });
 
         // 4. Define Tools (Dynamic)
         const { getOpenAITools, toolsRegistry } = await import("../tools/index");
         const tools = getOpenAITools();
 
         // 5. First AI Call with request ID for tracing
-        console.log(`${logPrefix} Calling OpenAI API...`);
+        await job.updateProgress(40); // Security checks passed, starting AI call
+        logger.worker(job.id as string, 'openai-api-call-start', { messageCount: formattedMessages.length, toolCount: tools ? tools.length : 0 });
         let response: any;
         let responseMessage: any;
         let finalContent = "";
@@ -290,23 +262,29 @@ ${sanitizedRagContext}
                 toolCount: tools ? tools.length : 0
             });
 
-            response = await openai.chat.completions.create({
-                model: "openai/gpt-4o-mini",
-                messages: formattedMessages,
-                tools: tools,
-                tool_choice: "auto",
-                headers: {
-                    "X-Request-ID": requestId || `worker-${Date.now()}`,
-                }
-            });
+            // Retry with exponential backoff for transient failures
+            response = await retryWithBackoff(
+                async () => openai.chat.completions.create({
+                    model: "openai/gpt-4o-mini",
+                    messages: formattedMessages,
+                    tools: tools,
+                    tool_choice: "auto"
+                }),
+                RetryStrategies.openai,
+                `openai-chat-${job.id}`
+            );
 
+            await job.updateProgress(60); // AI response received
             tracer.endStage('openai-api', {
                 tokensUsed: response.usage?.total_tokens || 0,
                 promptTokens: response.usage?.prompt_tokens || 0,
                 completionTokens: response.usage?.completion_tokens || 0
             });
 
-            console.log(`${logPrefix} ✓ OpenAI API responded: ${response.choices[0].message.content?.substring(0, 50) || '(tool call)'}...`);
+            logger.worker(job.id as string, 'openai-api-success', { 
+                tokensUsed: response.usage?.total_tokens || 0,
+                hasToolCalls: Boolean(response.choices[0].message.tool_calls)
+            });
             responseMessage = response.choices[0].message;
             finalContent = responseMessage.content || "";
         } catch (e: any) {
@@ -316,15 +294,16 @@ ${sanitizedRagContext}
             
             tracer.recordError('openai-api', e);
 
-            console.error(`${logPrefix} OpenAI API FAILED:`, {
+            logger.error('OpenAI API call failed', e as Error, {
+                jobId: job.id as string,
+                userId,
                 status: errorStatus,
-                message: errorMessage,
-                type: e.constructor.name
+                errorType: e.constructor.name
             });
             
             // Return explicit error to user
             if (errorStatus === 429) {
-                console.error(`${logPrefix} RATE LIMIT HIT - OpenAI API throttling`);
+                logger.error('OpenAI rate limit hit', e as Error, { jobId: job.id as string, userId });
                 return { 
                     status: 'failed', 
                     error: 'OpenAI API rate limited. Please wait a moment and try again.',
@@ -332,21 +311,21 @@ ${sanitizedRagContext}
                     chatId 
                 };
             } else if (errorStatus === 401 || errorStatus === 403) {
-                console.error(`${logPrefix} AUTHENTICATION FAILED - Invalid API key`);
+                logger.error('OpenAI authentication failed', e as Error, { jobId: job.id as string, userId });
                 return {
                     status: 'failed', 
                     error: 'Authentication failed with AI provider.',
                     chatId 
                 };
             } else if (errorStatus >= 500) {
-                console.error(`${logPrefix} AI PROVIDER ERROR - Server error`);
+                logger.error('AI provider server error', e as Error, { jobId: job.id as string, userId, status: errorStatus });
                 return { 
                     status: 'failed', 
                     error: 'AI provider is experiencing issues. Please try again shortly.',
                     chatId 
                 };
             } else {
-                console.error(`${logPrefix} UNKNOWN AI ERROR`);
+                logger.error('Unknown AI error', e as Error, { jobId: job.id as string, userId });
                 throw e; // Re-throw for BullMQ to handle as job failure
             }
         }
@@ -360,7 +339,7 @@ ${sanitizedRagContext}
                 const tool = toolsRegistry.get(toolName);
 
                 if (tool) {
-                    console.log(`[Worker] Executing Tool: ${toolName}`);
+                    logger.worker(job.id as string, 'tool-execution-start', { toolName, toolCallId: toolCall.id });
                     try {
                         const args = JSON.parse((toolCall as any).function.arguments);
                         const result = await tool.execute(args);
@@ -388,19 +367,23 @@ ${sanitizedRagContext}
 
             // Second Call (Final Answer) with request ID for tracing
             try {
-                console.log(`${logPrefix} Calling OpenAI API for final answer (tool result)...`);
-                const secondResponse = await openai.chat.completions.create({
-                    model: "openai/gpt-4o-mini",
-                    messages: formattedMessages,
-                    headers: {
-                        "X-Request-ID": requestId || `worker-${Date.now()}`,
-                    }
-                });
+                logger.worker(job.id as string, 'openai-api-call-final', { stage: 'tool-result' });
+                
+                // Retry with exponential backoff for transient failures
+                const secondResponse = await retryWithBackoff(
+                    async () => openai.chat.completions.create({
+                        model: "openai/gpt-4o-mini",
+                        messages: formattedMessages
+                    }),
+                    RetryStrategies.openai,
+                    `openai-chat-final-${job.id}`
+                );
+                
                 finalContent = secondResponse.choices[0].message.content || "";
-                console.log(`${logPrefix} ✓ Final answer received`);
+                logger.worker(job.id as string, 'openai-api-final-success', { tokensUsed: secondResponse.usage?.total_tokens });
             } catch (e: any) {
                 const errorStatus = e.status || e.code;
-                console.error(`${logPrefix} Second OpenAI call FAILED:`, { status: errorStatus, message: e.message });
+                logger.error('Second OpenAI call failed', e as Error, { jobId: job.id as string, userId, status: errorStatus });
                 
                 if (errorStatus === 429) {
                     return { 
@@ -415,7 +398,8 @@ ${sanitizedRagContext}
         }
 
         // 7. Multi-layer Response Safety Validation
-        console.log(`${logPrefix} Running response safety validation...`);
+        await job.updateProgress(75); // Tool execution complete, starting validation
+        logger.worker(job.id as string, 'safety-validation-start', { stage: 'response' });
         
         // Check 1: Boundary breaks (model trying to override instructions)
         flagSuspiciousResponse(finalContent, { userId, chatId, requestId });
@@ -426,7 +410,12 @@ ${sanitizedRagContext}
         // Check 3: OpenAI Moderation API (MEDIUM FIX #6)
         const moderation = await checkModeration(finalContent);
         if (moderation.flagged) {
-            console.warn(`${logPrefix} ⚠️ Moderation: ${formatModerationForLog(moderation)}`);
+            logger.security('Moderation flagged response', { 
+                jobId: job.id as string, 
+                userId, 
+                categories: moderation.categories,
+                formattedLog: formatModerationForLog(moderation)
+            });
             await prisma.auditLog.create({
                 data: {
                     userId: userId,
@@ -439,7 +428,12 @@ ${sanitizedRagContext}
         let safetyWarning: string | undefined;
         
         if (!safetyCheck.safe) {
-          console.warn(`${logPrefix} ⚠️ Response safety validation FAILED: ${safetyCheck.category}`);
+          logger.security('Response safety validation failed', {
+            jobId: job.id as string,
+            userId,
+            category: safetyCheck.category,
+            confidence: safetyCheck.confidence
+          });
           
           // Log security incident
           await prisma.auditLog.create({
@@ -454,51 +448,70 @@ ${sanitizedRagContext}
           responseToSave = safeResponse.content;
           safetyWarning = safeResponse.warning;
           
-          console.log(`${logPrefix} ✓ Response redacted and made safe`);
+          logger.worker(job.id as string, 'response-redacted', { category: safetyCheck.category });
         } else {
-          console.log(`${logPrefix} ✓ Response passed safety validation`);
+          logger.worker(job.id as string, 'safety-validation-passed', { stage: 'response' });
         }
 
-        // 8. Save Assistant Response to DB
+        // 8. Save Assistant Response to DB with atomic title update
+        await job.updateProgress(90); // Moderation complete, saving to database
         tracer.startStage('database-save');
         const { encrypt } = await import("../lib/encryption");
+        const { withTransaction } = await import("../lib/prisma");
         const encryptedResponse = await encrypt(responseToSave);
 
-        const savedMessage = await prisma.message.create({
-            data: {
-                chatId,
-                role: "ASSISTANT",
-                content: encryptedResponse
-            }
-        });
+        // ATOMIC OPERATION: Save message and update chat title in transaction
+        const savedMessage = await withTransaction(
+            async (tx: any) => {
+                // Save message
+                const msg = await tx.message.create({
+                    data: {
+                        chatId,
+                        role: "ASSISTANT",
+                        content: encryptedResponse
+                    }
+                });
+
+                // Update chat title if not set
+                const chat = await tx.chat.findUnique({
+                    where: { id: chatId },
+                    select: { title: true }
+                });
+
+                if (!chat?.title || chat.title === "New Conversation") {
+                    // Use first 50 chars of user message as title
+                    const title = message.substring(0, 50) + (message.length > 50 ? "..." : "");
+                    await tx.chat.update({
+                        where: { id: chatId },
+                        data: { title }
+                    });
+                }
+
+                return msg;
+            },
+            { userId, chatId, action: 'save-message-and-title', jobId: job.id as string },
+            10000 // 10 second timeout
+        );
 
         tracer.endStage('database-save', { messageId: savedMessage.id });
+        await job.updateProgress(95); // Database save complete
 
         // Store safety warning metadata if present
         if (safetyWarning) {
           // Could store in a separate warnings table if needed
-          console.log(`${logPrefix} Safety warning: ${safetyWarning}`);
-        }
-
-        // Update chat title from first message if not set
-        const chat = await prisma.chat.findUnique({
-            where: { id: chatId },
-            select: { title: true }
-        });
-
-        if (!chat?.title || chat.title === "New Conversation") {
-            // Use first 50 chars of user message as title
-            const title = message.substring(0, 50) + (message.length > 50 ? "..." : "");
-            await prisma.chat.update({
-                where: { id: chatId },
-                data: { title }
-            });
+          logger.worker(job.id as string, 'safety-warning-issued', { warning: safetyWarning });
         }
 
         // Save usage
         const tokensUsed = response.usage?.total_tokens || 0;
         if (userId) {
-            await tokenBudgetManager.recordUsage(userId, tokensUsed);
+            await tokenBudgetManager.finalizeUsage(
+                userId,
+                estimatedTokens,
+                tokensUsed,
+                { model: response.model, chatId },
+                budgetReservedAt
+            );
         }
 
         // MEMORY EXTRACTION (CRITICAL FIX #5)
@@ -508,9 +521,9 @@ ${sanitizedRagContext}
                 { role: 'assistant', content: responseToSave }
             ];
             await extractAndSaveMemory(userId, chatMessagesForMemory, chatId);
-            console.log(`${logPrefix} ✓ Memory extracted`);
+            logger.worker(job.id as string, 'memory-extracted', { chatId });
         } catch (e) {
-            console.error(`${logPrefix} Memory extraction failed (non-blocking):`, e);
+            logger.warn('Memory extraction failed (non-blocking)', { jobId: job.id as string, error: (e as Error).message });
         }
 
         // CONVERSATION COMPRESSION (Unlimited Context)
@@ -520,7 +533,10 @@ ${sanitizedRagContext}
                 tracer.startStage('conversation-compression');
                 const result = await compressConversation(chatId, userId);
                 if (result.success && result.compressed) {
-                    console.log(`${logPrefix} ✓ Conversation compressed (${result.messagesSummarized} messages, ${result.tokensSaved} tokens saved)`);
+                    logger.worker(job.id as string, 'conversation-compressed', {
+                        messagesSummarized: result.messagesSummarized,
+                        tokensSaved: result.tokensSaved
+                    });
                     tracer.endStage('conversation-compression', {
                         messagesSummarized: result.messagesSummarized,
                         tokensSaved: result.tokensSaved
@@ -530,7 +546,7 @@ ${sanitizedRagContext}
                 }
             }
         } catch (e) {
-            console.error(`${logPrefix} Conversation compression failed (non-blocking):`, e);
+            logger.warn('Conversation compression failed (non-blocking)', { jobId: job.id as string, error: (e as Error).message });
         }
 
         // Record trace metrics
@@ -538,10 +554,13 @@ ${sanitizedRagContext}
         globalTraceCollector.record(traceReport);
         
         // Log trace summary
-        console.log(`${logPrefix} Performance: ${traceReport.summary.totalTime}ms | Slowest: ${traceReport.summary.slowest} | Critical: ${traceReport.summary.critical}`);
+        logger.worker(job.id as string, 'performance-trace', {
+            totalTime: traceReport.summary.totalTime,
+            slowest: traceReport.summary.slowest,
+            critical: traceReport.summary.critical
+        });
 
         logger.worker(job.id as string, "completed", { userId, chatId, requestId, jobType: "chat", tokensUsed });
-        console.log(`[Worker] Job ${job.id} COMPLETED (${tokensUsed} tokens).`);
         return { 
           status: 'completed', 
           content: responseToSave, 
@@ -552,7 +571,6 @@ ${sanitizedRagContext}
 
     } catch (err: any) {
         logger.error("Worker job failed", err as Error, { jobId: job.id, userId, chatId, requestId, jobType: "chat" });
-        console.error(`[Worker] Job ${job.id} FAILED:`, err);
         throw err;
     }
 }

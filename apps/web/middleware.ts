@@ -9,6 +9,9 @@ export async function middleware(req: NextRequest) {
 	const ip = req.headers.get("x-forwarded-for")?.split(',')[0] || "unknown";
 	const path = req.nextUrl.pathname;
 	const requestId = req.headers.get("x-request-id") || crypto.randomUUID();
+	
+	// Generate CSP nonce for inline scripts (security hardening)
+	const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
 
 	// Allow Expo web/clients to access API with credentials in dev
 	// CRITICAL: Read from environment to avoid hardcoding production origins
@@ -147,6 +150,7 @@ export async function middleware(req: NextRequest) {
 	requestHeaders.set("x-pathname", path);
 	requestHeaders.set("x-request-id", requestId);
 	requestHeaders.set("x-client-ip", ip);
+	requestHeaders.set("x-nonce", nonce); // Pass nonce to pages for inline scripts
 
 	const response = NextResponse.next({
 		request: {
@@ -160,6 +164,25 @@ export async function middleware(req: NextRequest) {
 		response.headers.set("Access-Control-Allow-Credentials", "true");
 		response.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
 		response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, x-request-id");
+	}
+	
+	// Add strict CSP with nonce for HTML pages (security hardening)
+	// This overrides the permissive CSP from next.config.js for better security
+	if (!isApiRoute && req.method === 'GET') {
+		const cspHeader = `
+			default-src 'self';
+			script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://cdn.jsdelivr.net;
+			style-src 'self' 'nonce-${nonce}' https://fonts.googleapis.com;
+			img-src 'self' data: https:;
+			font-src 'self' https://fonts.gstatic.com;
+			connect-src 'self' https://api.openrouter.io;
+			frame-ancestors 'none';
+			base-uri 'self';
+			form-action 'self';
+			upgrade-insecure-requests;
+		`.replace(/\\s{2,}/g, ' ').trim();
+		
+		response.headers.set('Content-Security-Policy', cspHeader);
 	}
 
 	return response;

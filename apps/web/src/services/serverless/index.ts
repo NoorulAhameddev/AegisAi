@@ -6,11 +6,26 @@
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { encrypt, decrypt } from '@/lib/encryption';
+import { env } from '@/lib/env';
 import { VM } from 'vm2';
 import path from 'path';
 import fs from 'fs/promises';
 
 export type FunctionRuntime = 'javascript' | 'typescript';
+
+/**
+ * Check if serverless function execution is enabled
+ * Returns error if disabled due to vm2 vulnerability (CVE-2023-37466)
+ */
+function checkServerlessFunctionsEnabled(): { enabled: boolean; error?: string } {
+  if (!env.ENABLE_SERVERLESS_FUNCTIONS) {
+    return {
+      enabled: false,
+      error: 'Serverless function execution is currently disabled due to a critical security vulnerability (CVE-2023-37466). This feature is being migrated to a secure execution environment.'
+    };
+  }
+  return { enabled: true };
+}
 
 export interface ServerlessFunction {
   id: string;
@@ -60,6 +75,12 @@ export async function createServerlessFunction(
     environmentVariables?: Record<string, string>;
   }
 ) {
+  // CRITICAL SECURITY CHECK: Feature disabled due to vm2 vulnerability
+  const securityCheck = checkServerlessFunctionsEnabled();
+  if (!securityCheck.enabled) {
+    throw new Error(securityCheck.error);
+  }
+
   try {
     // Validate code syntax
     await validateFunctionCode(code, runtime);
@@ -100,6 +121,12 @@ export async function deployServerlessFunction(
   functionId: string,
   userId: string
 ): Promise<ServerlessFunction> {
+  // CRITICAL SECURITY CHECK: Feature disabled due to vm2 vulnerability
+  const securityCheck = checkServerlessFunctionsEnabled();
+  if (!securityCheck.enabled) {
+    throw new Error(securityCheck.error);
+  }
+
   try {
     // Verify ownership
     const func = await prisma.serverlessFunction.findUnique({
@@ -137,6 +164,12 @@ export async function executeServerlessFunction(
   input?: Record<string, any>,
   executionTimeout?: number
 ): Promise<FunctionExecution> {
+  // CRITICAL SECURITY CHECK: Feature disabled due to vm2 vulnerability
+  const securityCheck = checkServerlessFunctionsEnabled();
+  if (!securityCheck.enabled) {
+    throw new Error(securityCheck.error);
+  }
+
   const startTime = Date.now();
 
   try {

@@ -1,13 +1,20 @@
-import { prisma } from "@/lib/prisma";
+import { readPrisma } from "@/lib/read-replicas";
 import { NextRequest } from "next/server";
 import { verifyAuth } from "@/services/auth/auth";
 import { errorResponse, forbiddenResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 import { logger } from "@/lib/logger";
+import { rateLimit } from "@/lib/rate-limit";
 
 import { requirePermission } from "@/services/auth/rbac";
 import { Role } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
+    // Rate limiting: 100 req/min for admin operations
+    const rateLimitResult = await rateLimit(req, { limit: 100, window: 60 });
+    if (!rateLimitResult.success) {
+        return errorResponse("Rate limit exceeded", { status: 429 });
+    }
+
     const user = await verifyAuth(req);
     if (!user) return unauthorizedResponse();
 
@@ -18,7 +25,7 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        const users = await prisma.user.findMany({
+        const users = await readPrisma.user.findMany({
             select: {
                 id: true,
                 name: true,

@@ -4,35 +4,32 @@ import { Job } from 'bullmq';
 import { validateInput, detectLeaks } from '../lib/security';
 import { buildSystemPrompt } from '../services/ai/prompt';
 import { createAgent, runAgent } from '../ai/integrations/langchain-agent';
+import { logger } from '../lib/logger';
 
 export async function processChatJobLangChain(job: Job) {
     const { chatId, message, fileId, userId, requestId } = job.data;
 
     const logPrefix = `[Worker-LC] [Req:${requestId || 'N/A'}] [Job:${job.id}]`;
-    console.log(`${logPrefix} ====== JOB STARTED (LANGCHAIN) ======`);
-    console.log(`${logPrefix} Chat ID: ${chatId}`);
-    console.log(`${logPrefix} User ID: ${userId}`);
-    console.log(`${logPrefix} Message: "${message.substring(0, 50)}..."`);
-    console.log(`${logPrefix} Processing Chat: ${chatId}`);
+    logger.worker(job.id as string, 'started', { userId, chatId, requestId, jobType: 'chat-langchain', messagePreview: message.substring(0, 50) });
 
     // 0. Security Input Validation (Regex)
     const validation = validateInput(message);
     if (!validation.valid) {
-        console.warn(`${logPrefix} REJECTED (Regex): ${validation.error}`);
+        logger.security('Input validation failed (regex)', { jobId: job.id as string, userId, error: validation.error });
         return { status: 'failed', error: validation.error };
     }
 
-    console.log(`${logPrefix} ✓ Passed regex validation`);
+    logger.worker(job.id as string, 'validation-passed', { stage: 'regex' });
 
     // 0.1 AI Sentinel Check (Intent Classification)
     try {
         const { checkIntent } = await import("../lib/security-agent");
-        console.log(`${logPrefix} Running security-agent intent check...`);
+        logger.worker(job.id as string, 'security-check-start', { stage: 'sentinel' });
         const securityCheck = await checkIntent(message);
-        console.log(`${logPrefix} Security check result: valid=${securityCheck.valid}, intent=${securityCheck.intent}`);
+        logger.worker(job.id as string, 'security-check-result', { valid: securityCheck.valid, intent: securityCheck.intent });
 
         if (!securityCheck.valid) {
-            console.warn(`${logPrefix} REJECTED (Sentinel): ${securityCheck.intent} - ${securityCheck.reason}`);
+            logger.security('Security sentinel blocked request', { jobId: job.id as string, userId, intent: securityCheck.intent, reason: securityCheck.reason });
 
             await prisma.auditLog.create({
                 data: {
@@ -47,9 +44,9 @@ export async function processChatJobLangChain(job: Job) {
                 chatId
             };
         }
-        console.log(`${logPrefix} ✓ Passed security agent check`);
+        logger.worker(job.id as string, 'security-check-passed', { stage: 'sentinel' });
     } catch (e) {
-        console.error(`${logPrefix} SENTINEL CRASHED:`, e);
+        logger.error('Security sentinel crashed', e as Error, { jobId: job.id as string, userId });
         return { status: 'failed', error: "Security system malfunction." };
     }
 
@@ -58,9 +55,9 @@ export async function processChatJobLangChain(job: Job) {
         try {
             const { addDocument } = await import("../lib/vector-store");
             await addDocument(message, { role: "user", chatId, fileId, type: "conversation" }, userId);
-            console.log(`${logPrefix} ✓ User message ingested to vector store`);
+            logger.worker(job.id as string, 'vector-store-ingested', { chatId });
         } catch (e) {
-            console.error(`${logPrefix} Failed to ingest message to vector store (non-blocking):`, e);
+            logger.warn('Vector store ingestion failed (non-blocking)', { jobId: job.id as string, error: (e as Error).message });
         }
 
         // 1. Fetch System Prompt
@@ -73,7 +70,7 @@ export async function processChatJobLangChain(job: Job) {
             const { retrieveContext, shouldUseRAG, formatRAGContext } = await import("../lib/rag-retrieval");
             
             if (shouldUseRAG(message)) {
-                console.log(`${logPrefix} 🔍 Retrieving RAG context...`);
+                logger.worker(job.id as string, 'rag-retrieval-start', { userId });
                 const retrievalResult = await retrieveContext(message, userId, {
                     topK: 5,
                     includeMetadata: true,
@@ -82,15 +79,19 @@ export async function processChatJobLangChain(job: Job) {
                 if (retrievalResult.documents.length > 0) {
                     ragContext = formatRAGContext(retrievalResult);
                     ragSourceCount = retrievalResult.sources.size;
-                    console.log(`${logPrefix} ✓ RAG: Retrieved ${retrievalResult.documents.length} documents from ${ragSourceCount} sources (${retrievalResult.tokensUsed} tokens)`);
+                    logger.worker(job.id as string, 'rag-retrieval-success', { 
+                        documentsCount: retrievalResult.documents.length, 
+                        sourcesCount: ragSourceCount, 
+                        tokensUsed: retrievalResult.tokensUsed 
+                    });
                 } else {
-                    console.log(`${logPrefix} ℹ️ RAG: No relevant documents found`);
+                    logger.worker(job.id as string, 'rag-retrieval-empty', { reason: 'no-relevant-docs' });
                 }
             } else {
-                console.log(`${logPrefix} ⏭️ RAG: Skipped (query type not suitable)`);
+                logger.worker(job.id as string, 'rag-retrieval-skipped', { reason: 'query-type-not-suitable' });
             }
         } catch (e) {
-            console.warn(`${logPrefix} RAG retrieval failed (non-blocking):`, e);
+            logger.warn('RAG retrieval failed (non-blocking)', { jobId: job.id as string, error: (e as Error).message });
         }
 
         const finalSystemPrompt = ragContext ? `${systemPrompt}\n\n${ragContext}` : systemPrompt;
@@ -109,25 +110,25 @@ export async function processChatJobLangChain(job: Job) {
                 if (fileRecord && fileRecord.path && fs.existsSync(fileRecord.path)) {
                      // For now, just note that there is a file attached since standard string agents might not handle binary data
                      // This is a limitation compared to the manual implementation which injects image_url
-                     console.log(`${logPrefix} File attached (${fileRecord.type}). Basic LangChain agent may not process image content directly.`);
+                     logger.worker(job.id as string, 'file-attached', { fileId, fileType: fileRecord.type });
                 }
             } catch (e) {
-                console.error("Failed to check file:", e);
+                logger.error('Failed to check file', e as Error, { jobId: job.id as string, fileId });
             }
         }
 
         // 4. LangChain Agent Execution
-        console.log(`${logPrefix} Initializing LangChain Agent...`);
+        logger.worker(job.id as string, 'langchain-agent-init', { chatId });
         const agentExecutor = await createAgent(chatId, finalSystemPrompt);
         
-        console.log(`${logPrefix} Running LangChain Agent...`);
+        logger.worker(job.id as string, 'langchain-agent-run', { chatId });
         const agentResult = await runAgent(agentExecutor, finalMessage);
 
         if (!agentResult.success) {
             // Check for rate limits in the error message
             const errorMsg = agentResult.error || "";
             if (errorMsg.includes("429") || errorMsg.includes("rate limit")) {
-                console.error(`${logPrefix} RATE LIMIT HIT - OpenAI API throttling`);
+                logger.error('OpenAI rate limit hit (LangChain)', new Error(errorMsg), { jobId: job.id as string, userId });
                 return { 
                     status: 'failed', 
                     error: 'OpenAI API rate limited. Please wait a moment and try again.',
@@ -136,7 +137,7 @@ export async function processChatJobLangChain(job: Job) {
                 };
             }
 
-            console.error(`${logPrefix} LangChain Agent Failed: ${errorMsg}`);
+            logger.error('LangChain agent execution failed', new Error(errorMsg), { jobId: job.id as string, userId });
             return {
                 status: 'failed',
                 error: errorMsg || "Agent execution failed",
@@ -145,11 +146,11 @@ export async function processChatJobLangChain(job: Job) {
         }
 
         let finalContent = agentResult.output;
-        console.log(`${logPrefix} ✓ LangChain Agent responded`);
+        logger.worker(job.id as string, 'langchain-agent-success', { chatId });
 
         // 7. Security Output Validation
         if (detectLeaks(finalContent)) {
-            console.error(`[Security] Data Leak Detected in Job ${job.id}`);
+            logger.security('Data leak detected in response', { jobId: job.id as string, userId });
             finalContent = "[REDACTED] The response contained sensitive information and was blocked by security policy.";
         }
 
@@ -190,11 +191,11 @@ export async function processChatJobLangChain(job: Job) {
             });
         }
 
-        console.log(`[Worker] Job ${job.id} COMPLETED.`);
+        logger.worker(job.id as string, 'completed', { userId, chatId, requestId, jobType: 'chat-langchain' });
         return { status: 'completed', content: finalContent, chatId };
 
     } catch (err: any) {
-        console.error(`[Worker] Job ${job.id} FAILED:`, err);
+        logger.error('Worker job failed (LangChain)', err as Error, { jobId: job.id, userId, chatId, requestId });
         throw err;
     }
 }

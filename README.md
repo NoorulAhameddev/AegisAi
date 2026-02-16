@@ -1,4 +1,4 @@
-# 🛡️ Aegis AI
+﻿# ðŸ›¡ï¸ Aegis AI
 
 <div align="center">
 
@@ -11,15 +11,15 @@
 
 **Production-Ready Enterprise AI Chat Platform**
 
-[🚀 Quick Start](#-quick-start) • [📚 Documentation](#-documentation) • [🏗️ Architecture](#-architecture) • [🔒 Security](#-security) • [🤝 Contributing](#-contributing)
+[ðŸš€ Quick Start](#-quick-start) â€¢ [ðŸ“š Documentation](#-documentation) â€¢ [ðŸ—ï¸ Architecture](#-architecture) â€¢ [ðŸ”’ Security](#-security) â€¢ [ðŸ¤ Contributing](#-contributing)
 
-> **📦 Monorepo Structure**: This project now uses a monorepo structure for better scalability. See [MONOREPO_STRUCTURE.md](./MONOREPO_STRUCTURE.md) and [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) for details.
+> **ðŸ“¦ Monorepo Structure**: This project now uses a monorepo structure for better scalability. See [MONOREPO_STRUCTURE.md](docs/architecture/MONOREPO_STRUCTURE.md) and [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) for details.
 
 </div>
 
 ---
 
-## ✨ What is Aegis AI?
+## âœ¨ What is Aegis AI?
 
 **Aegis AI** is a fully production-ready, enterprise-grade AI chat platform built with modern technologies. It combines the power of Large Language Models (LLMs) with Retrieval-Augmented Generation (RAG), worker-based async processing, and comprehensive security features.
 
@@ -27,9 +27,9 @@ Whether you're building an internal knowledge base chatbot, customer support sys
 
 ---
 
-## 🌟 Key Features
+## ðŸŒŸ Key Features
 
-### 🧠 Advanced AI Capabilities
+### ðŸ§  Advanced AI Capabilities
 - **Multi-Model Support** - Powered by OpenRouter with access to GPT-4o, Claude, and more
 - **RAG System** - Retrieve contextual information from uploaded documents and web content
 - **Function Calling** - AI can execute tools like calculator, web search, image generation
@@ -37,7 +37,7 @@ Whether you're building an internal knowledge base chatbot, customer support sys
 - **Conversation Memory** - Context-aware responses with conversation history
 - **Model Configuration** - Switch models, adjust temperature, and control token limits
 
-### 🔒 Enterprise-Grade Security
+### ðŸ”’ Enterprise-Grade Security
 - **AES-256-GCM Encryption** - All sensitive data encrypted at rest with key versioning
 - **JWT Authentication** - Secure token-based auth with refresh token rotation
 - **Rate Limiting** - Redis-backed distributed rate limiting to prevent abuse
@@ -46,21 +46,21 @@ Whether you're building an internal knowledge base chatbot, customer support sys
 - **Input Validation** - Multi-layer validation and sanitization
 - **Security Headers** - HSTS, CSP, X-Frame-Options, and more
 
-### ⚡ High Performance
+### âš¡ High Performance
 - **Async Job Queue** - BullMQ-based background processing (chat doesn't block on AI)
 - **Dual Database Indexing** - 13+ database indexes for query optimization
 - **Redis Caching** - Rate limiting, sessions, and distributed cache
 - **SSE Streaming** - Real-time responses without polling
 - **Optimized Pagination** - Cursor-based pagination for large datasets
 
-### 👨‍💼 Admin Dashboard
+### ðŸ‘¨â€ðŸ’¼ Admin Dashboard
 - **User Management** - Create, edit, ban, and monitor users
 - **Usage Analytics** - Track AI requests, token usage, and response times
 - **System Settings** - Configure model defaults, rate limits, and security policies
 - **Audit Log Viewer** - Full audit trail with filtering and search
 - **Database Management** - Prisma Studio integration for schema updates
 
-### 🎨 Modern User Interface
+### ðŸŽ¨ Modern User Interface
 - **Dark Theme** - Eye-friendly interface with glassmorphism design
 - **Real-Time Chat** - Streaming responses with typing indicators
 - **File Upload & RAG** - Upload documents and images for context retrieval
@@ -68,22 +68,22 @@ Whether you're building an internal knowledge base chatbot, customer support sys
 - **Syntax Highlighting** - Code blocks with proper formatting
 - **Export Conversations** - Save chats as PDF or Markdown
 
-### 📱 Mobile Support
+### ðŸ“± Mobile Support
 - **React Native App** - Expo-based mobile app with same features as web
 - **Offline Support** - Messages cache locally while offline
 - **Push Notifications** - Real-time notifications for important events
 - **Biometric Auth** - Face/Touch ID authentication on mobile
 
-### 🤖 AI-Powered Development (NEW!)
+### ðŸ¤– AI-Powered Development (NEW!)
 - **Antigravity Kit Integration** - 20 specialist AI agents for development
 - **Workflow Commands** - `/plan`, `/create`, `/debug`, `/test`, and more
 - **Domain Skills** - 37 specialized knowledge modules for various domains
 - **Auto Agent Selection** - AI automatically picks the right specialist
-- **[📖 Learn More](./ANTIGRAVITY_KIT_GUIDE.md)** - Complete Antigravity Kit guide
+- **[ðŸ“– Learn More](./ANTIGRAVITY_KIT_GUIDE.md)** - Complete Antigravity Kit guide
 
 ---
 
-## 🛠️ Technology Stack
+## ðŸ› ï¸ Technology Stack
 
 | Layer | Technologies |
 |-------|--------------|
@@ -99,15 +99,15 @@ Whether you're building an internal knowledge base chatbot, customer support sys
 
 ---
 
-## 🚀 Quick Start
+## ðŸš€ Quick Start
 
-### 📋 Prerequisites
+### ðŸ“‹ Prerequisites
 - **Node.js** 18+ (verify with `node --version`)
 - **PostgreSQL** 14+ (local or managed database)
 - **Redis** 6+ (local or cloud Redis)
 - **OpenRouter API Key** (get one at [openrouter.ai](https://openrouter.ai))
 
-### 1️⃣ Clone Repository
+### 1ï¸âƒ£ Clone Repository
 
 ```bash
 git clone https://github.com/noorulahamed/aegis-ai.git
@@ -115,7 +115,7 @@ cd aegis-ai
 npm install --legacy-peer-deps
 ```
 
-### 2️⃣ Configure Environment Variables
+### 2ï¸âƒ£ Configure Environment Variables
 
 ```bash
 cp .env.example .env.local
@@ -145,7 +145,7 @@ SITE_URL=http://localhost:3000
 NODE_ENV=development
 ```
 
-### 3️⃣ Setup Database
+### 3ï¸âƒ£ Setup Database
 
 ```bash
 # Create PostgreSQL database
@@ -158,7 +158,7 @@ npm run migrate
 npm run studio
 ```
 
-### 4️⃣ Start Development Servers
+### 4ï¸âƒ£ Start Development Servers
 
 **Terminal 1 - Next.js Dev Server:**
 ```bash
@@ -171,18 +171,18 @@ Open http://localhost:3000
 npm run worker
 ```
 
-> ⚠️ **Important**: The worker must be running alongside the dev server. Without it, chat requests will hang.
+> âš ï¸ **Important**: The worker must be running alongside the dev server. Without it, chat requests will hang.
 
-### ✅ Verify Setup
+### âœ… Verify Setup
 
 1. Open http://localhost:3000
 2. Sign up or login
 3. Try a chat message
-4. If it works, you're good to go! 🎉
+4. If it works, you're good to go! ðŸŽ‰
 
 ---
 
-## 🐳 Docker Setup (Alternative)
+## ðŸ³ Docker Setup (Alternative)
 
 ### Quick Start with Docker Compose
 
@@ -216,7 +216,7 @@ npm run docker:down
 
 ---
 
-## 📚 Documentation
+## ðŸ“š Documentation
 
 Comprehensive documentation for every aspect of the project:
 
@@ -231,35 +231,35 @@ Comprehensive documentation for every aspect of the project:
 
 ---
 
-## 🏗️ Architecture
+## ðŸ—ï¸ Architecture
 
 ### System Design
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Client Layer (Browser)                    │
-│              React Components + TypeScript                   │
-└────────────────────────┬────────────────────────────────────┘
-                         │ HTTP/SSE
-┌─────────────────────────▼────────────────────────────────────┐
-│                    Next.js API Routes                         │
-│          (Validation, Auth, Job Enqueuing)                   │
-└────────────────────────┬────────────────────────────────────┘
-                         │ Enqueue Job
-┌─────────────────────────▼────────────────────────────────────┐
-│                    BullMQ Job Queue                           │
-│                   (Redis Backend)                            │
-└────────────────────────┬────────────────────────────────────┘
-                         │ Process Job
-┌─────────────────────────▼────────────────────────────────────┐
-│                  AI Worker Process                            │
-│          (LLM Calls, RAG, Function Execution)                │
-└────────────────────────┬────────────────────────────────────┘
-                         │ Return Result
-┌─────────────────────────▼────────────────────────────────────┐
-│                   PostgreSQL Database                         │
-│          (Users, Conversations, RAG Documents)               │
-└──────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    Client Layer (Browser)                    â”‚
+â”‚              React Components + TypeScript                   â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚ HTTP/SSE
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    Next.js API Routes                         â”‚
+â”‚          (Validation, Auth, Job Enqueuing)                   â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚ Enqueue Job
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    BullMQ Job Queue                           â”‚
+â”‚                   (Redis Backend)                            â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚ Process Job
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                  AI Worker Process                            â”‚
+â”‚          (LLM Calls, RAG, Function Execution)                â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚ Return Result
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                   PostgreSQL Database                         â”‚
+â”‚          (Users, Conversations, RAG Documents)               â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Key Pattern**: API routes never directly call LLMs. They enqueue jobs and return job IDs or establish SSE streams. The worker process handles all AI operations asynchronously.
@@ -268,49 +268,49 @@ Comprehensive documentation for every aspect of the project:
 
 ```
 src/
-├── app/                              # Next.js App Router
-│   ├── api/
-│   │   ├── chat/stream-sse/          # Real-time chat streaming
-│   │   ├── auth/                     # Authentication endpoints
-│   │   ├── rag/                      # RAG knowledge base
-│   │   └── admin/                    # Admin operations
-│   ├── (auth)/                       # Auth pages (login, signup)
-│   ├── (chat)/                       # Chat pages
-│   └── admin/                        # Admin dashboard
-│
-├── components/                       # React components
-│   ├── chat/                         # Chat UI components
-│   ├── admin/                        # Admin dashboard components
-│   └── common/                       # Shared components
-│
-├── services/                         # Business logic
-│   ├── auth/                         # Auth & session management
-│   ├── rag/                          # RAG retrieval & embeddings
-│   ├── files/                        # File processing
-│   └── ingestion/                    # Document processing
-│
-├── workers/                          # Background job processors
-│   ├── chat.worker.ts               # Main AI chat processor
-│   └── rag.worker.ts                # RAG document processor
-│
-├── lib/                             # Shared utilities
-│   ├── encryption.ts                # AES-256-GCM encryption
-│   ├── response.ts                  # Standardized API responses
-│   ├── session.ts                   # JWT & token management
-│   ├── rbac.ts                      # Role-based access control
-│   ├── logger.ts                    # Structured logging
-│   └── prisma.ts                    # Prisma client
-│
-├── tools/                           # AI function tools
-│   ├── calculator.ts                # Calculator tool
-│   ├── web-search.ts                # Web search tool
-│   └── image-generator.ts           # Image generation tool
-│
-└── __tests__/                       # Test suite (150+ tests)
+â”œâ”€â”€ app/                              # Next.js App Router
+â”‚   â”œâ”€â”€ api/
+â”‚   â”‚   â”œâ”€â”€ chat/stream-sse/          # Real-time chat streaming
+â”‚   â”‚   â”œâ”€â”€ auth/                     # Authentication endpoints
+â”‚   â”‚   â”œâ”€â”€ rag/                      # RAG knowledge base
+â”‚   â”‚   â””â”€â”€ admin/                    # Admin operations
+â”‚   â”œâ”€â”€ (auth)/                       # Auth pages (login, signup)
+â”‚   â”œâ”€â”€ (chat)/                       # Chat pages
+â”‚   â””â”€â”€ admin/                        # Admin dashboard
+â”‚
+â”œâ”€â”€ components/                       # React components
+â”‚   â”œâ”€â”€ chat/                         # Chat UI components
+â”‚   â”œâ”€â”€ admin/                        # Admin dashboard components
+â”‚   â””â”€â”€ common/                       # Shared components
+â”‚
+â”œâ”€â”€ services/                         # Business logic
+â”‚   â”œâ”€â”€ auth/                         # Auth & session management
+â”‚   â”œâ”€â”€ rag/                          # RAG retrieval & embeddings
+â”‚   â”œâ”€â”€ files/                        # File processing
+â”‚   â””â”€â”€ ingestion/                    # Document processing
+â”‚
+â”œâ”€â”€ workers/                          # Background job processors
+â”‚   â”œâ”€â”€ chat.worker.ts               # Main AI chat processor
+â”‚   â””â”€â”€ rag.worker.ts                # RAG document processor
+â”‚
+â”œâ”€â”€ lib/                             # Shared utilities
+â”‚   â”œâ”€â”€ encryption.ts                # AES-256-GCM encryption
+â”‚   â”œâ”€â”€ response.ts                  # Standardized API responses
+â”‚   â”œâ”€â”€ session.ts                   # JWT & token management
+â”‚   â”œâ”€â”€ rbac.ts                      # Role-based access control
+â”‚   â”œâ”€â”€ logger.ts                    # Structured logging
+â”‚   â””â”€â”€ prisma.ts                    # Prisma client
+â”‚
+â”œâ”€â”€ tools/                           # AI function tools
+â”‚   â”œâ”€â”€ calculator.ts                # Calculator tool
+â”‚   â”œâ”€â”€ web-search.ts                # Web search tool
+â”‚   â””â”€â”€ image-generator.ts           # Image generation tool
+â”‚
+â””â”€â”€ __tests__/                       # Test suite (150+ tests)
 
 prisma/
-├── schema.prisma                   # Database schema (13+ indexes)
-└── migrations/                     # Database migrations
+â”œâ”€â”€ schema.prisma                   # Database schema (13+ indexes)
+â””â”€â”€ migrations/                     # Database migrations
 
 docs/                               # Documentation
 mobile/                             # React Native app (Expo)
@@ -318,7 +318,7 @@ mobile/                             # React Native app (Expo)
 
 ---
 
-## 🧠 Understanding Key Features
+## ðŸ§  Understanding Key Features
 
 ### RAG System (Retrieval-Augmented Generation)
 
@@ -333,7 +333,7 @@ Upload documents, images, or web content. The AI retrieves relevant context befo
 ```
 
 **How it works:**
-1. File uploaded → LanceDB vector store
+1. File uploaded â†’ LanceDB vector store
 2. Text extracted and chunked
 3. OpenAI embeddings generated
 4. Query matched against vectors
@@ -345,15 +345,15 @@ Chat requests don't block on AI processing:
 
 ```
 POST /api/chat/stream-sse
-    ├─ Enqueue job to BullMQ
-    ├─ Return SSE stream ID
-    └─ Client subscribes to SSE
-        │
-        └─ Worker processes job
-            ├─ Retrieve RAG context
-            ├─ Call OpenRouter LLM
-            ├─ Execute tools if needed
-            └─ Stream response back
+    â”œâ”€ Enqueue job to BullMQ
+    â”œâ”€ Return SSE stream ID
+    â””â”€ Client subscribes to SSE
+        â”‚
+        â””â”€ Worker processes job
+            â”œâ”€ Retrieve RAG context
+            â”œâ”€ Call OpenRouter LLM
+            â”œâ”€ Execute tools if needed
+            â””â”€ Stream response back
 ```
 
 ### Authentication & Authorization
@@ -375,7 +375,7 @@ Format: `v1:iv:authTag:encrypted` (supports key rotation)
 
 ---
 
-## 🚀 Development Workflows
+## ðŸš€ Development Workflows
 
 ### Running Tests
 
@@ -469,37 +469,37 @@ Always update `prisma/schema.prisma` first, then run migrate.
 
 ---
 
-## 🔒 Security
+## ðŸ”’ Security
 
 ### Implemented Features
-✅ **Encryption**: AES-256-GCM with key versioning  
-✅ **Authentication**: JWT with refresh tokens  
-✅ **Rate Limiting**: Redis-backed, distributed safe  
-✅ **RBAC**: 5 roles with granular permissions  
-✅ **Input Validation**: Multi-layer validation  
-✅ **Audit Logging**: All actions logged  
-✅ **Security Headers**: HSTS, CSP, X-Frame-Options  
-✅ **Session Management**: Device tracking, token rotation  
+âœ… **Encryption**: AES-256-GCM with key versioning  
+âœ… **Authentication**: JWT with refresh tokens  
+âœ… **Rate Limiting**: Redis-backed, distributed safe  
+âœ… **RBAC**: 5 roles with granular permissions  
+âœ… **Input Validation**: Multi-layer validation  
+âœ… **Audit Logging**: All actions logged  
+âœ… **Security Headers**: HSTS, CSP, X-Frame-Options  
+âœ… **Session Management**: Device tracking, token rotation  
 
 ### Best Practices
 
 ```typescript
-// ✅ Always verify auth in API routes
+// âœ… Always verify auth in API routes
 const user = await verifyAuth(req);
 if (!user) return unauthorizedResponse();
 
-// ✅ Use role-based checks
+// âœ… Use role-based checks
 import { hasPermission, requirePermission } from '@/lib/rbac';
 if (!hasPermission(user.role, 'user:ban')) {
   return forbiddenResponse();
 }
 
-// ✅ Encrypt sensitive data
+// âœ… Encrypt sensitive data
 import { encrypt, decrypt } from '@/lib/encryption';
 const encrypted = encrypt(sensitiveData);
 const plaintext = decrypt(encrypted);
 
-// ✅ Use standardized error responses
+// âœ… Use standardized error responses
 return errorResponse('Error message', { status: 400 });
 ```
 
@@ -507,7 +507,7 @@ For detailed security information, see [SECURITY.md](./docs/SECURITY.md)
 
 ---
 
-## 🌐 Deployment
+## ðŸŒ Deployment
 
 ### Vercel (Recommended for Web)
 ```bash
@@ -536,17 +536,17 @@ npm run docker:up
 
 ---
 
-## 🧪 Testing
+## ðŸ§ª Testing
 
 The project includes 150+ tests covering:
 
 ```
 src/__tests__/
-├── auth/                    # Authentication tests
-├── services/                # Service layer tests
-├── lib/                     # Utility tests
-├── api/                     # API route tests
-└── workers/                 # Worker tests
+â”œâ”€â”€ auth/                    # Authentication tests
+â”œâ”€â”€ services/                # Service layer tests
+â”œâ”€â”€ lib/                     # Utility tests
+â”œâ”€â”€ api/                     # API route tests
+â””â”€â”€ workers/                 # Worker tests
 ```
 
 Run all tests:
@@ -562,7 +562,7 @@ npm test:coverage
 
 ---
 
-## 🤝 Contributing
+## ðŸ¤ Contributing
 
 We welcome contributions! Please:
 
@@ -584,7 +584,7 @@ npm run worker   # Terminal 2
 
 ---
 
-## 📊 Admin Dashboard
+## ðŸ“Š Admin Dashboard
 
 Access the admin dashboard at `/admin` (admin role required):
 
@@ -596,7 +596,7 @@ Access the admin dashboard at `/admin` (admin role required):
 
 ---
 
-## 📞 Support
+## ðŸ“ž Support
 
 ### Getting Help
 
@@ -623,7 +623,7 @@ Access the admin dashboard at `/admin` (admin role required):
 
 ---
 
-## 🗺️ Roadmap
+## ðŸ—ºï¸ Roadmap
 
 Future features:
 
@@ -639,7 +639,7 @@ Future features:
 
 ---
 
-## 📝 License
+## ðŸ“ License
 
 This project is licensed under the **MIT License** - see [LICENSE](./LICENSE) file for details.
 
@@ -647,7 +647,7 @@ You are free to use, modify, and distribute this project for personal, commercia
 
 ---
 
-## 🙏 Acknowledgments
+## ðŸ™ Acknowledgments
 
 This project stands on the shoulders of these amazing technologies:
 
@@ -664,7 +664,7 @@ This project stands on the shoulders of these amazing technologies:
 
 ---
 
-## 👨‍💼 Author
+## ðŸ‘¨â€ðŸ’¼ Author
 
 **Noorul Ahemed**
 
@@ -673,9 +673,9 @@ This project stands on the shoulders of these amazing technologies:
 
 ---
 
-## ⭐ Show Your Support
+## â­ Show Your Support
 
-If you find Aegis AI helpful, please give it a star! ⭐
+If you find Aegis AI helpful, please give it a star! â­
 
 ```bash
 # Clone and star the project
@@ -686,8 +686,9 @@ git clone https://github.com/noorulahamed/aegis-ai.git
 
 <div align="center">
 
-**Made with ❤️ by Noorul Ahemed**
+**Made with â¤ï¸ by Noorul Ahemed**
 
-[Website](https://aegisai.com) • [GitHub](https://github.com/noorulahamed/aegis-ai) • [Twitter](https://twitter.com/noorulahamed) • [Discord](https://discord.gg/aegis-ai)
+[Website](https://aegisai.com) â€¢ [GitHub](https://github.com/noorulahamed/aegis-ai) â€¢ [Twitter](https://twitter.com/noorulahamed) â€¢ [Discord](https://discord.gg/aegis-ai)
 
 </div>
+

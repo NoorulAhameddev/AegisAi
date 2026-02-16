@@ -1,0 +1,37 @@
+# Admin App Specific Ignores
+# This extends the root .gitignore for apps/admin/
+
+# Build output
+.next/
+out/
+build/
+dist/
+
+# Cache
+.next/cache/
+.turbo/
+
+# Data directories
+data/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+
+# Logs
+*.log
+logs/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing
+/coverage
+.nyc_output/
+
+# Dependencies (if not hoisted)
+node_modules/

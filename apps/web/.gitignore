@@ -1,0 +1,51 @@
+# Next.js Web App Specific Ignores
+# This extends the root .gitignore for apps/web/
+
+# Next.js build output
+.next/
+out/
+build/
+
+# Next.js cache
+.next/cache/
+
+# Static files (if generated)
+/public/
+
+# Data directories
+data/
+data/lancedb/
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+
+# Logs
+*.log
+logs/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing
+/coverage
+.nyc_output/
+playwright-report/
+test-results/
+
+# Vercel
+.vercel
+
+# Turbo
+.turbo
+
+# Dependencies (if not hoisted)
+node_modules/

@@ -1,12 +1,12 @@
-# Migration Guide - Monorepo Structure
+﻿# Migration Guide - Monorepo Structure
 
 This guide helps you adapt to the new monorepo structure.
 
-## 🔄 What Changed
+## ðŸ”„ What Changed
 
 Aegis AI has been restructured from a single-app repository to a monorepo for better scalability and organization.
 
-### Old Structure → New Structure
+### Old Structure â†’ New Structure
 
 | Old Path | New Path | Notes |
 |----------|----------|-------|
@@ -25,7 +25,7 @@ Aegis AI has been restructured from a single-app repository to a monorepo for be
 | `docker-compose.yml` | `/infra/docker/docker-compose.yml` | Docker compose |
 | `middleware.ts` | `/apps/web/middleware.ts` | Next.js middleware |
 
-## 📦 Package Changes
+## ðŸ“¦ Package Changes
 
 ### Root `package.json`
 
@@ -48,7 +48,7 @@ The root `package.json` now manages workspaces:
 - `/packages/shared/package.json` - Shared utilities (to be created)
 - `/packages/ui/package.json` - Shared UI components (to be created)
 
-## 🛠️ Command Changes
+## ðŸ› ï¸ Command Changes
 
 ### Before
 
@@ -76,7 +76,7 @@ npm run dev:mobile      # Start mobile app
 npm install --workspace=apps/web  # Install for specific workspace
 ```
 
-## 🔧 Configuration Updates
+## ðŸ”§ Configuration Updates
 
 ### TypeScript Paths
 
@@ -113,7 +113,7 @@ import { auth } from '@/lib/auth';
 
 The `@/` alias still points to `src/` within each app. No code changes needed!
 
-## 🚀 Developer Workflow
+## ðŸš€ Developer Workflow
 
 ### 1. Fresh Install
 
@@ -163,7 +163,7 @@ cd apps/web
 npm test
 ```
 
-## 🐛 Common Issues
+## ðŸ› Common Issues
 
 ### Issue: Module not found
 
@@ -191,16 +191,16 @@ Or use the npm script:
 npm run docker:build
 ```
 
-## 📝 Code Changes Needed
+## ðŸ“ Code Changes Needed
 
 ### Minimal Changes Required
 
 Most code doesn't need changes because:
 
-1. ✅ Import paths (`@/`) still work
-2. ✅ Environment variables still work
-3. ✅ API routes unchanged
-4. ✅ Component structure unchanged
+1. âœ… Import paths (`@/`) still work
+2. âœ… Environment variables still work
+3. âœ… API routes unchanged
+4. âœ… Component structure unchanged
 
 ### Optional Improvements
 
@@ -210,7 +210,7 @@ You may want to:
 2. Extract shared UI components to `/packages/ui`
 3. Create workspace-specific configurations
 
-## 🎯 Next Steps
+## ðŸŽ¯ Next Steps
 
 1. **Test your development environment:**
    ```bash
@@ -234,7 +234,7 @@ You may want to:
    npm run build:all
    ```
 
-## 💡 Benefits of New Structure
+## ðŸ’¡ Benefits of New Structure
 
 1. **Clear Separation**: Apps, services, and infrastructure are clearly separated
 2. **Scalability**: Easy to add new apps or services
@@ -242,18 +242,18 @@ You may want to:
 4. **Better Organization**: Configuration centralized, easier to maintain
 5. **Monorepo Ready**: Can use tools like Turborepo, Lerna, or Nx if needed
 
-## 📚 Additional Resources
+## ðŸ“š Additional Resources
 
-- [MONOREPO_STRUCTURE.md](./MONOREPO_STRUCTURE.md) - Detailed structure documentation
+- [MONOREPO_STRUCTURE.md](docs/architecture/MONOREPO_STRUCTURE.md) - Detailed structure documentation
 - [docs/](./docs/) - Architecture and API documentation
 - [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution guidelines
 
-## ❓ Questions?
+## â“ Questions?
 
 If you encounter issues:
 
 1. Check this migration guide
-2. Review [MONOREPO_STRUCTURE.md](./MONOREPO_STRUCTURE.md)
+2. Review [MONOREPO_STRUCTURE.md](docs/architecture/MONOREPO_STRUCTURE.md)
 3. Open an issue on GitHub
 4. Contact the development team
 
@@ -262,3 +262,4 @@ If you encounter issues:
 **Migration Date**: February 10, 2026  
 **Structure Version**: 1.0.0  
 **Breaking Changes**: None (backwards compatible)
+

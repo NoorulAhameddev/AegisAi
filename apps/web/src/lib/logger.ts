@@ -4,6 +4,19 @@ interface LogContext {
     [key: string]: any;
 }
 
+// Lazy load Sentry to avoid circular dependencies
+let Sentry: typeof import('@sentry/nextjs') | null = null;
+async function getSentry() {
+    if (!Sentry && typeof window === 'undefined') {
+        try {
+            Sentry = await import('@sentry/nextjs');
+        } catch (e) {
+            // Sentry not available (development or not configured)
+        }
+    }
+    return Sentry;
+}
+
 // CRITICAL: PII redaction to prevent sensitive data in logs
 function redactPII(context?: LogContext): LogContext {
     if (!context) return {};
@@ -67,6 +80,26 @@ class Logger {
 
     error(message: string, error?: Error | any, context?: LogContext) {
         this.output('error', message, context, error instanceof Error ? error : undefined);
+        
+        // Send to Sentry if available (async, non-blocking)
+        if (error instanceof Error) {
+            getSentry().then(sentry => {
+                if (sentry && process.env.SENTRY_DSN) {
+                    sentry.captureException(error, {
+                        level: 'error',
+                        tags: {
+                            logger: 'custom',
+                        },
+                        extra: {
+                            message,
+                            ...redactPII(context),
+                        },
+                    });
+                }
+            }).catch(() => {
+                // Silently fail if Sentry unavailable
+            });
+        }
     }
 
     api(method: string, path: string, status: number, duration?: number) {
