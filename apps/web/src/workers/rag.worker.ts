@@ -8,11 +8,30 @@ import { extractText } from "@/services/files/fileProcessor";
 import fs from "fs";
 import { setupGlobalErrorHandlers } from "@/lib/global-error-handlers";
 import { env } from "@/lib/env";
+import { migrateFallbackJobsToRedis } from "@/lib/fallback-queue";
+import { redisHealthTracker } from "@/lib/redis-fallback";
 
 // Setup global error handlers
 setupGlobalErrorHandlers('rag-worker');
 
 logger.info("Worker starting", { queue: ragQueue.name });
+
+// Store interval IDs for cleanup on shutdown
+const intervals: NodeJS.Timeout[] = [];
+
+// Periodically migrate fallback jobs back to Redis when it recovers
+const migrationInterval = setInterval(async () => {
+    try {
+        if (redisHealthTracker.shouldUseFallback()) {
+            return;
+        }
+        await migrateFallbackJobsToRedis(ragQueue.name, ragQueue);
+    } catch (error) {
+        logger.warn('RAG fallback job migration failed', { error: (error as Error).message });
+    }
+}, 60 * 1000);
+migrationInterval.unref(); // Don't keep process alive
+intervals.push(migrationInterval);
 
 const worker = new Worker(
     ragQueue.name,
@@ -105,4 +124,26 @@ worker.on("failed", async (job, err) => {
 
 worker.on("error", err => {
     logger.error("Worker infrastructure error", err as Error, { jobType: "rag" });
+});
+
+// Graceful shutdown to avoid losing in-flight jobs
+process.on("SIGTERM", async () => {
+    logger.warn("RAG worker SIGTERM received - shutting down");
+    try {
+        // Clear all intervals to allow graceful exit
+        intervals.forEach(interval => clearInterval(interval));
+        
+        await worker.pause(true);
+        await worker.close();
+        await connection.disconnect();
+        logger.info("RAG worker shutdown complete");
+        process.exit(0);
+    } catch (error) {
+        logger.error("RAG worker shutdown failed", error as Error);
+        process.exit(1);
+    }
+});
+
+process.on("SIGINT", () => {
+    process.emit("SIGTERM");
 });

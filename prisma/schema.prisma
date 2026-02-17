@@ -140,6 +140,7 @@ model Message {
   chatId    String
   role      MessageRole
   content   String      @db.Text
+  contentHash String?   @db.VarChar(64)
   isPartial Boolean     @default(false) // True if stream was interrupted before completion
   flagged   Boolean     @default(false) // True if moderation detected policy violations
   createdAt DateTime    @default(now())
@@ -148,6 +149,7 @@ model Message {
 
   @@index([chatId, createdAt])
   @@index([chatId, role])
+  @@index([chatId, role, contentHash])
   @@index([deletedAt]) // Index soft delete for fast filtering
   @@index([flagged])   // Index for admin moderation review
 }

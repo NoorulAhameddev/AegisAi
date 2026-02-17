@@ -24,6 +24,12 @@ variable "app_name" {
   default     = "aegis-ai"
 }
 
+variable "frontend_url" {
+  description = "Frontend URL for WebSocket CORS"
+  type        = string
+  default     = "http://localhost:3000"
+}
+
 variable "vpc_cidr" {
   description = "CIDR block for VPC"
   type        = string
@@ -134,6 +140,24 @@ variable "ecs_rag_worker_memory" {
   description = "Memory for RAG worker task in MB"
   type        = number
   default     = 4096 # 4 GB (higher memory for embeddings)
+}
+
+variable "ecs_websocket_worker_task_count" {
+  description = "Desired count of WebSocket worker tasks"
+  type        = number
+  default     = 1
+}
+
+variable "ecs_websocket_worker_cpu" {
+  description = "CPU units for WebSocket worker task"
+  type        = number
+  default     = 512 # 0.5 vCPU
+}
+
+variable "ecs_websocket_worker_memory" {
+  description = "Memory for WebSocket worker task in MB"
+  type        = number
+  default     = 1024 # 1 GB
 }
 
 # Auto-scaling Configuration

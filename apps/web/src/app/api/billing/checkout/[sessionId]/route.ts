@@ -11,7 +11,7 @@ import { logger } from '@/lib/logger';
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { sessionId: string } }
+    { params }: { params: Promise<{ sessionId: string }> }
 ) {
     const requestId = req.headers.get('x-request-id') || '';
     
@@ -19,7 +19,7 @@ export async function GET(
         const user = await verifyAuth(req);
         if (!user) return unauthorizedResponse({ requestId });
 
-        const { sessionId } = params;
+        const { sessionId } = await params;
 
         // Get session from Stripe
         const session = await stripeService.getCheckoutSession(sessionId);
@@ -36,7 +36,7 @@ export async function GET(
             customer: session.customer
         }, { requestId });
     } catch (error) {
-        logger.error('Failed to get checkout session', error as Error, { requestId, sessionId: params.sessionId });
+        logger.error('Failed to get checkout session', error as Error, { requestId });
         return errorResponse('Failed to get session status', { status: 500, requestId });
     }
 }

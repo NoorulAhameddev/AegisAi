@@ -5,6 +5,7 @@ import { validateInput, detectLeaks } from '../lib/security';
 import { buildSystemPrompt } from '../services/ai/prompt';
 import { createAgent, runAgent } from '../ai/integrations/langchain-agent';
 import { logger } from '../lib/logger';
+import crypto from 'crypto';
 
 export async function processChatJobLangChain(job: Job) {
     const { chatId, message, fileId, userId, requestId } = job.data;
@@ -58,6 +59,17 @@ export async function processChatJobLangChain(job: Job) {
             logger.worker(job.id as string, 'vector-store-ingested', { chatId });
         } catch (e) {
             logger.warn('Vector store ingestion failed (non-blocking)', { jobId: job.id as string, error: (e as Error).message });
+        }
+
+        // Ensure chat exists and is not deleted
+        const chatRecord = await prisma.chat.findFirst({
+            where: { id: chatId, userId, deletedAt: null },
+            select: { id: true }
+        });
+
+        if (!chatRecord) {
+            logger.warn('Chat not found or deleted', { jobId: job.id as string, userId, chatId });
+            return { status: 'failed', error: 'Chat not found', chatId };
         }
 
         // 1. Fetch System Prompt
@@ -158,11 +170,13 @@ export async function processChatJobLangChain(job: Job) {
         const { encrypt } = await import("../lib/encryption");
         const encryptedResponse = await encrypt(finalContent);
 
+        const responseHash = crypto.createHash('sha256').update(finalContent).digest('hex');
         await prisma.message.create({
             data: {
                 chatId,
                 role: "ASSISTANT",
-                content: encryptedResponse
+                content: encryptedResponse,
+                contentHash: responseHash
             }
         });
 

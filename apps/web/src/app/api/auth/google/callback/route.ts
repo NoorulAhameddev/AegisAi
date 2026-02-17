@@ -9,6 +9,9 @@ const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
 
 export async function GET(req: NextRequest) {
   try {
+    if (!env.ENABLE_GOOGLE_OAUTH) {
+      return NextResponse.redirect(`${SITE_URL}/login?error=oauth_disabled`);
+    }
     const { searchParams } = new URL(req.url);
     const code = searchParams.get('code');
     const error = searchParams.get('error');

@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const googleEnabled = process.env.NEXT_PUBLIC_ENABLE_GOOGLE_OAUTH === "true";
 
   const handleGoogleLogin = () => {
     window.location.href = "/api/auth/google";
@@ -138,27 +139,31 @@ export default function LoginPage() {
               {loading ? "Signing in..." : "Sign In"}
             </Button>
 
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-zinc-800"></div>
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-black px-2 text-zinc-500">
-                  Or continue with
-                </span>
-              </div>
-            </div>
+            {googleEnabled && (
+              <>
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-zinc-800"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-black px-2 text-zinc-500">
+                      Or continue with
+                    </span>
+                  </div>
+                </div>
 
-            <Button
-              type="button"
-              variant="secondary"
-              size="lg"
-              onClick={handleGoogleLogin}
-              className="w-full"
-              icon={<Chrome className="h-5 w-5" />}
-            >
-              Sign in with Google
-            </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="lg"
+                  onClick={handleGoogleLogin}
+                  className="w-full"
+                  icon={<Chrome className="h-5 w-5" />}
+                >
+                  Sign in with Google
+                </Button>
+              </>
+            )}
           </form>
         </GlassCard>
 

@@ -17,7 +17,7 @@ import { logger } from '@/lib/logger';
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { chatId: string } }
+    { params }: { params: Promise<{ chatId: string }> }
 ) {
     const requestId = req.headers.get('x-request-id') || '';
     
@@ -25,7 +25,7 @@ export async function GET(
         const user = await verifyAuth(req);
         if (!user) return unauthorizedResponse({ requestId });
 
-        const { chatId } = params;
+        const { chatId } = await params;
 
         // Verify user has access to this chat
         const hasAccess = await verifyUserAccess(user.id, chatId);
@@ -86,7 +86,7 @@ export async function GET(
 
 export async function PUT(
     req: NextRequest,
-    { params }: { params: { chatId: string } }
+    { params }: { params: Promise<{ chatId: string }> }
 ) {
     const requestId = req.headers.get('x-request-id') || '';
     
@@ -94,7 +94,7 @@ export async function PUT(
         const user = await verifyAuth(req);
         if (!user) return unauthorizedResponse({ requestId });
 
-        const { chatId } = params;
+        const { chatId } = await params;
         const body = await req.json();
         const { userId: targetUserId, role } = body;
 
@@ -147,7 +147,7 @@ export async function PUT(
 
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { chatId: string } }
+    { params }: { params: Promise<{ chatId: string }> }
 ) {
     const requestId = req.headers.get('x-request-id') || '';
     
@@ -155,7 +155,7 @@ export async function DELETE(
         const user = await verifyAuth(req);
         if (!user) return unauthorizedResponse({ requestId });
 
-        const { chatId } = params;
+        const { chatId } = await params;
         const { searchParams } = new URL(req.url);
         const targetUserId = searchParams.get('userId');
 

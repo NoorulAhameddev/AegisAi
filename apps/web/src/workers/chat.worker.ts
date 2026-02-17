@@ -12,6 +12,8 @@ import { logger } from "@/lib/logger";
 import { startCleanupTask } from "@/workers/cleanup";
 import { env } from "@/lib/env";
 import { setupGlobalErrorHandlers } from "@/lib/global-error-handlers";
+import { cleanupFallbackQueue, migrateFallbackJobsToRedis } from "@/lib/fallback-queue";
+import { redisHealthTracker } from "@/lib/redis-fallback";
 
 // Setup global error handlers to catch unhandled rejections and exceptions
 setupGlobalErrorHandlers('chat-worker');
@@ -47,7 +49,39 @@ try {
 
 logger.info("Worker starting", { queue: chatQueue.name });
 
-startCleanupTask();
+// Store interval IDs for cleanup on shutdown
+const intervals: NodeJS.Timeout[] = [];
+
+// Start cleanup task and store interval
+(async () => {
+    const cleanupInterval = await startCleanupTask();
+    intervals.push(cleanupInterval);
+})();
+
+// Periodically migrate fallback jobs back to Redis when it recovers
+const migrationInterval = setInterval(async () => {
+    try {
+        if (redisHealthTracker.shouldUseFallback()) {
+            return;
+        }
+        await migrateFallbackJobsToRedis(chatQueue.name, chatQueue);
+    } catch (error) {
+        logger.warn('Fallback job migration failed', { error: (error as Error).message });
+    }
+}, 60 * 1000);
+migrationInterval.unref(); // Don't keep process alive
+intervals.push(migrationInterval);
+
+// Cleanup fallback queue to prevent table bloat
+const cleanupInterval = setInterval(async () => {
+    try {
+        await cleanupFallbackQueue(24);
+    } catch (error) {
+        logger.warn('Fallback queue cleanup failed', { error: (error as Error).message });
+    }
+}, 6 * 60 * 60 * 1000);
+cleanupInterval.unref(); // Don't keep process alive
+intervals.push(cleanupInterval);
 
 const worker = new Worker(chatQueue.name, async job => processChatJob(job), {
     connection,
@@ -83,4 +117,26 @@ worker.on("failed", async (job, err) => {
 
 worker.on("error", err => {
     logger.error("Worker infrastructure error", err as Error, { jobType: "chat" });
+});
+
+// Graceful shutdown to avoid losing in-flight jobs
+process.on("SIGTERM", async () => {
+    logger.warn("Chat worker SIGTERM received - shutting down");
+    try {
+        // Clear all intervals to allow graceful exit
+        intervals.forEach(interval => clearInterval(interval));
+        
+        await worker.pause(true);
+        await worker.close();
+        await connection.disconnect();
+        logger.info("Chat worker shutdown complete");
+        process.exit(0);
+    } catch (error) {
+        logger.error("Chat worker shutdown failed", error as Error);
+        process.exit(1);
+    }
+});
+
+process.on("SIGINT", () => {
+    process.emit("SIGTERM");
 });

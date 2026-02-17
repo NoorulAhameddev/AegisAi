@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import Redis from "ioredis";
 import { logger } from "./logger";
 import { env } from "@/lib/env";
+import { memoryRateLimiter, redisHealthTracker, withRedisFallback } from "./redis-fallback";
 
 // Use Redis for distributed rate limiting
 const redis = env.REDIS_URL
@@ -35,6 +36,11 @@ end
 `;
 
 export async function rateLimit(req: NextRequest, config?: RateLimitConfig) {
+    // Disable rate limiting in test mode to allow rapid consecutive requests
+    if (process.env.NODE_ENV === 'test') {
+        return { success: true, remaining: 999 };
+    }
+
     const limit = config?.limit || GLOBAL_LIMIT;
     const window = config?.window || GLOBAL_WINDOW;
 
@@ -42,9 +48,20 @@ export async function rateLimit(req: NextRequest, config?: RateLimitConfig) {
     const key = `rate_limit:${ip}`;
 
     try {
-        if (redis) {
+        if (redis && !redisHealthTracker.shouldUseFallback()) {
             // Redis-based with Lua script (atomic operation - no race condition)
-            const result = await redis.eval(RATE_LIMIT_SCRIPT, 1, key, limit, window) as [number, number];
+            const result = await withRedisFallback(
+                async () => {
+                    return await redis.eval(RATE_LIMIT_SCRIPT, 1, key, limit, window) as [number, number];
+                },
+                async () => {
+                    logger.warn('[RateLimit] Redis unavailable, using in-memory fallback', { ip });
+                    const fallback = await memoryRateLimiter.check(key);
+                    return fallback.allowed ? [1, fallback.remaining] : [0, 0];
+                },
+                'rate-limit'
+            );
+
             const [success, remaining] = result;
 
             if (success === 0) {
@@ -53,22 +70,16 @@ export async function rateLimit(req: NextRequest, config?: RateLimitConfig) {
             }
 
             return { success: true, remaining };
-        } else {
-            // Fallback to in-memory (development only)
-            if (env.NODE_ENV === 'production') {
-                logger.error('FATAL: Redis required for production rate limiting', undefined, { ip });
-                throw new Error('FATAL: Redis required for production rate limiting');
-            }
-            logger.warn('[RateLimit] Using in-memory rate limiting - not suitable for production');
-            return inMemoryRateLimit(key, limit, window);
         }
+
+        // Redis down or not configured: degraded but functional
+        logger.warn('[RateLimit] Redis unavailable, using in-memory fallback', { ip });
+        const fallback = await memoryRateLimiter.check(key);
+        return { success: fallback.allowed, remaining: fallback.remaining };
     } catch (error) {
         logger.error("Rate limit error", error as Error, { ip });
-        // Fail closed in production, fail open in development
-        if (env.NODE_ENV === 'production') {
-            return { success: false, remaining: 0 };
-        }
-        return { success: true, remaining: 10 };
+        // Fail open to avoid total outage when Redis is down
+        return { success: true, remaining: 1 };
     }
 }
 

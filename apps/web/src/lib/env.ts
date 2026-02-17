@@ -95,6 +95,7 @@ const envSchema = z.object({
     GOOGLE_CLIENT_ID: z.string().optional(),
     GOOGLE_CLIENT_SECRET: z.string().optional(),
     GOOGLE_REDIRECT_URI: z.string().optional(),
+    ENABLE_GOOGLE_OAUTH: z.coerce.boolean().default(false),
 });
 
 const parsed = envSchema.safeParse(process.env);

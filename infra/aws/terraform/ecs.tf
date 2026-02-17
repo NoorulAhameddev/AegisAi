@@ -294,6 +294,42 @@ resource "aws_ecs_task_definition" "rag_worker" {
   tags = local.common_tags
 }
 
+# Task Definition - WebSocket Worker
+resource "aws_ecs_task_definition" "websocket_worker" {
+  family                   = "${local.name_prefix}-websocket-worker"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = var.ecs_websocket_worker_cpu
+  memory                   = var.ecs_websocket_worker_memory
+  execution_role_arn       = aws_iam_role.ecs_task_execution.arn
+  task_role_arn            = aws_iam_role.ecs_task.arn
+
+  container_definitions = jsonencode([{
+    name  = "websocket-worker"
+    image = "${aws_ecr_repository.app.repository_url}:latest"
+
+    command = ["npm", "run", "worker:websocket"]
+
+    environment = [
+      { name = "NODE_ENV", value = var.environment },
+      { name = "REDIS_URL", value = "rediss://:${random_password.redis_auth_token.result}@${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379" },
+      { name = "WEBSOCKET_PORT", value = "3001" },
+      { name = "FRONTEND_URL", value = var.frontend_url }
+    ]
+
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.app.name
+        "awslogs-region"        = var.aws_region
+        "awslogs-stream-prefix" = "websocket-worker"
+      }
+    }
+  }])
+
+  tags = local.common_tags
+}
+
 # ECS Service - API
 resource "aws_ecs_service" "api" {
   name            = "${local.name_prefix}-api"
@@ -350,6 +386,23 @@ resource "aws_ecs_service" "rag_worker" {
     assign_public_ip = false
   }
   
+  tags = local.common_tags
+}
+
+# ECS Service - WebSocket Worker
+resource "aws_ecs_service" "websocket_worker" {
+  name            = "${local.name_prefix}-websocket-worker"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.websocket_worker.arn
+  desired_count   = var.ecs_websocket_worker_task_count
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = aws_subnet.private[*].id
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    assign_public_ip = false
+  }
+
   tags = local.common_tags
 }
 

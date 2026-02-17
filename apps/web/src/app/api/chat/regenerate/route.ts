@@ -13,6 +13,8 @@ import { parseBody } from "@/lib/request-validation";
 import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
 import { logger } from "@/lib/logger";
 import { rateLimit } from "@/lib/rate-limit";
+import { decrypt, encrypt } from "@/lib/encryption";
+import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
     try {
@@ -40,9 +42,10 @@ export async function POST(req: NextRequest) {
 
         // Get chat with messages
         const chat = await prisma.chat.findFirst({
-            where: { id: chatId, userId },
+            where: { id: chatId, userId, deletedAt: null },
             include: {
                 Message: {
+                    where: { deletedAt: null },
                     orderBy: { createdAt: "asc" },
                 },
             },
@@ -81,7 +84,8 @@ export async function POST(req: NextRequest) {
         let sources: string[] = [];
 
         try {
-            const ragResult = await retrieveContext(lastUserMsg.content, userId);
+            const lastUserContent = await decrypt(lastUserMsg.content).catch(() => "");
+            const ragResult = await retrieveContext(lastUserContent, userId);
             if (ragResult.context && ragResult.context.length > 0) {
                 ragContext = ragResult.context;
                 sources = Array.from(ragResult.sources);
@@ -91,12 +95,14 @@ export async function POST(req: NextRequest) {
         }
 
         // Build conversation (exclude deleted message)
-        const conversationMessages = chat.Message
-            .filter((m: any) => m.id !== lastAssistantMsgIndex.msg.id)
-            .map((msg: any) => ({
-                role: msg.role.toLowerCase() as "user" | "assistant",
-                content: msg.content,
-            }));
+        const conversationMessages = await Promise.all(
+            chat.Message
+                .filter((m: any) => m.id !== lastAssistantMsgIndex.msg.id)
+                .map(async (msg: any) => ({
+                    role: msg.role.toLowerCase() as "user" | "assistant",
+                    content: await decrypt(msg.content).catch(() => "[Decryption failed]"),
+                }))
+        );
 
         const systemPrompt = ragContext
             ? `You are a helpful AI assistant. Use the following context to answer the user's question:\n\n${ragContext}`
@@ -115,11 +121,14 @@ export async function POST(req: NextRequest) {
         const newResponse = completion.choices[0].message.content || "";
 
         // Save new assistant message
+        const encryptedResponse = await encrypt(newResponse);
+        const responseHash = crypto.createHash('sha256').update(newResponse).digest('hex');
         const newMessage = await prisma.message.create({
             data: {
                 chatId,
                 role: "ASSISTANT",
-                content: newResponse,
+                content: encryptedResponse,
+                contentHash: responseHash,
             },
         });
 

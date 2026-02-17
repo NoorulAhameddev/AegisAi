@@ -12,6 +12,7 @@ import {
   addFallbackJob,
   getFallbackQueueDepth,
 } from './fallback-queue';
+import { publishQueueDepthMetric } from './cloudwatch-metrics';
 
 /**
  * Add job to queue with automatic fallback
@@ -24,13 +25,14 @@ import {
  */
 export async function addJobWithFallback(
   queue: Queue,
+  jobName: string,
   jobId: string,
   data: any,
   options?: any
 ): Promise<string> {
   try {
     // Try Redis first
-    const job = await queue.add(jobId, data, { ...options, jobId });
+    const job = await queue.add(jobName, data, { ...options, jobId });
     redisHealthTracker.markSuccess();
     return job.id!;
   } catch (error) {
@@ -59,14 +61,32 @@ export async function getQueueDepthWithFallback(queue: Queue): Promise<number> {
       queue.getActiveCount(),
     ]);
     redisHealthTracker.markSuccess();
-    return waiting + active;
+    const depth = waiting + active;
+    try {
+      await publishQueueDepthMetric(queue.name, depth);
+    } catch (metricsError) {
+      logger.warn('Failed to publish queue depth metric', {
+        queue: queue.name,
+        depth,
+      });
+    }
+    return depth;
   } catch (error) {
     logger.warn('Redis queue depth check failed, using PostgreSQL fallback', {
       queue: queue.name,
     });
 
     redisHealthTracker.markFailure();
-    return await getFallbackQueueDepth(queue.name);
+    const depth = await getFallbackQueueDepth(queue.name);
+    try {
+      await publishQueueDepthMetric(queue.name, depth);
+    } catch (metricsError) {
+      logger.warn('Failed to publish fallback queue depth metric', {
+        queue: queue.name,
+        depth,
+      });
+    }
+    return depth;
   }
 }
 

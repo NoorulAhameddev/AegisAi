@@ -1,14 +1,17 @@
 import { prisma } from '../lib/prisma';
 import { env } from '../lib/env';
 
-export async function startCleanupTask() {
+export async function startCleanupTask(): Promise<NodeJS.Timeout> {
     // Run immediately on start
     await runCleanup();
 
     // Loop every hour
-    setInterval(async () => {
+    const cleanupInterval = setInterval(async () => {
         await runCleanup();
     }, 60 * 60 * 1000); // 1 Hour interval
+    
+    cleanupInterval.unref(); // Don't keep process alive in tests
+    return cleanupInterval;
 }
 
 async function runCleanup() {

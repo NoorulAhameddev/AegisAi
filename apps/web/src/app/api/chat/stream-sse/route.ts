@@ -22,13 +22,15 @@ import { decrypt, encrypt } from "@/lib/encryption";
 import { rateLimit } from "@/lib/rate-limit";
 import { checkModeration } from "@/lib/moderation";
 import { quickModeration } from "@/lib/security";
+import { withMetrics } from "@/lib/middleware/metrics-middleware";
+import crypto from "crypto";
 
 // Stream timeout: 2 minutes max
 const STREAM_TIMEOUT_MS = 120000;
 // Max buffered chunks before backpressure kicks in
 const MAX_BUFFER_SIZE = 50;
 
-export async function POST(req: NextRequest) {
+const handler = async (req: NextRequest) => {
     try {
         // Rate limiting: 10 stream requests per minute (streaming is resource-intensive)
         const rateLimitResult = await rateLimit(req, { limit: 10, window: 60 });
@@ -75,8 +77,14 @@ export async function POST(req: NextRequest) {
 
         // Verify chat ownership
         const chat = await prisma.chat.findFirst({
-            where: { id: chatId, userId },
-            include: { Message: { orderBy: { createdAt: "asc" }, take: 50 } }, // CRITICAL: Limit to last 50 messages
+            where: { id: chatId, userId, deletedAt: null },
+            include: {
+                Message: {
+                    where: { deletedAt: null },
+                    orderBy: { createdAt: "asc" },
+                    take: 50
+                }
+            }, // CRITICAL: Limit to last 50 messages
         });
 
         if (!chat) {
@@ -85,11 +93,13 @@ export async function POST(req: NextRequest) {
 
         // Save user message
         const encryptedMessage = await encrypt(message);
+        const userMessageHash = crypto.createHash('sha256').update(message).digest('hex');
         await prisma.message.create({
             data: {
                 chatId,
                 role: "USER",
                 content: encryptedMessage,
+                contentHash: userMessageHash,
             },
         });
 
@@ -100,6 +110,35 @@ export async function POST(req: NextRequest) {
         let connectionAborted = false;
         let moderationBuffer: string[] = [];
         let moderationCheckInProgress = false;
+
+        const saveAssistantMessage = async (content: string, isPartial: boolean) => {
+            if (!content) return;
+            const contentHash = crypto.createHash('sha256').update(content).digest('hex');
+            const existing = await prisma.message.findFirst({
+                where: {
+                    chatId,
+                    role: "ASSISTANT",
+                    contentHash,
+                    deletedAt: null,
+                },
+                select: { id: true },
+            });
+            if (existing) {
+                return;
+            }
+
+            const encryptedResponse = await encrypt(content);
+            await prisma.message.create({
+                data: {
+                    chatId,
+                    role: "ASSISTANT",
+                    content: encryptedResponse,
+                    contentHash,
+                    isPartial,
+                    flagged: false,
+                },
+            });
+        };
 
         // Detect client disconnect
         req.signal?.addEventListener('abort', () => {
@@ -246,16 +285,7 @@ export async function POST(req: NextRequest) {
                     }
 
                     // Save assistant message (always attempt, even if partial)
-                    const encryptedResponse = await encrypt(accumulatedResponse);
-await prisma.message.create({
-                        data: {
-                            chatId,
-                            role: "ASSISTANT",
-                            content: encryptedResponse,
-                            isPartial: !isStreamComplete || connectionAborted,
-                            flagged: false, // Set async if moderation flags later
-                        },
-                    });
+                    await saveAssistantMessage(accumulatedResponse, !isStreamComplete || connectionAborted);
 
                     // Send completion event
                     const finalData = JSON.stringify({
@@ -272,16 +302,7 @@ await prisma.message.create({
                     // Save partial response even on error
                     if (accumulatedResponse.length > 0) {
                         try {
-                            const encryptedResponse = await encrypt(accumulatedResponse);
-                            await prisma.message.create({
-                                data: {
-                                    chatId,
-                                    role: "ASSISTANT",
-                                    content: encryptedResponse,
-                                    isPartial: true, // Mark as incomplete
-                                    flagged: false,
-                                },
-                            });
+                            await saveAssistantMessage(accumulatedResponse, true);
                             logger.info('Saved partial response after error', { userId, chatId, responseLength: accumulatedResponse.length });
                         } catch (saveError) {
                             logger.error('Failed to save partial response', saveError as Error, { userId, chatId });
@@ -298,16 +319,7 @@ await prisma.message.create({
                     // Cleanup: Always try to save if we have content and haven't saved yet
                     if (!isStreamComplete && accumulatedResponse.length > 0) {
                         try {
-                            const encryptedResponse = await encrypt(accumulatedResponse);
-                            await prisma.message.create({
-                                data: {
-                                    chatId,
-                                    role: "ASSISTANT",
-                                    content: encryptedResponse,
-                                    isPartial: true,
-                                    flagged: false,
-                                },
-                            });
+                            await saveAssistantMessage(accumulatedResponse, true);
                             logger.info('Saved partial response in finally block', { userId, chatId });
                         } catch (finalSaveError) {
                             logger.error('Final save attempt failed', finalSaveError as Error, { userId, chatId });
@@ -332,3 +344,5 @@ await prisma.message.create({
         });
     }
 }
+
+export const POST = withMetrics(handler);

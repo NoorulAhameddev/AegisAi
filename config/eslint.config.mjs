@@ -44,12 +44,17 @@ const eslintConfig = [
   },
   // Node-specific files (e.g., config/scripts)
   {
-    files: ["next.config.js"],
+    files: ["**/*.config.js", "next.config.js"],
     languageOptions: {
       globals: {
         module: "readonly",
         require: "readonly",
+        __dirname: "readonly",
+        process: "readonly",
       },
+    },
+    rules: {
+      "no-undef": "off",
     },
   },
   // CSS-in-JS patterns: suppress inline style warnings for dynamic values

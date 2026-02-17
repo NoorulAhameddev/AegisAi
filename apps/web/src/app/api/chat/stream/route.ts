@@ -6,10 +6,12 @@ import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { parseBody } from "@/lib/request-validation";
-import { errorResponse, rateLimitResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import { errorResponse, rateLimitResponse, successResponse, unauthorizedResponse, notFoundResponse } from "@/lib/response";
+import { withMetrics } from "@/lib/middleware/metrics-middleware";
+import { addJobWithFallback } from "@/lib/queue-operations";
 import crypto from 'crypto';
 
-export async function POST(req: NextRequest) {
+const handler = async (req: NextRequest) => {
   const startTime = Date.now();
 
   try {
@@ -52,18 +54,43 @@ export async function POST(req: NextRequest) {
       return errorResponse(backpressure.message || 'System overloaded', { status: 503 });
     }
 
+    // Verify chat ownership and not deleted
+    const chat = await prisma.chat.findFirst({
+      where: { id: data.chatId, userId: user.id, deletedAt: null },
+      select: { id: true }
+    });
+    if (!chat) {
+      return notFoundResponse();
+    }
+
     // Encrypt Message Content (Data Privacy)
     const { encrypt } = await import("@/lib/encryption");
     const encryptedMessage = await encrypt(data.message);
+    const messageHash = crypto.createHash('sha256').update(data.message).digest('hex');
 
-    // Save User Message synchronously
-    await prisma.message.create({
-      data: {
+    // Skip duplicate user message if recently saved
+    const existingUserMessage = await prisma.message.findFirst({
+      where: {
         chatId: data.chatId,
         role: "USER",
-        content: encryptedMessage,
+        contentHash: messageHash,
+        deletedAt: null,
+        createdAt: { gte: new Date(Date.now() - 60 * 1000) }
       },
+      select: { id: true }
     });
+
+    // Save User Message synchronously
+    if (!existingUserMessage) {
+      await prisma.message.create({
+        data: {
+          chatId: data.chatId,
+          role: "USER",
+          content: encryptedMessage,
+          contentHash: messageHash,
+        },
+      });
+    }
 
     // Improved idempotency key using content hash
     const idempotencyKey = crypto
@@ -74,30 +101,34 @@ export async function POST(req: NextRequest) {
 
     const requestId = crypto.randomUUID();
 
-    const job = await chatQueue.add('chat-job', {
-      chatId: data.chatId,
-      message: data.message,
-      fileId: data.fileId,
-      userId: user.id,
-      requestId,
-    }, {
-      jobId: idempotencyKey, // Prevents duplicate jobs for same message
-      // Let queue default retention settings handle cleanup
-      // removeOnComplete: true, 
-      removeOnFail: false
-    });
+    const jobId = await addJobWithFallback(
+      chatQueue,
+      'chat-job',
+      idempotencyKey,
+      {
+        chatId: data.chatId,
+        message: data.message,
+        fileId: data.fileId,
+        userId: user.id,
+        requestId,
+      },
+      {
+        jobId: idempotencyKey,
+        removeOnFail: false,
+      }
+    );
 
     const duration = Date.now() - startTime;
     logger.api('POST', '/api/chat/stream', 200, duration);
     logger.info('Chat job queued', {
-      jobId: job.id,
+      jobId,
       chatId: data.chatId,
       userId: user.id,
       requestId
     });
 
     return successResponse({
-      jobId: job.id,
+      jobId,
       status: 'queued',
       message: "Request queued for processing"
     });
@@ -111,3 +142,5 @@ export async function POST(req: NextRequest) {
     return errorResponse(err.message || "Chat stream failed", { status: 500 });
   }
 }
+
+export const POST = withMetrics(handler);

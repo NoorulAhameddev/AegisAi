@@ -37,7 +37,7 @@ export async function createAgent(chatId: string, systemPrompt: string) {
 
     // Create agent
     const agent = await createOpenAIFunctionsAgent({
-        llm,
+        llm: llm as any,
         tools,
         prompt,
     });
@@ -116,7 +116,7 @@ export async function createStreamingAgent(chatId: string, systemPrompt: string)
     ]);
 
     const agent = await createOpenAIFunctionsAgent({
-        llm,
+        llm: llm as any,
         tools,
         prompt,
     });

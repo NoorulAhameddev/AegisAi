@@ -12,7 +12,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { chatId: string } }
+    { params }: { params: Promise<{ chatId: string }> }
 ) {
     const requestId = req.headers.get('x-request-id') || '';
     
@@ -20,7 +20,7 @@ export async function GET(
         const user = await verifyAuth(req);
         if (!user) return unauthorizedResponse({ requestId });
 
-        const { chatId } = params;
+        const { chatId } = await params;
 
         // Verify user has access to this chat
         const chat = await prisma.chat.findUnique({

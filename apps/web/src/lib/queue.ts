@@ -3,6 +3,8 @@ import Redis from 'ioredis';
 import { env } from '@/lib/env';
 import { redisHealthTracker } from './redis-fallback';
 import { logger } from './logger';
+import { publishQueueDepthMetric } from './cloudwatch-metrics';
+import { getQueueDepthWithFallback } from './queue-operations';
 
 const redisUrl = env.REDIS_URL;
 const queueName = env.QUEUE_NAME;
@@ -146,6 +148,16 @@ export async function checkQueueBackpressure(
         const depth = (counts.waiting || 0) + (counts.active || 0) + (counts.delayed || 0);
         
         const thresholds = BACKPRESSURE_THRESHOLDS[queueName];
+
+        // Publish queue depth metric for autoscaling and dashboards
+        try {
+            await publishQueueDepthMetric(queueName, depth);
+        } catch (metricsError) {
+            logger.warn('Failed to publish queue depth metric', {
+                queue: queueName,
+                depth,
+            });
+        }
         
         // Critical threshold: reject new jobs
         if (depth >= thresholds.critical) {
@@ -182,13 +194,23 @@ export async function checkQueueBackpressure(
             depth,
         };
     } catch (error) {
-        // On error checking queue depth, allow the request (fail open)
-        // But log the error for investigation
+        // On error checking queue depth via Redis, fall back to DB depth
         logger.error(`Failed to check queue backpressure for ${queueName}`, error as Error);
+        const depth = await getQueueDepthWithFallback(queue);
+        const thresholds = BACKPRESSURE_THRESHOLDS[queueName];
+
+        if (depth >= thresholds.critical) {
+            return {
+                allowed: false,
+                depth,
+                message: `System overloaded. Queue depth: ${depth}. Please try again in a few minutes.`,
+            };
+        }
+
         return {
             allowed: true,
-            depth: 0,
-            message: 'Unable to check queue status',
+            depth,
+            message: 'Queue depth estimated via fallback',
         };
     }
 }

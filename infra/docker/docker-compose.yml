@@ -30,7 +30,7 @@ services:
     container_name: aegis-redis
     env_file:
       - .env
-    command: ["sh", "-c", "redis-server --appendonly yes${REDIS_PASSWORD:+ --requirepass $REDIS_PASSWORD}"]
+    command: ["sh", "-c", "redis-server --appendonly yes${REDIS_PASSWORD:+ --requirepass $REDIS_PASSWORD}${REDIS_MAXMEMORY:+ --maxmemory $REDIS_MAXMEMORY}${REDIS_MAXMEMORY_POLICY:+ --maxmemory-policy $REDIS_MAXMEMORY_POLICY}"]
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
@@ -79,7 +79,7 @@ services:
     networks:
       - aegis-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/ping"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -142,6 +142,29 @@ services:
     volumes:
       - ../../uploads:/app/uploads
       - ../../data:/app/data
+    restart: unless-stopped
+    networks:
+      - aegis-network
+
+  # WebSocket Worker
+  worker-websocket:
+    image: aegis-ai
+    container_name: aegis-worker-websocket
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      FRONTEND_URL: ${SITE_URL:-http://localhost:3000}
+      WEBSOCKET_PORT: 3001
+    depends_on:
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    command: ["npm", "run", "worker:websocket"]
+    ports:
+      - "${WEBSOCKET_PORT:-3001}:3001"
     restart: unless-stopped
     networks:
       - aegis-network

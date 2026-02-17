@@ -14,6 +14,7 @@ import { shouldCompressConversation, compressConversation } from '../services/ai
 import { RequestTracer, globalTraceCollector } from '../lib/request-tracer';
 import { sanitizeRagContext } from '../lib/rag-sanitizer';
 import { retryWithBackoff, RetryStrategies } from '../lib/retry';
+import crypto from 'crypto';
 
 export async function processChatJob(job: Job) {
     const { chatId, message, fileId, userId, requestId } = job.data;
@@ -97,12 +98,23 @@ export async function processChatJob(job: Job) {
             logger.warn('Vector store ingestion failed (non-blocking)', { jobId: job.id as string, error: (e as Error).message });
         }
 
+        // Ensure chat exists and is not deleted
+        const chatRecord = await prisma.chat.findFirst({
+            where: { id: chatId, userId, deletedAt: null },
+            select: { id: true }
+        });
+
+        if (!chatRecord) {
+            logger.warn('Chat not found or deleted', { jobId: job.id as string, userId, chatId });
+            return { status: 'failed', error: 'Chat not found', chatId };
+        }
+
         // 1. Fetch System Prompt
         const systemPrompt = await buildSystemPrompt(userId);
 
         // 2. Fetch Chat History
         const allMessages = await prisma.message.findMany({
-            where: { chatId: chatId },
+            where: { chatId: chatId, deletedAt: null },
             orderBy: { createdAt: "asc" },
             take: 50, // CRITICAL: Limit to last 50 messages to prevent memory bloat and pagination issues
             skip: 0,
@@ -459,6 +471,7 @@ ${sanitizedRagContext}
         const { encrypt } = await import("../lib/encryption");
         const { withTransaction } = await import("../lib/prisma");
         const encryptedResponse = await encrypt(responseToSave);
+        const responseHash = crypto.createHash('sha256').update(responseToSave).digest('hex');
 
         // ATOMIC OPERATION: Save message and update chat title in transaction
         const savedMessage = await withTransaction(
@@ -468,7 +481,8 @@ ${sanitizedRagContext}
                     data: {
                         chatId,
                         role: "ASSISTANT",
-                        content: encryptedResponse
+                        content: encryptedResponse,
+                        contentHash: responseHash
                     }
                 });
 
