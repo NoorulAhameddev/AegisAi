@@ -21,56 +21,60 @@ class MCPClient {
   private isEnabled: boolean;
 
   constructor() {
-    this.isEnabled = process.env.MCP_ENABLED === 'true';
+    this.isEnabled = process.env.MCP_ENABLED === "true";
     this.initializeServers();
   }
 
   private initializeServers() {
     if (!this.isEnabled) {
-      console.log('MCP servers are disabled');
+      console.log("MCP servers are disabled");
       return;
     }
 
     // Filesystem Server
     this.servers.filesystem = {
-      command: 'node',
+      command: "node",
       args: [
-        './node_modules/@modelcontextprotocol/server-filesystem/dist/index.js',
-        process.env.MCP_FILESYSTEM_PATH || './uploads'
+        "./node_modules/@modelcontextprotocol/server-filesystem/dist/index.js",
+        process.env.MCP_FILESYSTEM_PATH || "./uploads",
       ],
-      env: {}
+      env: {},
     };
 
     // GitHub Server
     if (process.env.GITHUB_TOKEN) {
       this.servers.github = {
-        command: 'node',
-        args: ['./node_modules/@modelcontextprotocol/server-github/dist/index.js'],
+        command: "node",
+        args: [
+          "./node_modules/@modelcontextprotocol/server-github/dist/index.js",
+        ],
         env: {
-          GITHUB_PERSONAL_ACCESS_TOKEN: process.env.GITHUB_TOKEN
-        }
+          GITHUB_PERSONAL_ACCESS_TOKEN: process.env.GITHUB_TOKEN,
+        },
       };
     }
 
     // Browser Server (Edge/Chrome)
     this.servers.browser = {
-      command: 'node',
-      args: ['./node_modules/@modelcontextprotocol/server-puppeteer/dist/index.js'],
+      command: "node",
+      args: [
+        "./node_modules/@modelcontextprotocol/server-puppeteer/dist/index.js",
+      ],
       env: {
-        BROWSER_TYPE: process.env.BROWSER_TYPE || 'edge',
-        BROWSER_HEADLESS: process.env.BROWSER_HEADLESS || 'false'
-      }
+        BROWSER_TYPE: process.env.BROWSER_TYPE || "edge",
+        BROWSER_HEADLESS: process.env.BROWSER_HEADLESS || "false",
+      },
     };
 
     // n8n Workflow Automation Server
     if (process.env.N8N_API_URL && process.env.N8N_API_KEY) {
       this.servers.n8n = {
-        command: 'npx',
-        args: ['n8n-mcp'],
+        command: "npx",
+        args: ["n8n-mcp"],
         env: {
           N8N_API_URL: process.env.N8N_API_URL,
-          N8N_API_KEY: process.env.N8N_API_KEY
-        }
+          N8N_API_KEY: process.env.N8N_API_KEY,
+        },
       };
     }
   }
@@ -92,7 +96,9 @@ class MCPClient {
   /**
    * Get server configuration
    */
-  getServerConfig(serverName: keyof MCPServersConfig): MCPServerConfig | undefined {
+  getServerConfig(
+    serverName: keyof MCPServersConfig,
+  ): MCPServerConfig | undefined {
     return this.servers[serverName];
   }
 
@@ -108,10 +114,10 @@ class MCPClient {
    */
   async readFile(path: string): Promise<string | null> {
     if (!this.servers.filesystem) {
-      console.warn('Filesystem server not available');
+      console.warn("Filesystem server not available");
       return null;
     }
-    
+
     // Implementation would call the MCP server
     // For now, this is a placeholder for the integration
     console.log(`MCP Filesystem: Reading ${path}`);
@@ -123,10 +129,10 @@ class MCPClient {
    */
   async getRepository(owner: string, repo: string): Promise<any> {
     if (!this.servers.github) {
-      console.warn('GitHub server not available - please set GITHUB_TOKEN');
+      console.warn("GitHub server not available - please set GITHUB_TOKEN");
       return null;
     }
-    
+
     // Implementation would call the MCP server
     console.log(`MCP GitHub: Getting ${owner}/${repo}`);
     return null;
@@ -137,10 +143,10 @@ class MCPClient {
    */
   async search(query: string): Promise<any> {
     if (!this.servers.browser) {
-      console.warn('Browser server not available');
+      console.warn("Browser server not available");
       return null;
     }
-    
+
     // Implementation would call the MCP browser server
     console.log(`MCP Browser: Searching for "${query}"`);
     return null;
@@ -151,10 +157,10 @@ class MCPClient {
    */
   async navigateToUrl(url: string): Promise<any> {
     if (!this.servers.browser) {
-      console.warn('Browser server not available');
+      console.warn("Browser server not available");
       return null;
     }
-    
+
     // Implementation would call the MCP browser server
     console.log(`MCP Browser (Edge): Navigating to ${url}`);
     return null;
@@ -165,10 +171,10 @@ class MCPClient {
    */
   async clickElement(selector: string): Promise<any> {
     if (!this.servers.browser) {
-      console.warn('Browser server not available');
+      console.warn("Browser server not available");
       return null;
     }
-    
+
     console.log(`MCP Browser (Edge): Clicking ${selector}`);
     return null;
   }
@@ -178,10 +184,10 @@ class MCPClient {
    */
   async fillForm(selector: string, value: string): Promise<any> {
     if (!this.servers.browser) {
-      console.warn('Browser server not available');
+      console.warn("Browser server not available");
       return null;
     }
-    
+
     console.log(`MCP Browser (Edge): Filling ${selector} with value`);
     return null;
   }
@@ -191,10 +197,12 @@ class MCPClient {
    */
   async executeWorkflow(workflowId: string, data?: any): Promise<any> {
     if (!this.servers.n8n) {
-      console.warn('n8n server not available - please set N8N_API_URL and N8N_API_KEY');
+      console.warn(
+        "n8n server not available - please set N8N_API_URL and N8N_API_KEY",
+      );
       return null;
     }
-    
+
     console.log(`MCP n8n: Executing workflow ${workflowId}`);
     return null;
   }
@@ -204,11 +212,13 @@ class MCPClient {
    */
   async listWorkflows(): Promise<any> {
     if (!this.servers.n8n) {
-      console.warn('n8n server not available - please set N8N_API_URL and N8N_API_KEY');
+      console.warn(
+        "n8n server not available - please set N8N_API_URL and N8N_API_KEY",
+      );
       return null;
     }
-    
-    console.log('MCP n8n: Listing workflows');
+
+    console.log("MCP n8n: Listing workflows");
     return null;
   }
 
@@ -217,10 +227,12 @@ class MCPClient {
    */
   async getWorkflowStatus(workflowId: string): Promise<any> {
     if (!this.servers.n8n) {
-      console.warn('n8n server not available - please set N8N_API_URL and N8N_API_KEY');
+      console.warn(
+        "n8n server not available - please set N8N_API_URL and N8N_API_KEY",
+      );
       return null;
     }
-    
+
     console.log(`MCP n8n: Getting status for workflow ${workflowId}`);
     return null;
   }
@@ -235,9 +247,9 @@ class MCPClient {
         filesystem: !!this.servers.filesystem,
         github: !!this.servers.github,
         browser: !!this.servers.browser,
-        n8n: !!this.servers.n8n
+        n8n: !!this.servers.n8n,
       },
-      availableServers: this.getAvailableServers()
+      availableServers: this.getAvailableServers(),
     };
   }
 }

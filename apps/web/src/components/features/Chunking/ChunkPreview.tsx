@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Tabs } from '@/components/ui/Tabs';
-import { X, Copy, Check } from 'lucide-react';
+import React, { useState } from "react";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Tabs } from "@/components/ui/Tabs";
+import { X, Copy, Check } from "lucide-react";
 
 interface Chunk {
   id: string;
@@ -20,7 +20,9 @@ interface ChunkPreviewProps {
 }
 
 export function ChunkPreview({ chunks, totalTokens }: ChunkPreviewProps) {
-  const [selectedChunk, setSelectedChunk] = useState<Chunk | null>(chunks[0] || null);
+  const [selectedChunk, setSelectedChunk] = useState<Chunk | null>(
+    chunks[0] || null,
+  );
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopy = (chunkId: string) => {
@@ -92,8 +94,8 @@ export function ChunkPreview({ chunks, totalTokens }: ChunkPreviewProps) {
                 onClick={() => setSelectedChunk(chunk)}
                 className={`w-full text-left px-3 py-2 text-sm border-l-2 transition ${
                   selectedChunk?.id === chunk.id
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-transparent hover:bg-gray-50'
+                    ? "border-blue-600 bg-blue-50"
+                    : "border-transparent hover:bg-gray-50"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -117,7 +119,8 @@ export function ChunkPreview({ chunks, totalTokens }: ChunkPreviewProps) {
               <div className="border-b bg-white p-4 flex items-center justify-between">
                 <div>
                   <p className="text-sm font-semibold">
-                    Chunk #{chunks.findIndex((c) => c.id === selectedChunk.id) + 1}
+                    Chunk #
+                    {chunks.findIndex((c) => c.id === selectedChunk.id) + 1}
                   </p>
                   <div className="flex gap-2 mt-1">
                     <Badge>{selectedChunk.tokens} tokens</Badge>

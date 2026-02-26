@@ -191,7 +191,8 @@ build/
 ################################################################################
 # Playwright & MCP testing
 .playwright-mcp/
-.agent/
+# Note: .agent/ is tracked in .git/info/exclude for local-only exclusion
+# This allows AI IDEs (Cursor, Windsurf, VS Code) to index workflows properly
 
 # Deployment & verification
 .vercel
@@ -224,6 +225,7 @@ apps/*/build/
 # Docker volumes and data
 infra/docker/data/
 infra/docker/volumes/
+infra/docker/.env
 
 # Keep root config & sources, ignore node_modules in subdirectories
 

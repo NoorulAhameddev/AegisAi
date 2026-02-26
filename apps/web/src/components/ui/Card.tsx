@@ -18,9 +18,10 @@ export function Card({
       className={cn(
         "rounded-2xl bg-zinc-900/40 border border-white/5 p-6 backdrop-blur-xl",
         "transition-all duration-300",
-        hover && "hover:bg-zinc-800/60 hover:border-white/10 hover:-translate-y-1 cursor-pointer",
+        hover &&
+          "hover:bg-zinc-800/60 hover:border-white/10 hover:-translate-y-1 cursor-pointer",
         glow && "hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.3)]",
-        className
+        className,
       )}
       {...props}
     >
@@ -83,7 +84,10 @@ export function CardFooter({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("mt-4 pt-4 border-t border-white/5", className)} {...props}>
+    <div
+      className={cn("mt-4 pt-4 border-t border-white/5", className)}
+      {...props}
+    >
       {children}
     </div>
   );

@@ -1,4 +1,5 @@
 import js from "@eslint/js";
+import tseslint from "typescript-eslint";
 
 const eslintConfig = [
   // Ignore build outputs and non-source folders
@@ -13,16 +14,15 @@ const eslintConfig = [
       "src/__tests__/**",
       // script utilities are Node-targeted and not part of app linting
       "scripts/**",
-      // Skip TypeScript for now (ESLint TS plugin not configured)
-      "**/*.ts",
-      "**/*.tsx",
     ],
   },
   // Base recommended rules
   js.configs.recommended,
-  // App source rules and globals for browser/Next environment (JS only)
+  // TypeScript recommended rules
+  ...tseslint.configs.recommended,
+  // App source rules and globals for browser/Next environment
   {
-    files: ["src/**/*.{js,jsx}"],
+    files: ["src/**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
       globals: {
         window: "readonly",
@@ -38,7 +38,8 @@ const eslintConfig = [
     },
     rules: {
       "no-unused-vars": "warn",
-      // Handled by typed code paths; avoid false positives in browser code
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
       "no-undef": "off",
     },
   },
@@ -58,7 +59,6 @@ const eslintConfig = [
     },
   },
   // CSS-in-JS patterns: suppress inline style warnings for dynamic values
-  // (gradients, widths, etc. that cannot be expressed via Tailwind)
   {
     files: ["src/**/*.tsx", "src/**/*.ts"],
     rules: {

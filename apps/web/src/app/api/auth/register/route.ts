@@ -4,7 +4,12 @@ import { getSettings } from "@/lib/settings";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { parseBody } from "@/lib/request-validation";
-import { errorResponse, forbiddenResponse, successResponse, rateLimitResponse } from "@/lib/response";
+import {
+  errorResponse,
+  forbiddenResponse,
+  successResponse,
+  rateLimitResponse,
+} from "@/lib/response";
 import { registerSchema } from "@/lib/validations";
 import { rateLimit } from "@/lib/rate-limit";
 import { NextRequest } from "next/server";
@@ -48,14 +53,21 @@ export async function POST(req: NextRequest) {
 
     // Dynamic import to avoid cycles/issues
     const { createSession } = await import("@/services/auth/session");
-    const { accessToken, refreshToken } = await createSession(user.id, userAgent, ip);
+    const { accessToken, refreshToken } = await createSession(
+      user.id,
+      userAgent,
+      ip,
+    );
 
     // Audit
     await prisma.auditLog.create({
-      data: { userId: user.id, action: "REGISTER" }
+      data: { userId: user.id, action: "REGISTER" },
     });
 
-    const res = successResponse({ message: "Registered & Logged in" }, { status: 201 });
+    const res = successResponse(
+      { message: "Registered & Logged in" },
+      { status: 201 },
+    );
 
     const isProd = env.NODE_ENV === "production";
 

@@ -1,27 +1,43 @@
 /**
  * Serverless Function Framework
- * Manage and execute custom serverless functions
+ *
+ * ⚠️ DEPRECATED ⚠️
+ * This module uses vm2 which has known security vulnerabilities (CVE-2023-37466).
+ * The feature is DISABLED by default (ENABLE_SERVERLESS_FUNCTIONS=false).
+ *
+ * TODO: Migrate to a secure execution environment:
+ * - Deno Deploy (deno.com/deploy)
+ * - Cloudflare Workers
+ * - AWS Lambda
+ * - WebContainer API (StackBlitz)
+ *
+ * DO NOT ENABLE IN PRODUCTION
  */
 
-import { prisma } from '@/lib/prisma';
-import { logger } from '@/lib/logger';
-import { encrypt, decrypt } from '@/lib/encryption';
-import { env } from '@/lib/env';
-import { VM } from 'vm2';
-import path from 'path';
-import fs from 'fs/promises';
+import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
+import { encrypt, decrypt } from "@/lib/encryption";
+import { env } from "@/lib/env";
+// vm2 is deprecated and has CVE-2023-37466 - DO NOT USE
+// import { VM } from 'vm2';
+import path from "path";
+import fs from "fs/promises";
 
-export type FunctionRuntime = 'javascript' | 'typescript';
+export type FunctionRuntime = "javascript" | "typescript";
 
 /**
  * Check if serverless function execution is enabled
  * Returns error if disabled due to vm2 vulnerability (CVE-2023-37466)
  */
-function checkServerlessFunctionsEnabled(): { enabled: boolean; error?: string } {
+function checkServerlessFunctionsEnabled(): {
+  enabled: boolean;
+  error?: string;
+} {
   if (!env.ENABLE_SERVERLESS_FUNCTIONS) {
     return {
       enabled: false,
-      error: 'Serverless function execution is currently disabled due to a critical security vulnerability (CVE-2023-37466). This feature is being migrated to a secure execution environment.'
+      error:
+        "Serverless function execution is currently disabled due to a critical security vulnerability (CVE-2023-37466). This feature is being migrated to a secure execution environment.",
     };
   }
   return { enabled: true };
@@ -37,21 +53,21 @@ export interface ServerlessFunction {
   environmentVariables?: Record<string, string>;
   timeout: number; // milliseconds
   memory: number; // MB
-  status: 'draft' | 'active' | 'disabled';
+  status: "draft" | "active" | "disabled";
   triggers?: FunctionTrigger[];
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface FunctionTrigger {
-  type: 'http' | 'webhook' | 'schedule' | 'event';
+  type: "http" | "webhook" | "schedule" | "event";
   config: Record<string, any>;
 }
 
 export interface FunctionExecution {
   id: string;
   functionId: string;
-  status: 'running' | 'success' | 'error' | 'timeout';
+  status: "running" | "success" | "error" | "timeout";
   input?: Record<string, any>;
   output?: Record<string, any>;
   error?: string;
@@ -67,13 +83,13 @@ export async function createServerlessFunction(
   userId: string,
   name: string,
   code: string,
-  runtime: FunctionRuntime = 'javascript',
+  runtime: FunctionRuntime = "javascript",
   options?: {
     description?: string;
     timeout?: number;
     memory?: number;
     environmentVariables?: Record<string, string>;
-  }
+  },
 ) {
   // CRITICAL SECURITY CHECK: Feature disabled due to vm2 vulnerability
   const securityCheck = checkServerlessFunctionsEnabled();
@@ -87,7 +103,8 @@ export async function createServerlessFunction(
 
     const encryptedCode = await encrypt(code);
     const encryptedEnv =
-      options?.environmentVariables && Object.keys(options.environmentVariables).length > 0
+      options?.environmentVariables &&
+      Object.keys(options.environmentVariables).length > 0
         ? await encrypt(JSON.stringify(options.environmentVariables))
         : undefined;
 
@@ -100,16 +117,22 @@ export async function createServerlessFunction(
         description: options?.description,
         timeout: options?.timeout || 30000,
         memory: options?.memory || 128,
-        status: 'draft',
+        status: "draft",
         environmentVariables: encryptedEnv,
       },
     });
 
-    logger.worker('serverless:create', 'success', { userId, funcId: func.id, name });
+    logger.worker("serverless:create", "success", {
+      userId,
+      funcId: func.id,
+      name,
+    });
 
     return func;
   } catch (error) {
-    logger.error('Failed to create serverless function', error as Error, { userId });
+    logger.error("Failed to create serverless function", error as Error, {
+      userId,
+    });
     throw error;
   }
 }
@@ -119,7 +142,7 @@ export async function createServerlessFunction(
  */
 export async function deployServerlessFunction(
   functionId: string,
-  userId: string
+  userId: string,
 ): Promise<ServerlessFunction> {
   // CRITICAL SECURITY CHECK: Feature disabled due to vm2 vulnerability
   const securityCheck = checkServerlessFunctionsEnabled();
@@ -134,7 +157,7 @@ export async function deployServerlessFunction(
     });
 
     if (!func || func.userId !== userId) {
-      throw new Error('Function not found or access denied');
+      throw new Error("Function not found or access denied");
     }
 
     // Test execution before deploying
@@ -143,14 +166,20 @@ export async function deployServerlessFunction(
     // Deploy
     const updated = await prisma.serverlessFunction.update({
       where: { id: functionId },
-      data: { status: 'active' },
+      data: { status: "active" },
     });
 
-    logger.worker('serverless:deploy', 'success', { userId, funcId: functionId });
+    logger.worker("serverless:deploy", "success", {
+      userId,
+      funcId: functionId,
+    });
 
     return updated as ServerlessFunction;
   } catch (error) {
-    logger.error('Failed to deploy function', error as Error, { functionId, userId });
+    logger.error("Failed to deploy function", error as Error, {
+      functionId,
+      userId,
+    });
     throw error;
   }
 }
@@ -162,7 +191,7 @@ export async function executeServerlessFunction(
   functionId: string,
   userId: string,
   input?: Record<string, any>,
-  executionTimeout?: number
+  executionTimeout?: number,
 ): Promise<FunctionExecution> {
   // CRITICAL SECURITY CHECK: Feature disabled due to vm2 vulnerability
   const securityCheck = checkServerlessFunctionsEnabled();
@@ -179,11 +208,11 @@ export async function executeServerlessFunction(
     });
 
     if (!func || func.userId !== userId) {
-      throw new Error('Function not found or access denied');
+      throw new Error("Function not found or access denied");
     }
 
-    if (func.status === 'disabled') {
-      throw new Error('Function is disabled');
+    if (func.status === "disabled") {
+      throw new Error("Function is disabled");
     }
 
     // Decrypt code and environment
@@ -212,15 +241,20 @@ export async function executeServerlessFunction(
     let error: string | undefined;
 
     try {
-      const vm = new VM({
-        timeout,
-        sandbox: context,
-      });
+      // ⚠️ DEPRECATED: vm2 is disabled due to CVE-2023-37466
+      // This code should NEVER be enabled in production
+      throw new Error(
+        "Serverless execution is disabled due to security vulnerabilities",
+      );
 
-      output = vm.run(decryptedCode);
+      // const vm = new VM({
+      //   timeout,
+      //   sandbox: context,
+      // });
+      // output = vm.run(decryptedCode);
     } catch (err) {
       error = (err as Error).message;
-      if (error.includes('Script execution timed out')) {
+      if (error.includes("Script execution timed out")) {
         error = `Function timed out after ${timeout}ms`;
       }
     }
@@ -232,7 +266,7 @@ export async function executeServerlessFunction(
     const execution = await prisma.functionExecution.create({
       data: {
         functionId,
-        status: error ? 'error' : 'success',
+        status: error ? "error" : "success",
         input,
         output,
         error,
@@ -241,7 +275,7 @@ export async function executeServerlessFunction(
       },
     });
 
-    logger.worker('serverless:execute', 'completed', {
+    logger.worker("serverless:execute", "completed", {
       userId,
       funcId: functionId,
       status: execution.status,
@@ -255,7 +289,7 @@ export async function executeServerlessFunction(
     const execution = await prisma.functionExecution.create({
       data: {
         functionId,
-        status: 'error',
+        status: "error",
         input,
         error: (error as Error).message,
         duration,
@@ -263,7 +297,10 @@ export async function executeServerlessFunction(
       },
     });
 
-    logger.error('Function execution failed', error as Error, { functionId, userId });
+    logger.error("Function execution failed", error as Error, {
+      functionId,
+      userId,
+    });
     return execution as FunctionExecution;
   }
 }
@@ -273,7 +310,7 @@ export async function executeServerlessFunction(
  */
 async function validateFunctionCode(code: string, runtime: FunctionRuntime) {
   try {
-    if (runtime === 'javascript' || runtime === 'typescript') {
+    if (runtime === "javascript" || runtime === "typescript") {
       // Basic syntax check
       new Function(code);
     }
@@ -287,7 +324,7 @@ async function validateFunctionCode(code: string, runtime: FunctionRuntime) {
  */
 export async function getServerlessFunction(
   functionId: string,
-  userId: string
+  userId: string,
 ): Promise<ServerlessFunction> {
   try {
     const func = await prisma.serverlessFunction.findUnique({
@@ -295,7 +332,7 @@ export async function getServerlessFunction(
     });
 
     if (!func || func.userId !== userId) {
-      throw new Error('Function not found or access denied');
+      throw new Error("Function not found or access denied");
     }
 
     // Decrypt code for display
@@ -306,7 +343,7 @@ export async function getServerlessFunction(
       code: decryptedCode,
     } as ServerlessFunction;
   } catch (error) {
-    logger.error('Failed to fetch function', error as Error, { functionId });
+    logger.error("Failed to fetch function", error as Error, { functionId });
     throw error;
   }
 }
@@ -314,11 +351,14 @@ export async function getServerlessFunction(
 /**
  * List user's functions
  */
-export async function listServerlessFunctions(userId: string, limit: number = 50) {
+export async function listServerlessFunctions(
+  userId: string,
+  limit: number = 50,
+) {
   try {
     const functions = await prisma.serverlessFunction.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: limit,
       select: {
         id: true,
@@ -335,7 +375,7 @@ export async function listServerlessFunctions(userId: string, limit: number = 50
 
     return functions;
   } catch (error) {
-    logger.error('Failed to list functions', error as Error, { userId });
+    logger.error("Failed to list functions", error as Error, { userId });
     return [];
   }
 }
@@ -352,8 +392,8 @@ export async function updateServerlessFunction(
     code?: string;
     timeout?: number;
     memory?: number;
-    status?: 'draft' | 'active' | 'disabled';
-  }
+    status?: "draft" | "active" | "disabled";
+  },
 ) {
   try {
     // Verify ownership
@@ -362,7 +402,7 @@ export async function updateServerlessFunction(
     });
 
     if (!func || func.userId !== userId) {
-      throw new Error('Function not found or access denied');
+      throw new Error("Function not found or access denied");
     }
 
     // Validate code if provided
@@ -376,11 +416,14 @@ export async function updateServerlessFunction(
       data: updates,
     });
 
-    logger.worker('serverless:update', 'success', { userId, funcId: functionId });
+    logger.worker("serverless:update", "success", {
+      userId,
+      funcId: functionId,
+    });
 
     return updated;
   } catch (error) {
-    logger.error('Failed to update function', error as Error, { functionId });
+    logger.error("Failed to update function", error as Error, { functionId });
     throw error;
   }
 }
@@ -390,7 +433,7 @@ export async function updateServerlessFunction(
  */
 export async function deleteServerlessFunction(
   functionId: string,
-  userId: string
+  userId: string,
 ) {
   try {
     const func = await prisma.serverlessFunction.findUnique({
@@ -398,7 +441,7 @@ export async function deleteServerlessFunction(
     });
 
     if (!func || func.userId !== userId) {
-      throw new Error('Function not found or access denied');
+      throw new Error("Function not found or access denied");
     }
 
     // Delete related executions
@@ -411,9 +454,12 @@ export async function deleteServerlessFunction(
       where: { id: functionId },
     });
 
-    logger.worker('serverless:delete', 'success', { userId, funcId: functionId });
+    logger.worker("serverless:delete", "success", {
+      userId,
+      funcId: functionId,
+    });
   } catch (error) {
-    logger.error('Failed to delete function', error as Error, { functionId });
+    logger.error("Failed to delete function", error as Error, { functionId });
     throw error;
   }
 }
@@ -424,7 +470,7 @@ export async function deleteServerlessFunction(
 export async function getFunctionExecutionHistory(
   functionId: string,
   userId: string,
-  limit: number = 100
+  limit: number = 100,
 ) {
   try {
     // Verify ownership
@@ -433,18 +479,18 @@ export async function getFunctionExecutionHistory(
     });
 
     if (!func || func.userId !== userId) {
-      throw new Error('Function not found or access denied');
+      throw new Error("Function not found or access denied");
     }
 
     const executions = await prisma.functionExecution.findMany({
       where: { functionId },
-      orderBy: { executedAt: 'desc' },
+      orderBy: { executedAt: "desc" },
       take: limit,
     });
 
     return executions;
   } catch (error) {
-    logger.error('Failed to fetch execution history', error as Error);
+    logger.error("Failed to fetch execution history", error as Error);
     return [];
   }
 }
@@ -460,7 +506,7 @@ export async function getFunctionMetrics(functionId: string, userId: string) {
     });
 
     if (!func || func.userId !== userId) {
-      throw new Error('Function not found or access denied');
+      throw new Error("Function not found or access denied");
     }
 
     const executions = await prisma.functionExecution.findMany({
@@ -478,21 +524,27 @@ export async function getFunctionMetrics(functionId: string, userId: string) {
       };
     }
 
-    const successful = executions.filter((e: any) => e.status === 'success').length;
+    const successful = executions.filter(
+      (e: any) => e.status === "success",
+    ).length;
     const durations = executions.map((e: any) => e.duration);
     const memories = executions.map((e: any) => e.memoryUsed);
-    const errors = executions.filter((e: any) => e.error).map((e: any) => e.error);
+    const errors = executions
+      .filter((e: any) => e.error)
+      .map((e: any) => e.error);
 
     return {
       totalExecutions: executions.length,
       successRate: (successful / executions.length) * 100,
-      avgDuration: durations.reduce((a: number, b: number) => a + b, 0) / durations.length,
+      avgDuration:
+        durations.reduce((a: number, b: number) => a + b, 0) / durations.length,
       maxDuration: Math.max(...durations),
-      avgMemory: memories.reduce((a: number, b: number) => a + b, 0) / memories.length,
+      avgMemory:
+        memories.reduce((a: number, b: number) => a + b, 0) / memories.length,
       errors: Array.from(new Set(errors)),
     };
   } catch (error) {
-    logger.error('Failed to fetch metrics', error as Error);
+    logger.error("Failed to fetch metrics", error as Error);
     throw error;
   }
 }

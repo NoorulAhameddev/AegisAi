@@ -9,13 +9,14 @@
 
 Aegis AI uses a **3-tier backup approach** for high availability:
 
-| Layer | Data | Frequency | Retention | RPO | RTO |
-|-------|------|-----------|-----------|-----|-----|
-| **Primary** | PostgreSQL | Real-time | Live | 0 min | 0 min |
-| **Automated** | PostgreSQL + LanceDB | Daily | 30 days | 24 hrs | 1 hour |
-| **Archive** | Full export | Weekly | 1+ year | 7 days | 4 hours |
+| Layer         | Data                 | Frequency | Retention | RPO    | RTO     |
+| ------------- | -------------------- | --------- | --------- | ------ | ------- |
+| **Primary**   | PostgreSQL           | Real-time | Live      | 0 min  | 0 min   |
+| **Automated** | PostgreSQL + LanceDB | Daily     | 30 days   | 24 hrs | 1 hour  |
+| **Archive**   | Full export          | Weekly    | 1+ year   | 7 days | 4 hours |
 
 **Definitions:**
+
 - **RPO** (Recovery Point Objective): Max data loss acceptable
 - **RTO** (Recovery Time Objective): Max downtime acceptable
 
@@ -26,6 +27,7 @@ Aegis AI uses a **3-tier backup approach** for high availability:
 ### Automated Daily Backups (Recommended)
 
 #### Option 1: AWS RDS Automated Backups
+
 If running on AWS RDS (recommended for production):
 
 ```bash
@@ -50,7 +52,7 @@ aws rds restore-db-instance-from-db-snapshot \
 Add automated backup service to `docker-compose.yml`:
 
 ```yaml
-version: '3.8'
+version: "3.8"
 services:
   postgres:
     image: postgres:16-alpine
@@ -103,12 +105,14 @@ echo "✅ Backup created: $BACKUP_DIR"
 ```
 
 **Run as cron job (Linux/Mac):**
+
 ```bash
 # Every day at 2 AM
 0 2 * * * /app/scripts/backup-database.sh
 ```
 
 **Run as scheduled task (Windows):**
+
 ```powershell
 # Task Scheduler → Create Basic Task
 # Trigger: Daily at 2:00 AM
@@ -120,6 +124,7 @@ echo "✅ Backup created: $BACKUP_DIR"
 ## 📦 Vector Database Backup (LanceDB)
 
 ### Location
+
 LanceDB is stored at `data/lancedb/` - this is critical data.
 
 ### Backup Strategy
@@ -151,6 +156,7 @@ find ./backups -name "lancedb-*.tar.gz" -mtime +14 -delete
 ## 💾 Full System Backup (Production)
 
 ### Backup All Data
+
 ```bash
 #!/bin/bash
 # scripts/full-system-backup.sh
@@ -202,8 +208,9 @@ echo "📊 Total size: $(du -sh $BACKUP_ROOT | cut -f1)"
 ```
 
 **Retention Policy:**
+
 - Daily backups: 30 days (1 month)
-- Weekly backups: 90 days (3 months)  
+- Weekly backups: 90 days (3 months)
 - Monthly backups: 1 year
 - Compliance backups: 7 years (if needed)
 
@@ -373,15 +380,15 @@ Add to your monitoring system (Datadog, New Relic, etc.):
 
 ```typescript
 // src/services/backup/backup-monitor.ts
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 export async function checkBackupHealth() {
-  const backupDir = './backups';
+  const backupDir = "./backups";
   const backups = fs.readdirSync(backupDir).sort().reverse();
 
   if (backups.length === 0) {
-    logger.error('NO_BACKUPS_FOUND', new Error('No backups exist'));
-    alert.criticality = 'CRITICAL';
+    logger.error("NO_BACKUPS_FOUND", new Error("No backups exist"));
+    alert.criticality = "CRITICAL";
     return false;
   }
 
@@ -391,7 +398,7 @@ export async function checkBackupHealth() {
   const hoursOld = backupAge / (1000 * 60 * 60);
 
   if (hoursOld > 25) {
-    logger.warn('BACKUP_STALE', { hoursOld });
+    logger.warn("BACKUP_STALE", { hoursOld });
     return false;
   }
 
@@ -424,6 +431,7 @@ Use this before each production deploy:
 ## 🆘 Support
 
 For backup/recovery issues:
+
 1. Check backup logs: `tail -f logs/backup.log`
 2. Verify disk space: `df -h`
 3. Test connectivity: `psql $DATABASE_URL -c "SELECT 1"`

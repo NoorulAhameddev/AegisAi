@@ -1,7 +1,13 @@
 import { NextRequest } from "next/server";
 import { verifyAuth } from "@/services/auth/auth";
 import { prisma } from "@/lib/prisma";
-import { successResponse, errorResponse, unauthorizedResponse, notFoundResponse, badRequestResponse } from "@/lib/response";
+import {
+  successResponse,
+  errorResponse,
+  unauthorizedResponse,
+  notFoundResponse,
+  badRequestResponse,
+} from "@/lib/response";
 import { z } from "zod";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -45,12 +51,12 @@ export async function POST(req: NextRequest) {
       // Soft delete messages in this chat
       prisma.message.updateMany({
         where: { chatId },
-        data: { deletedAt: new Date() }
+        data: { deletedAt: new Date() },
       }),
       // Soft delete the chat itself
       prisma.chat.update({
         where: { id: chatId },
-        data: { deletedAt: new Date() }
+        data: { deletedAt: new Date() },
       }),
       // Audit log entry
       prisma.auditLog.create({
@@ -58,7 +64,7 @@ export async function POST(req: NextRequest) {
           userId: user.id,
           action: `CHAT_DELETE:${chatId}`,
         },
-      })
+      }),
     ]);
 
     return successResponse({ deleted: true, chatId });

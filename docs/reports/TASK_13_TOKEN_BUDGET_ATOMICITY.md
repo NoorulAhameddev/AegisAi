@@ -19,6 +19,7 @@ Token budget enforcement is now atomic and concurrency-safe. Requests reserve bu
 **File**: [apps/web/src/services/billing/token-budget.ts](../../apps/web/src/services/billing/token-budget.ts)
 
 New flow:
+
 - `reserveBudget()` performs a serialized transaction per user
 - Budget counters are updated atomically before work begins
 - `finalizeUsage()` adjusts counters by $\Delta = actual - estimated$ and writes `UsageMetric`

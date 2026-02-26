@@ -1,11 +1,13 @@
-import { Server as SocketIOServer, Socket } from 'socket.io';
-import { createServer } from 'http';
-import Redis from 'ioredis';
-import { logger } from '@/lib/logger';
-import { env } from '@/lib/env';
+import { Server as SocketIOServer, Socket } from "socket.io";
+import { createServer } from "http";
+import type { Server } from "net";
+import Redis from "ioredis";
+import { logger } from "@/lib/logger";
+import { env } from "@/lib/env";
+import { prisma } from "./prisma";
 
 export interface RealtimeMessage {
-  type: 'chat' | 'status' | 'presence' | 'notification' | 'error';
+  type: "chat" | "status" | "presence" | "notification" | "error";
   userId: string;
   chatId: string;
   content?: string;
@@ -17,7 +19,7 @@ export interface RealtimeMessage {
 export interface PresenceData {
   userId: string;
   chatId: string;
-  status: 'online' | 'typing' | 'offline';
+  status: "online" | "typing" | "offline";
   lastSeen: string;
 }
 
@@ -32,19 +34,27 @@ let publisher: Redis | null = null;
 const activeConnections = new Map<string, Set<string>>();
 const userSockets = new Map<string, Set<string>>();
 
+// WebSocket rate limiting
+const messageRateLimitMap = new Map<
+  string,
+  { count: number; resetTime: number }
+>();
+const MESSAGE_RATE_LIMIT = 30; // messages per minute
+const MESSAGE_RATE_WINDOW = 60000; // 1 minute
+
 /**
  * Initialize WebSocket server
  * Should be called once on worker startup
  */
-export function initializeWebSocketServer(httpServer: any): SocketIOServer {
+export function initializeWebSocketServer(httpServer: Server): SocketIOServer {
   if (io) return io;
 
   io = new SocketIOServer(httpServer, {
     cors: {
-      origin: env.FRONTEND_URL || 'http://localhost:3000',
+      origin: env.FRONTEND_URL || "http://localhost:3000",
       credentials: true,
     },
-    transports: ['websocket', 'polling'],
+    transports: ["websocket", "polling"],
     pingInterval: 25000,
     pingTimeout: 60000,
   });
@@ -52,7 +62,7 @@ export function initializeWebSocketServer(httpServer: any): SocketIOServer {
   setupSocketHandlers();
   setupRedisPubSub();
 
-  logger.worker('websocket', 'initialized', { port: env.WEBSOCKET_PORT });
+  logger.worker("websocket", "initialized", { port: env.WEBSOCKET_PORT });
   return io;
 }
 
@@ -69,12 +79,12 @@ export function getWebSocketServer(): SocketIOServer | null {
 function setupSocketHandlers() {
   if (!io) return;
 
-  io.on('connection', (socket: Socket) => {
+  io.on("connection", (socket: Socket) => {
     const socketId = socket.id;
-    logger.worker('websocket', 'client_connected', { socketId });
+    logger.worker("websocket", "client_connected", { socketId });
 
     // Join user's personal room
-    socket.on('auth', (userId: string) => {
+    socket.on("auth", (userId: string) => {
       socket.join(`user:${userId}`);
       socket.data.userId = userId;
 
@@ -85,15 +95,44 @@ function setupSocketHandlers() {
       userSockets.get(userId)!.add(socketId);
 
       // Broadcast user online
-      broadcastPresence(userId, 'online');
-      logger.worker('websocket', 'user_authenticated', { userId, socketId });
+      broadcastPresence(userId, "online");
+      logger.worker("websocket", "user_authenticated", { userId, socketId });
     });
 
     // Join chat room
-    socket.on('join-chat', (chatId: string) => {
+    socket.on("join-chat", async (chatId: string) => {
       const userId = socket.data.userId;
       if (!userId) {
-        socket.emit('error', { message: 'Not authenticated' });
+        socket.emit("error", { message: "Not authenticated" });
+        return;
+      }
+
+      // SECURITY: Verify user has permission to access this chat
+      try {
+        const chat = await prisma.chat.findFirst({
+          where: {
+            id: chatId,
+            OR: [
+              { userId }, // Chat owner
+              { isShared: true }, // Shared chat
+              { permissions: { some: { userId } } }, // Has explicit permission
+            ],
+            deletedAt: null,
+          },
+          select: { id: true },
+        });
+
+        if (!chat) {
+          socket.emit("error", { message: "Chat not found or access denied" });
+          logger.security("WebSocket join-chat denied", { userId, chatId });
+          return;
+        }
+      } catch (error) {
+        socket.emit("error", { message: "Failed to verify chat access" });
+        logger.error("Chat access verification failed", error as Error, {
+          userId,
+          chatId,
+        });
         return;
       }
 
@@ -106,12 +145,14 @@ function setupSocketHandlers() {
       activeConnections.get(chatId)!.add(userId);
 
       // Notify others in chat
-      io!.to(`chat:${chatId}`).emit('user-joined', { userId, timestamp: new Date().toISOString() });
-      logger.worker('websocket', 'user_joined_chat', { userId, chatId });
+      io!
+        .to(`chat:${chatId}`)
+        .emit("user-joined", { userId, timestamp: new Date().toISOString() });
+      logger.worker("websocket", "user_joined_chat", { userId, chatId });
     });
 
     // Leave chat room
-    socket.on('leave-chat', (chatId: string) => {
+    socket.on("leave-chat", (chatId: string) => {
       const userId = socket.data.userId;
       socket.leave(`chat:${chatId}`);
 
@@ -123,16 +164,18 @@ function setupSocketHandlers() {
         }
       }
 
-      io!.to(`chat:${chatId}`).emit('user-left', { userId, timestamp: new Date().toISOString() });
-      logger.worker('websocket', 'user_left_chat', { userId, chatId });
+      io!
+        .to(`chat:${chatId}`)
+        .emit("user-left", { userId, timestamp: new Date().toISOString() });
+      logger.worker("websocket", "user_left_chat", { userId, chatId });
     });
 
     // Typing indicator
-    socket.on('typing', (chatId: string, isTyping: boolean) => {
+    socket.on("typing", (chatId: string, isTyping: boolean) => {
       const userId = socket.data.userId;
       if (!userId) return;
 
-      io!.to(`chat:${chatId}`).emit('user-typing', {
+      io!.to(`chat:${chatId}`).emit("user-typing", {
         userId,
         isTyping,
         timestamp: new Date().toISOString(),
@@ -140,10 +183,33 @@ function setupSocketHandlers() {
     });
 
     // Chat message
-    socket.on('message', (data: RealtimeMessage) => {
+    socket.on("message", (data: RealtimeMessage) => {
       const userId = socket.data.userId;
       if (!userId) {
-        socket.emit('error', { message: 'Not authenticated' });
+        socket.emit("error", { message: "Not authenticated" });
+        return;
+      }
+
+      // WebSocket rate limiting: prevent message flooding
+      const now = Date.now();
+      const rateKey = `${userId}:${data.chatId}`;
+      let rateRecord = messageRateLimitMap.get(rateKey);
+
+      if (!rateRecord || now > rateRecord.resetTime) {
+        rateRecord = { count: 0, resetTime: now + MESSAGE_RATE_WINDOW };
+        messageRateLimitMap.set(rateKey, rateRecord);
+      }
+
+      rateRecord.count++;
+      if (rateRecord.count > MESSAGE_RATE_LIMIT) {
+        socket.emit("error", {
+          message: "Rate limit exceeded. Please slow down.",
+        });
+        logger.security("WebSocket rate limit exceeded", {
+          userId,
+          chatId: data.chatId,
+          count: rateRecord.count,
+        });
         return;
       }
 
@@ -151,18 +217,21 @@ function setupSocketHandlers() {
       data.timestamp = new Date().toISOString();
 
       // Emit to chat room
-      io!.to(`chat:${data.chatId}`).emit('message', data);
+      io!.to(`chat:${data.chatId}`).emit("message", data);
 
       // Publish to Redis for other processes
       if (publisher) {
         publisher.publish(`chat:${data.chatId}`, JSON.stringify(data));
       }
 
-      logger.worker('websocket', 'message_sent', { userId, chatId: data.chatId });
+      logger.worker("websocket", "message_sent", {
+        userId,
+        chatId: data.chatId,
+      });
     });
 
     // Disconnect handler
-    socket.on('disconnect', () => {
+    socket.on("disconnect", () => {
       const userId = socket.data.userId;
       if (userId) {
         const sockets = userSockets.get(userId);
@@ -170,16 +239,16 @@ function setupSocketHandlers() {
           sockets.delete(socketId);
           if (sockets.size === 0) {
             userSockets.delete(userId);
-            broadcastPresence(userId, 'offline');
+            broadcastPresence(userId, "offline");
           }
         }
       }
-      logger.worker('websocket', 'client_disconnected', { socketId, userId });
+      logger.worker("websocket", "client_disconnected", { socketId, userId });
     });
 
     // Error handler
-    socket.on('error', (error) => {
-      logger.error('WebSocket error', error as Error, { socketId });
+    socket.on("error", (error) => {
+      logger.error("WebSocket error", error as Error, { socketId });
     });
   });
 }
@@ -195,30 +264,30 @@ function setupRedisPubSub() {
     publisher = new Redis(redisUrl);
 
     // Subscribe to broadcast channels
-    subscriber.subscribe('broadcast:*', (err) => {
+    subscriber.subscribe("broadcast:*", (err) => {
       if (err) {
-        logger.error('Redis subscribe failed', err as Error);
+        logger.error("Redis subscribe failed", err as Error);
       } else {
-        logger.worker('websocket', 'redis_subscribed', {});
+        logger.worker("websocket", "redis_subscribed", {});
       }
     });
 
-    subscriber.on('message', (channel, message) => {
+    subscriber.on("message", (channel, message) => {
       if (!io) return;
 
       try {
         const data = JSON.parse(message);
 
-        if (channel.startsWith('broadcast:')) {
-          const targetRoom = channel.replace('broadcast:', '');
-          io.to(targetRoom).emit('broadcast', data);
+        if (channel.startsWith("broadcast:")) {
+          const targetRoom = channel.replace("broadcast:", "");
+          io.to(targetRoom).emit("broadcast", data);
         }
       } catch (error) {
-        logger.error('Redis message parse error', error as Error, { channel });
+        logger.error("Redis message parse error", error as Error, { channel });
       }
     });
   } catch (error) {
-    logger.error('Redis pub/sub initialization failed', error as Error);
+    logger.error("Redis pub/sub initialization failed", error as Error);
   }
 }
 
@@ -227,7 +296,7 @@ function setupRedisPubSub() {
  */
 export function broadcastToChat(chatId: string, message: RealtimeMessage) {
   if (!io) return;
-  io.to(`chat:${chatId}`).emit('message', message);
+  io.to(`chat:${chatId}`).emit("message", message);
 
   // Also publish to Redis for other processes
   if (publisher) {
@@ -240,7 +309,7 @@ export function broadcastToChat(chatId: string, message: RealtimeMessage) {
  */
 export function broadcastToUser(userId: string, message: RealtimeMessage) {
   if (!io) return;
-  io.to(`user:${userId}`).emit('notification', message);
+  io.to(`user:${userId}`).emit("notification", message);
 
   if (publisher) {
     publisher.publish(`broadcast:user:${userId}`, JSON.stringify(message));
@@ -250,20 +319,23 @@ export function broadcastToUser(userId: string, message: RealtimeMessage) {
 /**
  * Broadcast presence update
  */
-export function broadcastPresence(userId: string, status: 'online' | 'offline') {
+export function broadcastPresence(
+  userId: string,
+  status: "online" | "offline",
+) {
   const presence: PresenceData = {
     userId,
-    chatId: '',
+    chatId: "",
     status,
     lastSeen: new Date().toISOString(),
   };
 
   if (io) {
-    io.emit('presence-update', presence);
+    io.emit("presence-update", presence);
   }
 
   if (publisher) {
-    publisher.publish('broadcast:presence', JSON.stringify(presence));
+    publisher.publish("broadcast:presence", JSON.stringify(presence));
   }
 }
 
@@ -281,6 +353,20 @@ export function getUserSockets(userId: string): Set<string> {
   return userSockets.get(userId) || new Set();
 }
 
+// Cleanup rate limit map periodically to prevent memory leak
+setInterval(() => {
+  const now = Date.now();
+  const keysToDelete: string[] = [];
+
+  for (const [key, value] of messageRateLimitMap.entries()) {
+    if (now > value.resetTime) {
+      keysToDelete.push(key);
+    }
+  }
+
+  keysToDelete.forEach((key) => messageRateLimitMap.delete(key));
+}, 60000);
+
 /**
  * Cleanup on shutdown
  */
@@ -295,5 +381,5 @@ export function cleanupWebSocket() {
   if (io) {
     io.close();
   }
-  logger.worker('websocket', 'cleaned_up', {});
+  logger.worker("websocket", "cleaned_up", {});
 }

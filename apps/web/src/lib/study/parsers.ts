@@ -94,8 +94,9 @@ export function parseQuiz(markdown: string): QuizQuestion[] {
       }
     }
 
-    const correctIndex =
-      correctLetter ? ["A", "B", "C", "D"].indexOf(correctLetter) : 0;
+    const correctIndex = correctLetter
+      ? ["A", "B", "C", "D"].indexOf(correctLetter)
+      : 0;
     questions.push({
       id: `${questions.length + 1}`,
       question: qLine,

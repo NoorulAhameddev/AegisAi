@@ -5,32 +5,38 @@
 ### Code Organization
 
 #### Components
+
 - Location: `src/components/[feature]/ComponentName.tsx`
 - Each component should be a single file or a folder with `index.tsx`
 - Keep related components together
 - Example: `src/components/chat/ChatMessage.tsx`, `src/components/chat/ChatInput.tsx`
 
 #### Services
+
 - Location: `src/services/ServiceName.ts`
 - Business logic, API calls, integrations
 - Examples: `AiService.ts`, `RagService.ts`, `UserService.ts`
 
 #### Hooks
+
 - Location: `src/hooks/use[HookName].ts`
 - Custom React hooks
 - Examples: `useChat.ts`, `useUser.ts`, `useAuth.ts`
 
 #### Types
+
 - Location: `src/types/[Domain].ts`
 - TypeScript interfaces & types
 - Examples: `Chat.ts`, `User.ts`, `Api.ts`
 
 #### Utils
+
 - Location: `src/utils/[Category]/[function].ts`
 - Pure utility functions
 - Examples: `formatters/`, `validators/`, `helpers/`
 
 #### API Routes
+
 - Location: `src/app/api/[route]/route.ts`
 - API endpoint handlers
 - Follows Next.js App Router convention
@@ -38,6 +44,7 @@
 ### Naming Conventions
 
 **Files**
+
 - Components: PascalCase (e.g., `ChatMessage.tsx`)
 - Services: PascalCase (e.g., `AiService.ts`)
 - Hooks: camelCase with 'use' prefix (e.g., `useChat.ts`)
@@ -45,12 +52,15 @@
 - Types: PascalCase (e.g., `ChatMessage.ts`)
 
 **Classes & Interfaces**
+
 - PascalCase (e.g., `class UserService {}`)
 
 **Variables & Functions**
+
 - camelCase (e.g., `const getUser = () => {}`)
 
 **Constants**
+
 - UPPER_SNAKE_CASE (e.g., `const MAX_RETRIES = 3`)
 
 ### Folder Structure Principles
@@ -72,30 +82,30 @@
 
 ### "I'm adding a new feature..."
 
-| Feature | Location | Structure |
-|---------|----------|-----------|
-| Chat UI component | `src/components/chat/` | `ChatBubble.tsx`, `ChatInput.tsx` |
-| Chat page | `src/app/chat/` | `page.tsx`, `layout.tsx` |
-| Chat API | `src/app/api/chat/` | `route.ts` or `[action]/route.ts` |
-| Chat logic | `src/services/ChatService.ts` | Business logic class |
-| Chat types | `src/types/Chat.ts` | Interfaces & types |
-| Chat hook | `src/hooks/useChat.ts` | React hook |
+| Feature           | Location                      | Structure                         |
+| ----------------- | ----------------------------- | --------------------------------- |
+| Chat UI component | `src/components/chat/`        | `ChatBubble.tsx`, `ChatInput.tsx` |
+| Chat page         | `src/app/chat/`               | `page.tsx`, `layout.tsx`          |
+| Chat API          | `src/app/api/chat/`           | `route.ts` or `[action]/route.ts` |
+| Chat logic        | `src/services/ChatService.ts` | Business logic class              |
+| Chat types        | `src/types/Chat.ts`           | Interfaces & types                |
+| Chat hook         | `src/hooks/useChat.ts`        | React hook                        |
 
 ### "I'm adding a utility..."
 
-| Utility | Location |
-|---------|----------|
-| Date formatter | `src/utils/formatters/formatDate.ts` |
+| Utility         | Location                                |
+| --------------- | --------------------------------------- |
+| Date formatter  | `src/utils/formatters/formatDate.ts`    |
 | Email validator | `src/utils/validators/validateEmail.ts` |
-| String helper | `src/utils/helpers/stringHelpers.ts` |
+| String helper   | `src/utils/helpers/stringHelpers.ts`    |
 
 ### "I'm setting up database..."
 
-| Task | Location | Steps |
-|------|----------|-------|
-| Add schema | `prisma/schema.prisma` | 1. Edit schema 2. Run `npm run migrate` |
-| Query data | `src/lib/` or `src/api/` | Use Prisma client |
-| Types from DB | `src/types/` | Export from Prisma-generated types |
+| Task          | Location                 | Steps                                   |
+| ------------- | ------------------------ | --------------------------------------- |
+| Add schema    | `prisma/schema.prisma`   | 1. Edit schema 2. Run `npm run migrate` |
+| Query data    | `src/lib/` or `src/api/` | Use Prisma client                       |
+| Types from DB | `src/types/`             | Export from Prisma-generated types      |
 
 ## 🔄 Development Workflow
 
@@ -137,21 +147,25 @@ git commit -m "migrate: descriptive message"
 ## 🚀 Scripts Organization
 
 ### Setup Scripts (`scripts/setup/`)
+
 - Initial configuration
 - One-time setup tasks
 - Role/user creation
 
 ### Diagnostic Scripts (`scripts/diagnostics/`)
+
 - Debug issues
 - Check system health
 - Verify integrations
 
 ### Maintenance Scripts (`scripts/maintenance/`)
+
 - Recurring tasks
 - Cleanup operations
 - Admin operations
 
 ### Testing Scripts (`scripts/testing/`)
+
 - Verify functionality
 - Integration testing
 - Security testing

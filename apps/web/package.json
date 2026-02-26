@@ -61,7 +61,6 @@
     "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.4.0",
     "tesseract.js": "^7.0.0",
-    "vm2": "^3.9.19",
     "youtube-transcript": "^1.2.1",
     "zod": "3.23.8"
   },

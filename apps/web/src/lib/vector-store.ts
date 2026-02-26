@@ -8,12 +8,12 @@ import {
   getVectorDBProvider,
   type VectorDocument,
   type DocumentMetadata,
-} from './vector-db-provider';
-import { generateEmbedding } from '@/services/rag/embeddings';
+} from "./vector-db-provider";
+import { generateEmbedding } from "@/services/rag/embeddings";
 import {
   generateMultiModalEmbedding,
   type MultiModalContent,
-} from '@/services/rag/multi-modal-embeddings';
+} from "@/services/rag/multi-modal-embeddings";
 
 // Backward compatibility types
 export type Document = VectorDocument;
@@ -28,7 +28,7 @@ const provider = getVectorDBProvider();
 export async function addDocument(
   text: string,
   metadata: DocumentMetadata,
-  userId: string
+  userId: string,
 ): Promise<string> {
   const vector = await generateEmbedding(text);
   return provider.addDocument(text, metadata, userId, vector);
@@ -42,17 +42,18 @@ export async function addMultiModalDocument(
   metadata: DocumentMetadata,
   userId: string,
   imageBase64?: string,
-  imageMimeType?: string
+  imageMimeType?: string,
 ): Promise<string> {
   // Generate embeddings for both text and image
   const multiModalContent: MultiModalContent = {
-    type: imageBase64 ? 'mixed' : 'text',
+    type: imageBase64 ? "mixed" : "text",
     text,
     imageBase64,
     mimeType: imageMimeType,
   };
 
-  const multiModalEmbedding = await generateMultiModalEmbedding(multiModalContent);
+  const multiModalEmbedding =
+    await generateMultiModalEmbedding(multiModalContent);
   const vector = await generateEmbedding(text);
 
   return provider.addDocument(text, metadata, userId, vector, {
@@ -69,7 +70,7 @@ export async function addMultiModalDocument(
 export async function ingestDocument(
   text: string,
   metadata: DocumentMetadata,
-  userId: string
+  userId: string,
 ): Promise<string[]> {
   return provider.ingestDocument(text, metadata, userId);
 }
@@ -79,7 +80,7 @@ export async function ingestDocument(
  */
 export async function batchIngestDocuments(
   documents: Array<{ text: string; metadata: DocumentMetadata }>,
-  userId: string
+  userId: string,
 ): Promise<string[]> {
   return provider.batchIngestDocuments(documents, userId);
 }
@@ -91,7 +92,7 @@ export async function searchSimilar(
   query: string,
   userId: string,
   limit = 5,
-  filters?: { sourceId?: string; fileId?: string; type?: string }
+  filters?: { sourceId?: string; fileId?: string; type?: string },
 ): Promise<VectorDocument[]> {
   return provider.searchSimilar(query, userId, limit, filters);
 }
@@ -101,7 +102,7 @@ export async function searchSimilar(
  */
 export async function deleteDocumentsBySource(
   sourceId: string,
-  userId: string
+  userId: string,
 ): Promise<number> {
   return provider.deleteDocumentsBySource(sourceId, userId);
 }

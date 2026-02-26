@@ -12,6 +12,7 @@ Aegis AI now has a complete monetization system with Stripe integration, tier-ba
 ## 📊 Pricing Tiers
 
 ### FREE Tier
+
 - **Cost**: $0/month
 - **Monthly Token Limit**: 10K tokens (~5K words)
 - **Rate Limit**: 5 requests/minute
@@ -23,6 +24,7 @@ Aegis AI now has a complete monetization system with Stripe integration, tier-ba
   - Community support only
 
 ### PRO Tier ⭐ (Main Revenue Driver)
+
 - **Cost**: $9.99/month ($99.90/year with 17% discount)
 - **Monthly Token Limit**: 500K tokens (~250K words)
 - **Rate Limit**: 30 requests/minute
@@ -37,6 +39,7 @@ Aegis AI now has a complete monetization system with Stripe integration, tier-ba
   - Custom prompts
 
 ### ENTERPRISE Tier
+
 - **Cost**: Custom pricing (contact sales)
 - **Monthly Token Limit**: 10M tokens (unlimited effectively)
 - **Rate Limit**: 1000 requests/minute
@@ -86,6 +89,7 @@ model Payment {
 ```
 
 **Migration Required**:
+
 ```bash
 npx prisma migrate dev --name add-monetization-schema
 ```
@@ -118,14 +122,15 @@ export const TIER_CONFIGS = {
 
 ```typescript
 // Now looks up user's tier and applies correct limits
-await tokenBudgetManager.getUserLimits(userId) // Tier-specific
-await tokenBudgetManager.checkBudget(userId, estimatedTokens)
-await tokenBudgetManager.recordUsage(userId, tokensUsed)
-await tokenBudgetManager.getRemainingBudget(userId)
-await tokenBudgetManager.getUsageStats(userId)
+await tokenBudgetManager.getUserLimits(userId); // Tier-specific
+await tokenBudgetManager.checkBudget(userId, estimatedTokens);
+await tokenBudgetManager.recordUsage(userId, tokensUsed);
+await tokenBudgetManager.getRemainingBudget(userId);
+await tokenBudgetManager.getUsageStats(userId);
 ```
 
 **Key Changes**:
+
 - Moved from fixed limits to tier-based dynamic limits
 - Monthly limit is primary enforcement (resets on 1st)
 - Daily/hourly are soft limits (can burst if monthly allows)
@@ -138,31 +143,31 @@ await tokenBudgetManager.getUsageStats(userId)
 Complete Stripe payment handling:
 
 ```typescript
-stripeService.createCheckoutSession(userId, tier, returnUrl)
-stripeService.getCheckoutSession(sessionId)
-stripeService.handlePaymentSuccess(session)
-stripeService.handleSubscriptionUpdate(subscription)
-stripeService.cancelSubscription(userId)
-stripeService.verifyWebhookSignature(body, signature)
-stripeService.getBillingPortalSession(userId, returnUrl)
-stripeService.getSubscriptionStatus(userId)
-stripeService.getPaymentHistory(userId, limit)
+stripeService.createCheckoutSession(userId, tier, returnUrl);
+stripeService.getCheckoutSession(sessionId);
+stripeService.handlePaymentSuccess(session);
+stripeService.handleSubscriptionUpdate(subscription);
+stripeService.cancelSubscription(userId);
+stripeService.verifyWebhookSignature(body, signature);
+stripeService.getBillingPortalSession(userId, returnUrl);
+stripeService.getSubscriptionStatus(userId);
+stripeService.getPaymentHistory(userId, limit);
 ```
 
 ### 4. API Endpoints
 
 #### Subscription Management
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/billing/checkout` | POST | Create Stripe checkout session |
-| `/api/billing/checkout/:sessionId` | GET | Get checkout status |
-| `/api/billing/subscription` | GET | Get current subscription |
-| `/api/billing/subscription` | DELETE | Cancel subscription |
-| `/api/billing/usage` | GET | Get token usage stats |
-| `/api/billing/pricing` | GET | Get pricing tiers |
-| `/api/billing/portal` | GET | Get Stripe billing portal link |
-| `/api/billing/webhooks` | POST | Stripe webhook handler |
+| Endpoint                           | Method | Purpose                        |
+| ---------------------------------- | ------ | ------------------------------ |
+| `/api/billing/checkout`            | POST   | Create Stripe checkout session |
+| `/api/billing/checkout/:sessionId` | GET    | Get checkout status            |
+| `/api/billing/subscription`        | GET    | Get current subscription       |
+| `/api/billing/subscription`        | DELETE | Cancel subscription            |
+| `/api/billing/usage`               | GET    | Get token usage stats          |
+| `/api/billing/pricing`             | GET    | Get pricing tiers              |
+| `/api/billing/portal`              | GET    | Get Stripe billing portal link |
+| `/api/billing/webhooks`            | POST   | Stripe webhook handler         |
 
 **Example Usage**:
 
@@ -221,9 +226,10 @@ if (user.subscriptionEndsAt && user.subscriptionEndsAt < new Date()) {
 ### 3. Token Budget Enforcement
 
 Hard limits prevent overage:
+
 - **Per-Request**: Absolute max tokens that can be used (default 5K-100K)
 - **Hourly**: Soft limit with warnings
-- **Daily**: Soft limit with warnings  
+- **Daily**: Soft limit with warnings
 - **Monthly**: Hard limit, primary enforcement (can't use more)
 
 ### 4. Webhook Signature Verification
@@ -238,6 +244,7 @@ const event = stripeService.verifyWebhookSignature(body, signature);
 ### 5. User Isolation
 
 Users can only:
+
 - See their own subscription/payment data
 - Cancel/manage their own subscription
 - View their own usage stats
@@ -259,6 +266,7 @@ NEXT_PUBLIC_APP_URL=https://aegisai.com (or http://localhost:3000)
 ```
 
 **Getting Stripe Keys**:
+
 1. Go to https://dashboard.stripe.com
 2. Log in or create account
 3. Navigate to API Keys
@@ -285,6 +293,7 @@ npx prisma migrate dev --name add-monetization-schema
 ```
 
 This creates:
+
 - New `plan` column on `User` (default: FREE)
 - New `Subscription` table for tracking
 - New `Payment` table for payment history
@@ -307,12 +316,12 @@ Add tier check to `middleware.ts`:
 
 ```typescript
 // Verify subscription still valid
-if (user.plan !== 'FREE' && user.subscriptionEndsAt < new Date()) {
-    // Revert to FREE
-    await prisma.user.update({
-        where: { id: user.id },
-        data: { plan: 'FREE', subscriptionEndsAt: null }
-    });
+if (user.plan !== "FREE" && user.subscriptionEndsAt < new Date()) {
+  // Revert to FREE
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { plan: "FREE", subscriptionEndsAt: null },
+  });
 }
 ```
 
@@ -321,9 +330,12 @@ if (user.plan !== 'FREE' && user.subscriptionEndsAt < new Date()) {
 In `src/workers/processor.ts`, the token budget check already works:
 
 ```typescript
-const budgetCheck = await tokenBudgetManager.checkBudget(userId, estimatedTokens);
+const budgetCheck = await tokenBudgetManager.checkBudget(
+  userId,
+  estimatedTokens,
+);
 if (!budgetCheck.approved) {
-    return errorResponse(budgetCheck.reason, { status: 429 });
+  return errorResponse(budgetCheck.reason, { status: 429 });
 }
 ```
 
@@ -335,23 +347,24 @@ This now automatically enforces tier-specific limits!
 
 ### Conservative Estimate (Year 1)
 
-| Metric | Estimate | Revenue |
-|--------|----------|---------|
-| Free Users | 10,000 | $0 |
-| Pro Users | 500 | $59,880 (~5% conversion) |
-| Enterprise Users | 5 | $15,000 (avg $250/mo) |
-| **Total Annual Revenue** | | **$74,880** |
+| Metric                   | Estimate | Revenue                  |
+| ------------------------ | -------- | ------------------------ |
+| Free Users               | 10,000   | $0                       |
+| Pro Users                | 500      | $59,880 (~5% conversion) |
+| Enterprise Users         | 5        | $15,000 (avg $250/mo)    |
+| **Total Annual Revenue** |          | **$74,880**              |
 
 ### Optimistic Estimate (Year 1)
 
-| Metric | Estimate | Revenue |
-|--------|----------|---------|
-| Free Users | 50,000 | $0 |
-| Pro Users | 1,500 | $179,640 (~3% conversion) |
-| Enterprise Users | 20 | $60,000 (avg $250/mo) |
-| **Total Annual Revenue** | | **$239,640** |
+| Metric                   | Estimate | Revenue                   |
+| ------------------------ | -------- | ------------------------- |
+| Free Users               | 50,000   | $0                        |
+| Pro Users                | 1,500    | $179,640 (~3% conversion) |
+| Enterprise Users         | 20       | $60,000 (avg $250/mo)     |
+| **Total Annual Revenue** |          | **$239,640**              |
 
 **Pro Tier Drivers**:
+
 - RAG for research/study
 - File uploads for document analysis
 - Image generation for homework help
@@ -413,9 +426,12 @@ Token budget check already integrated:
 
 ```typescript
 // In processor.ts, line ~120
-const budgetCheck = await tokenBudgetManager.checkBudget(userId, estimatedTokens);
+const budgetCheck = await tokenBudgetManager.checkBudget(
+  userId,
+  estimatedTokens,
+);
 if (!budgetCheck.approved) {
-    // User over quota - return error
+  // User over quota - return error
 }
 ```
 
@@ -435,6 +451,7 @@ Both `/api/chat/stream` and `/api/chat/stream-sse` enforce token limits before s
 ### Admin Dashboard
 
 Add new section showing:
+
 - Total MRR (Monthly Recurring Revenue)
 - Plans distribution (% Free vs Pro vs Enterprise)
 - Churn rate estimation
@@ -445,24 +462,28 @@ Add new section showing:
 ## 📈 Next Steps
 
 ### Phase 1 (Now): Deploy Monetization ✅
+
 - ✅ Database schema
 - ✅ Pricing configuration
 - ✅ Stripe integration
 - ✅ API endpoints
 
 ### Phase 2 (Coming): UI Components
+
 - [ ] Pricing page (React component)
 - [ ] Checkout button (in settings)
 - [ ] Usage dashboard (show tokens/limits)
 - [ ] Billing history (payments/receipts)
 
 ### Phase 3 (Coming): Business Logic
+
 - [ ] Free trial (14-day initial)
 - [ ] Annual subscription discount
 - [ ] Referral program (20% commission)
 - [ ] Usage overage billing ($0.01 per 100 tokens)
 
 ### Phase 4 (Coming): Team Features (Tier 2.1)
+
 - [ ] Shared team subscriptions
 - [ ] Per-user team seat pricing
 - [ ] Usage pooling across team
@@ -471,13 +492,13 @@ Add new section showing:
 
 ## 📚 Key Files
 
-| File | Purpose | Status |
-|------|---------|--------|
-| `src/lib/pricing.ts` | Tier definitions | ✅ NEW |
-| `src/services/billing/stripe.ts` | Stripe API | ✅ NEW |
-| `src/app/api/billing/*` | API endpoints | ✅ NEW (5 routes) |
-| `src/services/billing/token-budget.ts` | Budget enforcement | ✅ ENHANCED |
-| `prisma/schema.prisma` | Database | ✅ UPDATED |
+| File                                   | Purpose            | Status            |
+| -------------------------------------- | ------------------ | ----------------- |
+| `src/lib/pricing.ts`                   | Tier definitions   | ✅ NEW            |
+| `src/services/billing/stripe.ts`       | Stripe API         | ✅ NEW            |
+| `src/app/api/billing/*`                | API endpoints      | ✅ NEW (5 routes) |
+| `src/services/billing/token-budget.ts` | Budget enforcement | ✅ ENHANCED       |
+| `prisma/schema.prisma`                 | Database           | ✅ UPDATED        |
 
 ---
 

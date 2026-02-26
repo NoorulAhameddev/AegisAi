@@ -1,6 +1,6 @@
 /**
  * Security Helper Tests
- * Tests input validation, sanitization, and leak detection  
+ * Tests input validation, sanitization, and leak detection
  */
 
 import {
@@ -100,7 +100,9 @@ describe("Input Validation & Security", () => {
 
   describe("General Input Validation", () => {
     it("validates required fields", () => {
-      expect(validateInput({ email: "test@example.com", password: "pass" })).toBe(true);
+      expect(
+        validateInput({ email: "test@example.com", password: "pass" }),
+      ).toBe(true);
       expect(validateInput({ email: "", password: "pass" })).toBe(false);
     });
 

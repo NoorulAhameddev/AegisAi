@@ -71,11 +71,11 @@ Once configured, your AI agent can:
 ### Execute Workflows
 
 ```typescript
-import { mcpClient } from '@/lib/mcp-client';
+import { mcpClient } from "@/lib/mcp-client";
 
 // Run a workflow
-await mcpClient.executeWorkflow('workflow-id', {
-  data: 'your-input'
+await mcpClient.executeWorkflow("workflow-id", {
+  data: "your-input",
 });
 ```
 
@@ -88,7 +88,7 @@ const workflows = await mcpClient.listWorkflows();
 ### Check Workflow Status
 
 ```typescript
-const status = await mcpClient.getWorkflowStatus('workflow-id');
+const status = await mcpClient.getWorkflowStatus("workflow-id");
 ```
 
 ## 💡 Use Cases
@@ -100,7 +100,6 @@ const status = await mcpClient.getWorkflowStatus('workflow-id');
 5. **API Integrations** - Connect to 400+ services via n8n
 6. **File Processing** - Automate file conversions and uploads
 7. **Social Media** - Post to Twitter, LinkedIn automatically
-
 
 ```text
 1. User uploads document to Aegis-AI

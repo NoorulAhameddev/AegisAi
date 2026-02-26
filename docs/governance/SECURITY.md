@@ -8,6 +8,7 @@ If you discover a security vulnerability in Aegis AI, please report it responsib
 **security@aegis-ai.com**
 
 Please include:
+
 - Description of the vulnerability
 - Steps to reproduce
 - Potential impact
@@ -16,6 +17,7 @@ Please include:
 ## Security Response
 
 We take security seriously and will:
+
 - Acknowledge your report within 48 hours
 - Provide updates every 7 days on investigation progress
 - Disclose the vulnerability once a fix is available
@@ -23,10 +25,10 @@ We take security seriously and will:
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0.x   | ✅ Active support  |
-| < 1.0   | ❌ No support      |
+| Version | Supported         |
+| ------- | ----------------- |
+| 1.0.x   | ✅ Active support |
+| < 1.0   | ❌ No support     |
 
 ## Security Best Practices
 
@@ -62,6 +64,7 @@ When using Aegis AI:
 ## Security Headers
 
 When deploying, ensure these headers are set:
+
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `X-XSS-Protection: 1; mode=block`
@@ -71,6 +74,7 @@ When deploying, ensure these headers are set:
 ## Encryption
 
 Aegis AI uses:
+
 - **AES-256-GCM** for data encryption at rest
 - **HTTPS/TLS** for data in transit
 - **JWT** with HS256/RS256 for authentication tokens
@@ -78,6 +82,7 @@ Aegis AI uses:
 ## Third-Party Security Tools
 
 We integrate with:
+
 - Dependabot for dependency updates
 - CodeQL for code analysis
 - npm audit for vulnerability scanning

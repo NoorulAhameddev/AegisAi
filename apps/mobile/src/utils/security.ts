@@ -3,10 +3,10 @@
  * Biometric authentication, SSL pinning, and secure data handling
  */
 
-import * as LocalAuthentication from 'expo-local-authentication';
-import { Platform } from 'react-native';
-import { ENV } from '../config/env';
-import { logger } from './logger';
+import * as LocalAuthentication from "expo-local-authentication";
+import { Platform } from "react-native";
+import { ENV } from "../config/env";
+import { logger } from "./logger";
 
 export class SecurityManager {
   private static instance: SecurityManager;
@@ -28,24 +28,25 @@ export class SecurityManager {
     try {
       const compatible = await LocalAuthentication.hasHardwareAsync();
       if (!compatible) {
-        logger.info('Biometric hardware not available');
+        logger.info("Biometric hardware not available");
         return;
       }
 
       const enrolled = await LocalAuthentication.isEnrolledAsync();
       if (!enrolled) {
-        logger.info('No biometric credentials enrolled');
+        logger.info("No biometric credentials enrolled");
         return;
       }
 
       this.biometricAvailable = true;
-      this.biometricType = await LocalAuthentication.supportedAuthenticationTypesAsync();
-      
-      logger.info('Biometric authentication available', {
+      this.biometricType =
+        await LocalAuthentication.supportedAuthenticationTypesAsync();
+
+      logger.info("Biometric authentication available", {
         types: this.biometricType,
       });
     } catch (error) {
-      logger.error('Failed to initialize biometrics', error);
+      logger.error("Failed to initialize biometrics", error);
     }
   }
 
@@ -60,32 +61,32 @@ export class SecurityManager {
    * Authenticate user with biometrics
    */
   async authenticateWithBiometrics(
-    promptMessage: string = 'Authenticate to continue'
+    promptMessage: string = "Authenticate to continue",
   ): Promise<boolean> {
     if (!this.biometricAvailable) {
-      logger.warn('Biometric authentication not available');
+      logger.warn("Biometric authentication not available");
       return false;
     }
 
     try {
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage,
-        cancelLabel: 'Cancel',
+        cancelLabel: "Cancel",
         disableDeviceFallback: false,
-        fallbackLabel: 'Use passcode',
+        fallbackLabel: "Use passcode",
       });
 
       if (result.success) {
-        logger.info('Biometric authentication successful');
+        logger.info("Biometric authentication successful");
         return true;
       } else {
-        logger.warn('Biometric authentication failed', {
+        logger.warn("Biometric authentication failed", {
           error: result.error,
         });
         return false;
       }
     } catch (error) {
-      logger.error('Biometric authentication error', error);
+      logger.error("Biometric authentication error", error);
       return false;
     }
   }
@@ -94,35 +95,44 @@ export class SecurityManager {
    * Get biometric type name for display
    */
   getBiometricTypeName(): string {
-    if (!this.biometricAvailable) return 'None';
+    if (!this.biometricAvailable) return "None";
 
     const types = this.biometricType;
-    if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
-      return Platform.OS === 'ios' ? 'Face ID' : 'Face Recognition';
+    if (
+      types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)
+    ) {
+      return Platform.OS === "ios" ? "Face ID" : "Face Recognition";
     }
     if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
-      return Platform.OS === 'ios' ? 'Touch ID' : 'Fingerprint';
+      return Platform.OS === "ios" ? "Touch ID" : "Fingerprint";
     }
     if (types.includes(LocalAuthentication.AuthenticationType.IRIS)) {
-      return 'Iris Recognition';
+      return "Iris Recognition";
     }
-    return 'Biometric';
+    return "Biometric";
   }
 
   /**
    * Sanitize sensitive data from logs
    */
   sanitizeForLogging(data: any): any {
-    if (!data || typeof data !== 'object') return data;
+    if (!data || typeof data !== "object") return data;
 
-    const sensitiveKeys = ['password', 'token', 'secret', 'key', 'auth', 'credential'];
+    const sensitiveKeys = [
+      "password",
+      "token",
+      "secret",
+      "key",
+      "auth",
+      "credential",
+    ];
     const sanitized = { ...data };
 
     Object.keys(sanitized).forEach((key) => {
       const lowerKey = key.toLowerCase();
       if (sensitiveKeys.some((sensitive) => lowerKey.includes(sensitive))) {
-        sanitized[key] = '***REDACTED***';
-      } else if (typeof sanitized[key] === 'object') {
+        sanitized[key] = "***REDACTED***";
+      } else if (typeof sanitized[key] === "object") {
         sanitized[key] = this.sanitizeForLogging(sanitized[key]);
       }
     });
@@ -138,22 +148,23 @@ export class SecurityManager {
 
     // Basic XSS prevention
     return input
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#x27;')
-      .replace(/\//g, '&#x2F;');
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#x27;")
+      .replace(/\//g, "&#x2F;");
   }
 
   /**
    * Generate secure random string
    */
   generateSecureToken(length: number = 32): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
     const randomValues = new Uint8Array(length);
-    
-    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
       crypto.getRandomValues(randomValues);
       for (let i = 0; i < length; i++) {
         result += chars[randomValues[i] % chars.length];
@@ -164,7 +175,7 @@ export class SecurityManager {
         result += chars[Math.floor(Math.random() * chars.length)];
       }
     }
-    
+
     return result;
   }
 
@@ -188,7 +199,7 @@ export class SecurityManager {
     let score = 0;
 
     if (password.length < 8) {
-      feedback.push('Password must be at least 8 characters');
+      feedback.push("Password must be at least 8 characters");
     } else {
       score += 1;
     }
@@ -199,10 +210,10 @@ export class SecurityManager {
     if (/[0-9]/.test(password)) score += 1;
     if (/[^a-zA-Z0-9]/.test(password)) score += 1;
 
-    if (!/[a-z]/.test(password)) feedback.push('Add lowercase letters');
-    if (!/[A-Z]/.test(password)) feedback.push('Add uppercase letters');
-    if (!/[0-9]/.test(password)) feedback.push('Add numbers');
-    if (!/[^a-zA-Z0-9]/.test(password)) feedback.push('Add special characters');
+    if (!/[a-z]/.test(password)) feedback.push("Add lowercase letters");
+    if (!/[A-Z]/.test(password)) feedback.push("Add uppercase letters");
+    if (!/[0-9]/.test(password)) feedback.push("Add numbers");
+    if (!/[^a-zA-Z0-9]/.test(password)) feedback.push("Add special characters");
 
     return {
       valid: score >= 4,

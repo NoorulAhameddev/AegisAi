@@ -3,6 +3,7 @@
 ## Quick Reference: Fixing Remaining Test Failures
 
 ### Current Status
+
 - **256 total tests** discovered
 - **134 passing** (52.3%)
 - **92 failing** (mostly mock issues)
@@ -18,6 +19,7 @@
 **Affected Tests**: api.chat.delete.test.ts, several route tests
 
 **Fix Pattern**:
+
 ```typescript
 // ❌ WRONG - Plain object response
 const response = mockResponse();
@@ -32,6 +34,7 @@ const response = {
 ```
 
 **Commands to Find**:
+
 ```bash
 npm test -- --listTests | grep "route\|api"
 npm test -- --verbose 2>&1 | grep "Expected 500"
@@ -45,17 +48,19 @@ npm test -- --verbose 2>&1 | grep "Expected 500"
 **Affected Tests**: Security, database, worker tests
 
 **Fix Pattern**:
+
 ```typescript
 // ❌ WRONG - Mock after import
-import { someFunc } from '@/lib/helpers'; // Import first
-jest.mock('@/lib/helpers'); // Then mock? Too late!
+import { someFunc } from "@/lib/helpers"; // Import first
+jest.mock("@/lib/helpers"); // Then mock? Too late!
 
 // ✅ CORRECT - Mock before import
-jest.mock('@/lib/helpers');
-import { someFunc } from '@/lib/helpers'; // Import after
+jest.mock("@/lib/helpers");
+import { someFunc } from "@/lib/helpers"; // Import after
 ```
 
 **Commands to Find**:
+
 ```bash
 npm test -- --verbose 2>&1 | grep "Cannot mock"
 grep -r "jest.mock" apps/web/src/__tests__ | grep -A2 "^import"
@@ -68,16 +73,18 @@ grep -r "jest.mock" apps/web/src/__tests__ | grep -A2 "^import"
 **Root Cause**: Missing mock setup or incorrect mock path
 
 **Fix Pattern**:
+
 ```typescript
 // ❌ WRONG
-jest.mock('@/services/memory'); // But files are in src/services/ai/
+jest.mock("@/services/memory"); // But files are in src/services/ai/
 
 // ✅ CORRECT
-jest.mock('@/services/ai/memory-extractor'); // Exact path
-jest.mock('@/lib/rag-retrieval');
+jest.mock("@/services/ai/memory-extractor"); // Exact path
+jest.mock("@/lib/rag-retrieval");
 ```
 
 **Find Exact Paths**:
+
 ```bash
 find apps/web/src -type f -name "*.ts" | grep -E "memory|rag|security"
 ```
@@ -89,27 +96,29 @@ find apps/web/src -type f -name "*.ts" | grep -E "memory|rag|security"
 **Root Cause**: Prisma mock not set up properly in test file
 
 **Fix Pattern**:
+
 ```typescript
 // ❌ WRONG - No mock setup
-test('find user', async () => {
+test("find user", async () => {
   const user = await prisma.user.findFirst();
 });
 
 // ✅ CORRECT - Mock before test
 beforeEach(() => {
   prisma.user.findFirst = jest.fn().mockResolvedValue({
-    id: 'user-1',
-    email: 'test@example.com'
+    id: "user-1",
+    email: "test@example.com",
   });
 });
 
-test('find user', async () => {
+test("find user", async () => {
   const user = await prisma.user.findFirst();
-  expect(user.id).toBe('user-1');
+  expect(user.id).toBe("user-1");
 });
 ```
 
 **Add to failing database tests**:
+
 ```bash
 npm test -- --verbose 2>&1 | grep "prisma"
 ```
@@ -121,6 +130,7 @@ npm test -- --verbose 2>&1 | grep "prisma"
 **Root Cause**: Test not cleaning up timers or jobs
 
 **Fix Pattern**:
+
 ```typescript
 // ✅ Add cleanup
 afterEach(() => {
@@ -140,6 +150,7 @@ jest.useRealTimers();
 ## Step-by-Step Debugging Process
 
 ### Step 1: Identify Failing Test File
+
 ```bash
 npm test -- --listTests | grep -E "test|spec"
 npm test -- --testNamePattern="test name here" --verbose
@@ -148,16 +159,19 @@ npm test -- --testNamePattern="test name here" --verbose
 **Output**: Shows which specific test assertion fails
 
 ### Step 2: Review Error Message
+
 ```bash
 npm test -- failing-test.ts 2>&1 | head -50
 ```
 
 **Look for**:
+
 - Line number of failing assertion
 - Expected vs Actual value
 - Stack trace showing which mock failed
 
 ### Step 3: Check Mock Configuration
+
 ```bash
 # Find all jest.mock() calls in file
 grep -n "jest.mock" apps/web/src/__tests__/failing-test.ts
@@ -167,6 +181,7 @@ find apps/web/src -path "*/__tests__" -prune -o -name "memory.ts" -print
 ```
 
 ### Step 4: Fix Mock Path or Setup
+
 ```typescript
 // Example: If test can't find @/services/auth/jwt
 // Find correct import path:
@@ -176,6 +191,7 @@ jest.mock('@/services/auth/auth'); // Correct path
 ```
 
 ### Step 5: Verify with Single Test Run
+
 ```bash
 npm test -- specific-test.ts --testNamePattern="specific test"
 ```
@@ -185,6 +201,7 @@ npm test -- specific-test.ts --testNamePattern="specific test"
 ## Batch Fixing Strategy
 
 ### Fix Category 1: Response Mocks (Fastest)
+
 **Estimated**: 15 tests
 
 ```bash
@@ -192,14 +209,13 @@ npm test -- --verbose 2>&1 | grep -E "(expect|received)" | head -20
 ```
 
 **Solution**:
+
 ```typescript
 // In setup.ts, improve createMockResponse
 export const createMockResponse = () => ({
   status: jest.fn().mockReturnThis(),
   json: jest.fn().mockReturnThis(),
-  headers: new Map([
-    ['content-type', 'application/json'],
-  ]),
+  headers: new Map([["content-type", "application/json"]]),
   ok: true,
 });
 ```
@@ -207,9 +223,11 @@ export const createMockResponse = () => ({
 ---
 
 ### Fix Category 2: Prisma Mocks (Medium)
+
 **Estimated**: 25 tests
 
 **Solution** - Create helper:
+
 ```typescript
 // src/__tests__/lib/prisma-mocks.ts
 export function setupPrismaMocks() {
@@ -236,6 +254,7 @@ export function setupPrismaMocks() {
 ```
 
 Then use in tests:
+
 ```typescript
 beforeEach(() => {
   jest.clearAllMocks();
@@ -251,16 +270,18 @@ beforeEach(() => {
 ---
 
 ### Fix Category 3: BullMQ/Queue Mocks (Hardest)
+
 **Estimated**: 20 tests
 
 **Solution**:
+
 ```typescript
 // src/__tests__/lib/bullmq-mocks.ts - Already created!
 export const createMockJob = (overrides = {}) => ({
-  id: 'job-123',
-  name: 'test-job',
+  id: "job-123",
+  name: "test-job",
   data: {},
-  state: 'completed',
+  state: "completed",
   progress: 100,
   attempts: 0,
   returnvalue: { success: true },
@@ -308,6 +329,7 @@ npm test -- --detectOpenHandles --logHeapUsage
 ## Fixing Specific Failing Tests
 
 ### Test: security/jailbreaks.test.ts
+
 ```bash
 # Find the issue
 npm test -- jailbreaks --verbose
@@ -324,6 +346,7 @@ beforeEach(() => {
 ---
 
 ### Test: lib/response.test.ts
+
 ```bash
 # Likely issue: Response status method chain broken
 # Solution: Check createMockResponse() returns proper object
@@ -338,6 +361,7 @@ status: jest.fn().mockReturnValue({
 ---
 
 ### Test: api.chat creation
+
 ```bash
 # Likely issue: Job queue not returning properly formatted job
 # Solution: Mock chatQueue.add() with full job response
@@ -353,11 +377,13 @@ chatQueue.add.mockResolvedValue({
 ## Monitoring Fixes
 
 ### After Each Fix:
+
 ```bash
 npm test 2>&1 | tail -5
 ```
 
 **Expected progression**:
+
 - Run 1: 134 passing
 - Run 2: 139 passing (+5)
 - Run 3: 145 passing (+6)
@@ -365,6 +391,7 @@ npm test 2>&1 | tail -5
 - Target: 200+ passing (78%+)
 
 ### Track Progress
+
 ```bash
 # See test summary over time
 npm test -- --verbose 2>&1 | grep "Test Suites:"
@@ -376,24 +403,27 @@ npm test -- --verbose 2>&1 | grep "Tests:"
 ## Common Test Files to Fix
 
 ### Priority: HIGH
-| File | Tests | Issue |
-|------|-------|-------|
-| api.chat.delete.test.ts | 12 | Response mock returning 500 |
-| security/jailbreaks.test.ts | 8 | checkIntent mock not set |
-| workers/processor.test.ts | 15 | OpenAI response format |
+
+| File                        | Tests | Issue                       |
+| --------------------------- | ----- | --------------------------- |
+| api.chat.delete.test.ts     | 12    | Response mock returning 500 |
+| security/jailbreaks.test.ts | 8     | checkIntent mock not set    |
+| workers/processor.test.ts   | 15    | OpenAI response format      |
 
 ### Priority: MEDIUM
-| File | Tests | Issue |
-|------|-------|-------|
-| lib/response.test.ts | 6 | Response chaining broken |
-| api.chat.create.test.ts | 10 | Job queue format |
-| services/rag.test.ts | 12 | LanceDB mock missing |
+
+| File                    | Tests | Issue                    |
+| ----------------------- | ----- | ------------------------ |
+| lib/response.test.ts    | 6     | Response chaining broken |
+| api.chat.create.test.ts | 10    | Job queue format         |
+| services/rag.test.ts    | 12    | LanceDB mock missing     |
 
 ### Priority: LOW
-| File | Tests | Issue |
-|------|-------|-------|
-| lib/encryption.test.ts | 8 | Crypto mock format |
-| admin/users.test.ts | 5 | Permission checks |
+
+| File                   | Tests | Issue              |
+| ---------------------- | ----- | ------------------ |
+| lib/encryption.test.ts | 8     | Crypto mock format |
+| admin/users.test.ts    | 5     | Permission checks  |
 
 ---
 

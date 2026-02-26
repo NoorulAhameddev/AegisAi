@@ -1,6 +1,6 @@
 /**
  * Retry Utilities with Exponential Backoff
- * 
+ *
  * Implements intelligent retry strategies for external service calls
  * Features:
  * - Exponential backoff with jitter
@@ -9,8 +9,8 @@
  * - Respects circuit breaker state
  */
 
-import pRetry, { AbortError, Options } from 'p-retry';
-import { logger } from './logger';
+import pRetry, { AbortError, Options } from "p-retry";
+import { logger } from "./logger";
 
 export interface RetryConfig {
   retries?: number;
@@ -95,7 +95,7 @@ export const RetryStrategies = {
 
 /**
  * Retry a function with exponential backoff
- * 
+ *
  * @param fn Function to retry
  * @param config Retry configuration
  * @param context Operation name for logging
@@ -105,7 +105,7 @@ export const RetryStrategies = {
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   config: RetryConfig = RetryStrategies.generic,
-  context: string = 'operation'
+  context: string = "operation",
 ): Promise<T> {
   const pRetryOptions: Options = {
     retries: config.retries || 3,
@@ -113,7 +113,7 @@ export async function retryWithBackoff<T>(
     maxTimeout: config.maxTimeout || 5000,
     factor: config.factor || 2,
     randomize: config.randomize !== false, // Default true
-    
+
     onFailedAttempt: (error) => {
       const retriesLeft = error.retriesLeft;
       const attemptNumber = error.attemptNumber;
@@ -134,9 +134,13 @@ export async function retryWithBackoff<T>(
   try {
     return await pRetry(fn, pRetryOptions);
   } catch (error) {
-    logger.error(`All retry attempts exhausted for ${context}`, error as Error, {
-      retries: config.retries,
-    });
+    logger.error(
+      `All retry attempts exhausted for ${context}`,
+      error as Error,
+      {
+        retries: config.retries,
+      },
+    );
     throw error;
   }
 }
@@ -185,10 +189,10 @@ export function shouldRetryError(error: any): boolean {
 
   // Specific error types that shouldn't be retried
   const nonRetryableErrors = [
-    'ValidationError',
-    'AuthenticationError',
-    'PermissionError',
-    'InvalidInputError',
+    "ValidationError",
+    "AuthenticationError",
+    "PermissionError",
+    "InvalidInputError",
   ];
 
   if (nonRetryableErrors.includes(error.name)) {
@@ -206,7 +210,7 @@ export function shouldRetryError(error: any): boolean {
 export async function retryWithFilter<T>(
   fn: () => Promise<T>,
   config: RetryConfig,
-  context: string
+  context: string,
 ): Promise<T> {
   return retryWithBackoff(
     async () => {
@@ -223,7 +227,7 @@ export async function retryWithFilter<T>(
       }
     },
     config,
-    context
+    context,
   );
 }
 
@@ -235,7 +239,7 @@ export async function retryBatch<T, R>(
   items: T[],
   fn: (item: T) => Promise<R>,
   config: RetryConfig = RetryStrategies.generic,
-  context: string = 'batch-operation'
+  context: string = "batch-operation",
 ): Promise<{ successes: R[]; failures: { item: T; error: Error }[] }> {
   const successes: R[] = [];
   const failures: { item: T; error: Error }[] = [];
@@ -246,13 +250,13 @@ export async function retryBatch<T, R>(
         const result = await retryWithBackoff(
           () => fn(item),
           config,
-          `${context}-item`
+          `${context}-item`,
         );
         successes.push(result);
       } catch (error) {
         failures.push({ item, error: error as Error });
       }
-    })
+    }),
   );
 
   logger.info(`Batch operation completed: ${context}`, {

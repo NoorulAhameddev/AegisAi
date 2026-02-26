@@ -3,14 +3,14 @@
  * Tracks user online status across chats and manages activity
  */
 
-import { prisma } from '@/lib/prisma';
-import { logger } from '@/lib/logger';
-import { broadcastPresence, getUserSockets } from '@/lib/websocket';
+import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
+import { broadcastPresence, getUserSockets } from "@/lib/websocket";
 
 export interface UserPresence {
   userId: string;
   chatId?: string;
-  status: 'online' | 'away' | 'offline' | 'typing';
+  status: "online" | "away" | "offline" | "typing";
   lastSeen: Date;
   socketIds: string[];
   isActive: boolean;
@@ -25,7 +25,7 @@ const presenceStore = new Map<string, UserPresence>();
 export async function updateUserPresence(
   userId: string,
   chatId: string,
-  status: 'online' | 'away' | 'offline' = 'online'
+  status: "online" | "away" | "offline" = "online",
 ) {
   const now = new Date();
   const socketIds = Array.from(getUserSockets(userId));
@@ -36,7 +36,7 @@ export async function updateUserPresence(
     status,
     lastSeen: now,
     socketIds,
-    isActive: status === 'online',
+    isActive: status === "online",
   };
 
   presenceStore.set(`${userId}:${chatId}`, presence);
@@ -49,7 +49,7 @@ export async function updateUserPresence(
       create: { userId, chatId, status, lastSeen: now },
     });
   } catch (error) {
-    logger.error('Failed to save presence', error as Error, { userId, chatId });
+    logger.error("Failed to save presence", error as Error, { userId, chatId });
   }
 
   // Broadcast to other users
@@ -65,8 +65,8 @@ export async function markUserAway(userId: string, chatId: string) {
   const key = `${userId}:${chatId}`;
   const presence = presenceStore.get(key);
 
-  if (presence && presence.status !== 'offline') {
-    presence.status = 'away';
+  if (presence && presence.status !== "offline") {
+    presence.status = "away";
     presence.lastSeen = new Date();
 
     presenceStore.set(key, presence);
@@ -75,13 +75,16 @@ export async function markUserAway(userId: string, chatId: string) {
     try {
       await prisma.userPresence.update({
         where: { userId_chatId: { userId, chatId } },
-        data: { status: 'away', lastSeen: new Date() },
+        data: { status: "away", lastSeen: new Date() },
       });
     } catch (error) {
-      logger.error('Failed to mark user away', error as Error, { userId, chatId });
+      logger.error("Failed to mark user away", error as Error, {
+        userId,
+        chatId,
+      });
     }
 
-    broadcastPresence(userId, 'away');
+    broadcastPresence(userId, "away");
   }
 }
 
@@ -98,7 +101,10 @@ export async function markUserOffline(userId: string, chatId?: string) {
         where: { userId, chatId },
       });
     } catch (error) {
-      logger.error('Failed to delete presence', error as Error, { userId, chatId });
+      logger.error("Failed to delete presence", error as Error, {
+        userId,
+        chatId,
+      });
     }
   } else {
     // Mark user offline in all chats
@@ -113,21 +119,29 @@ export async function markUserOffline(userId: string, chatId?: string) {
         where: { userId },
       });
     } catch (error) {
-      logger.error('Failed to delete all presences', error as Error, { userId });
+      logger.error("Failed to delete all presences", error as Error, {
+        userId,
+      });
     }
   }
 
-  broadcastPresence(userId, 'offline');
+  broadcastPresence(userId, "offline");
 }
 
 /**
  * Get users currently active in a chat
  */
-export async function getActiveChatUsers(chatId: string): Promise<UserPresence[]> {
+export async function getActiveChatUsers(
+  chatId: string,
+): Promise<UserPresence[]> {
   const activeUsers: UserPresence[] = [];
 
   for (const [key, presence] of presenceStore) {
-    if (key.includes(chatId) && presence.chatId === chatId && presence.status !== 'offline') {
+    if (
+      key.includes(chatId) &&
+      presence.chatId === chatId &&
+      presence.status !== "offline"
+    ) {
       activeUsers.push(presence);
     }
   }
@@ -138,11 +152,13 @@ export async function getActiveChatUsers(chatId: string): Promise<UserPresence[]
 /**
  * Get user's presence data across all chats
  */
-export async function getUserPresenceData(userId: string): Promise<UserPresence[]> {
+export async function getUserPresenceData(
+  userId: string,
+): Promise<UserPresence[]> {
   const userPresences: UserPresence[] = [];
 
   for (const [key, presence] of presenceStore) {
-    if (key.startsWith(`${userId}:`) && presence.status !== 'offline') {
+    if (key.startsWith(`${userId}:`) && presence.status !== "offline") {
       userPresences.push(presence);
     }
   }
@@ -155,7 +171,7 @@ export async function getUserPresenceData(userId: string): Promise<UserPresence[
  */
 export async function cleanupUserPresence(userId: string, chatId: string) {
   await markUserOffline(userId, chatId);
-  logger.worker('presence', 'user_cleanup', { userId, chatId });
+  logger.worker("presence", "user_cleanup", { userId, chatId });
 }
 
 /**
@@ -166,9 +182,9 @@ export async function getChatPresenceStats(chatId: string) {
 
   return {
     totalActive: activeUsers.length,
-    online: activeUsers.filter((u) => u.status === 'online').length,
-    away: activeUsers.filter((u) => u.status === 'away').length,
-    typing: activeUsers.filter((u) => u.status === 'typing').length,
+    online: activeUsers.filter((u) => u.status === "online").length,
+    away: activeUsers.filter((u) => u.status === "away").length,
+    typing: activeUsers.filter((u) => u.status === "typing").length,
     users: activeUsers.map((u) => ({
       userId: u.userId,
       status: u.status,
@@ -186,10 +202,10 @@ export async function handleIdleTimeout(thresholdMs: number = 5 * 60 * 1000) {
 
   for (const [key, presence] of presenceStore) {
     if (
-      presence.status === 'online' &&
+      presence.status === "online" &&
       now - presence.lastSeen.getTime() > thresholdMs
     ) {
-      const [userId, chatId] = key.split(':');
+      const [userId, chatId] = key.split(":");
       await markUserAway(userId, chatId);
     }
   }
@@ -206,12 +222,14 @@ export async function cleanupStalePresence(staleThresholdHours: number = 24) {
     const deleted = await prisma.userPresence.deleteMany({
       where: {
         lastSeen: { lt: staleDate },
-        status: 'offline', // Only delete offline records
+        status: "offline", // Only delete offline records
       },
     });
 
-    logger.worker('presence-cleanup', 'stale_records_deleted', { count: deleted.count });
+    logger.worker("presence-cleanup", "stale_records_deleted", {
+      count: deleted.count,
+    });
   } catch (error) {
-    logger.error('Stale presence cleanup failed', error as Error);
+    logger.error("Stale presence cleanup failed", error as Error);
   }
 }

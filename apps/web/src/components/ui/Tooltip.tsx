@@ -41,7 +41,11 @@ export function Tooltip({
   };
 
   return (
-    <div className="relative inline-block" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+    <div
+      className="relative inline-block"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       {children}
       {visible && (
         <div
@@ -50,7 +54,7 @@ export function Tooltip({
             "bg-zinc-900 border border-white/10 text-zinc-100 shadow-lg shadow-black/50",
             "animate-fade-in pointer-events-none",
             sideClasses[side],
-            className
+            className,
           )}
           role="tooltip"
         >
@@ -59,9 +63,10 @@ export function Tooltip({
             className={cn(
               "absolute w-2 h-2 bg-zinc-900 border border-white/10 transform rotate-45",
               side === "top" && "top-full -mt-1 left-1/2 -translate-x-1/2",
-              side === "bottom" && "bottom-full mt-0.5 left-1/2 -translate-x-1/2",
+              side === "bottom" &&
+                "bottom-full mt-0.5 left-1/2 -translate-x-1/2",
               side === "left" && "left-full -ml-1 top-1/2 -translate-y-1/2",
-              side === "right" && "right-full ml-0.5 top-1/2 -translate-y-1/2"
+              side === "right" && "right-full ml-0.5 top-1/2 -translate-y-1/2",
             )}
           />
         </div>

@@ -36,15 +36,27 @@ jest.mock("bcrypt", () => ({
 jest.mock("@/lib/response", () => ({
   successResponse: (data: any, options?: any) => ({
     status: options?.status || 200,
-    json: async () => ({ success: true, data, timestamp: new Date().toISOString() }),
+    json: async () => ({
+      success: true,
+      data,
+      timestamp: new Date().toISOString(),
+    }),
   }),
   errorResponse: (error: string, options?: any) => ({
     status: options?.status || 400,
-    json: async () => ({ success: false, error, timestamp: new Date().toISOString() }),
+    json: async () => ({
+      success: false,
+      error,
+      timestamp: new Date().toISOString(),
+    }),
   }),
   unauthorizedResponse: () => ({
     status: 401,
-    json: async () => ({ success: false, error: "Unauthorized", timestamp: new Date().toISOString() }),
+    json: async () => ({
+      success: false,
+      error: "Unauthorized",
+      timestamp: new Date().toISOString(),
+    }),
   }),
 }));
 
@@ -222,7 +234,7 @@ describe("Auth Endpoints Integration Tests", () => {
         "content-type": "application/json",
         "x-request-id": "test-request-id",
       });
-      
+
       if (refreshToken) {
         headers.set("cookie", `refreshToken=${refreshToken}`);
       }
@@ -231,7 +243,8 @@ describe("Auth Endpoints Integration Tests", () => {
         method: "POST",
         headers,
         cookies: {
-          get: (name: string) => (name === "refreshToken" ? { value: refreshToken } : null),
+          get: (name: string) =>
+            name === "refreshToken" ? { value: refreshToken } : null,
         },
       } as unknown as Request;
     }

@@ -5,6 +5,7 @@
 **Aegis AI** is a production-ready enterprise AI chat platform built with Next.js 16 (App Router), TypeScript, PostgreSQL, and OpenAI. The system uses a **worker-based async architecture** with BullMQ for AI processing, ensuring the API never blocks on LLM calls.
 
 ### Core Architecture Pattern
+
 ```
 Web Request → API Route → BullMQ Job → Worker Process → Streaming Response
      ↓             ↓            ↓              ↓               ↓
@@ -73,6 +74,7 @@ src/
 ## Development Workflows
 
 ### Running the Application
+
 ```bash
 npm run dev          # Start Next.js dev server (port 3000)
 npm run worker       # Start chat worker (REQUIRED for /api/chat/stream polling)
@@ -82,12 +84,14 @@ npm run studio       # Open Prisma Studio database GUI
 npm run clean        # Remove .next, logs, uploads, LanceDB cache
 ```
 
-**CRITICAL**: 
+**CRITICAL**:
+
 - **For SSE streaming** (`/api/chat/stream-sse`): Worker NOT needed; processes inline
 - **For polling** (`/api/chat/stream`): Worker MUST run or jobs stack in Redis queue
 - Both endpoints exist; prefer SSE for real-time interactivity
 
 ### Testing
+
 ```bash
 npm test              # Run all Jest tests in src/__tests__/
 npm run test:watch    # Watch mode for development
@@ -97,6 +101,7 @@ npm run test:edge     # Test Edge Runtime compatibility
 ```
 
 ### Database Operations
+
 - **Schema**: `prisma/schema.prisma` (complex: 13+ indexes, soft deletes, encryption fields)
 - **Migrations**: Always run `npm run migrate` after schema changes
 - **Encryption**: Sensitive data encrypted with `encrypt()/decrypt()` from `@/lib/encryption`
@@ -106,40 +111,52 @@ npm run test:edge     # Test Edge Runtime compatibility
 ## Key Conventions
 
 ### 1. Authentication & Authorization
+
 - **Middleware**: `middleware.ts` validates JWT, sets `x-user-id`, `x-token-version`, `x-request-id` headers
 - **Verification**: Import `verifyAuth(req)` from `@/services/auth/auth` in protected routes
-- **Tokens**: 
+- **Tokens**:
   - Access: 10 minutes (JWT in Authorization header or cookie)
   - Refresh: 7 days (HTTP-only cookie)
-- **Session Management**: 
+- **Session Management**:
   - `createSession()` → Create JWT pair + DB record
   - `rotateTokens()` → Issue fresh pair
   - `revokeAllSessions()` → Increment `user.tokenVersion` to invalidate all sessions instantly
 - **Password Hashing**: bcrypt with 14 rounds (standard 12 + 2 for 2026+ security)
 
 ### 2. API Response Pattern
+
 Always return standardized responses from `@/lib/response`:
+
 ```typescript
-import { 
-  successResponse, errorResponse, unauthorizedResponse, 
-  forbiddenResponse, notFoundResponse 
-} from '@/lib/response';
+import {
+  successResponse,
+  errorResponse,
+  unauthorizedResponse,
+  forbiddenResponse,
+  notFoundResponse,
+} from "@/lib/response";
 
 export async function POST(req: NextRequest) {
   try {
     const user = await verifyAuth(req);
-    if (!user) return unauthorizedResponse({ requestId: req.headers.get('x-request-id') });
-    
+    if (!user)
+      return unauthorizedResponse({
+        requestId: req.headers.get("x-request-id"),
+      });
+
     // Process business logic
-    return successResponse(result, { requestId: req.headers.get('x-request-id') });
+    return successResponse(result, {
+      requestId: req.headers.get("x-request-id"),
+    });
   } catch (error) {
-    logger.error('Route handler failed', error as Error);
-    return errorResponse('Operation failed', { status: 500 });
+    logger.error("Route handler failed", error as Error);
+    return errorResponse("Operation failed", { status: 500 });
   }
 }
 ```
 
 Response envelope:
+
 ```typescript
 {
   success: boolean,
@@ -152,9 +169,11 @@ Response envelope:
 ```
 
 ### 3. Chat Processing Paths
+
 **Two different architectures** - choose based on use case:
 
 **Path A: `/api/chat/stream-sse` (Preferred for real-time)**
+
 - Server-Sent Events (SSE) streaming
 - No BullMQ queuing; processes inline
 - Immediate token-by-token response
@@ -166,6 +185,7 @@ Response envelope:
   - Boundary detection via `detectBoundaryBreaks()`
 
 **Path B: `/api/chat/stream` (For async/polling)**
+
 - Enqueues job to `chatQueue`
 - Returns `{ success, jobId }` immediately
 - Client polls `GET /api/chat/status/{jobId}` for updates
@@ -173,6 +193,7 @@ Response envelope:
 - Use when: long operations, batching, or client-side polling preferred
 
 Example decision tree:
+
 ```
 Real-time interactive chat? → Use /stream-sse
 Long-running processing? → Use /stream, client polls /status
@@ -180,6 +201,7 @@ Batch operations? → Use /stream, queue can accumulate jobs
 ```
 
 ### 4. RAG (Retrieval Augmented Generation)
+
 - **Vector Store**: LanceDB in `data/lancedb/` (server-side only; marked external in Next.js config)
 - **Retrieval**: `retrieveContext(userId, query, topK)` from `@/lib/rag-retrieval`
   - Queries LanceDB for semantic similarity
@@ -191,15 +213,16 @@ Batch operations? → Use /stream, queue can accumulate jobs
 - **Query Detection**: `shouldUseRAG(message)` returns false for greetings/chitchat to save embeddings quota
 
 ### 5. Encryption & Security
+
 - **Format**: `v1:iv:authTag:encrypted` (version prefix allows key rotation without downtime)
 - **Algorithm**: AES-256-GCM (authenticated encryption; built-in tamper detection)
-- **Functions**: 
+- **Functions**:
   ```typescript
-  import { encrypt, decrypt } from '@/lib/encryption';
-  const ciphertext = encrypt(sensitiveData);  // Returns v1:...
-  const plaintext = decrypt(ciphertext);       // Auto-detects version
+  import { encrypt, decrypt } from "@/lib/encryption";
+  const ciphertext = encrypt(sensitiveData); // Returns v1:...
+  const plaintext = decrypt(ciphertext); // Auto-detects version
   ```
-- **Environment**: 
+- **Environment**:
   - `ENCRYPTION_KEY_CIPHERTEXT` (AWS KMS encrypted for production)
   - Regular `ENCRYPTION_KEY` for local dev (must be 32 chars)
 - **Use Cases**: User messages, file paths, API keys, credit cards, personally identifiable information
@@ -212,15 +235,18 @@ Batch operations? → Use /stream, queue can accumulate jobs
 - **Audit Integrity**: `AuditLog.integrityHash` computed via SHA-256 of log data + secret; verify before trusting logs
 
 ### 6. Worker Job Processing
+
 Creating a new background job type:
+
 1. **Define Queue** in `src/lib/queue.ts`:
    ```typescript
-   export const myQueue = new Queue('my-queue-name', { connection });
+   export const myQueue = new Queue("my-queue-name", { connection });
    ```
 2. **Create Worker** at `src/workers/my.worker.ts`:
    ```typescript
-   const worker = new Worker(myQueue.name, async job => 
-     processMyJob(job), { connection });
+   const worker = new Worker(myQueue.name, async (job) => processMyJob(job), {
+     connection,
+   });
    ```
 3. **Implement Processor** (e.g., `processor.ts`):
    ```typescript
@@ -232,32 +258,36 @@ Creating a new background job type:
    ```
 4. **Enqueue from API**:
    ```typescript
-   const job = await myQueue.add('my-job-type', 
-     { param1, param2 }, 
-     { jobId: uniqueId } // Deduplicates by jobId
+   const job = await myQueue.add(
+     "my-job-type",
+     { param1, param2 },
+     { jobId: uniqueId }, // Deduplicates by jobId
    );
    return successResponse({ jobId: job.id });
    ```
 5. **Error Handling**: Failed jobs automatically move to `dlqQueue`; worker logs via `logger.worker(jobId, 'failed', { error })`
 
 ### 7. Logging Standards
+
 Structured logging from `@/lib/logger`:
+
 ```typescript
-logger.auth('User login', { userId, ipAddress });           // Auth events
-logger.db('Query', tableName, durationMs);                  // Database operations
-logger.security('Suspicious behavior', { userId, reason });  // Security incidents
-logger.error('Operation failed', error as Error, { context }); // Errors
-logger.worker(jobId, 'completed', { status, duration });    // Worker events
-logger.warn('Deprecated API used', { endpoint, user });     // Warnings
+logger.auth("User login", { userId, ipAddress }); // Auth events
+logger.db("Query", tableName, durationMs); // Database operations
+logger.security("Suspicious behavior", { userId, reason }); // Security incidents
+logger.error("Operation failed", error as Error, { context }); // Errors
+logger.worker(jobId, "completed", { status, duration }); // Worker events
+logger.warn("Deprecated API used", { endpoint, user }); // Warnings
 ```
 
 All logs include timestamp, request ID (if available), and structured context.
 
 ### 8. File Handling & Content Extraction
+
 - **Upload Flow**: POST `/api/files` → Save to `uploads/UUID.ext` → Encrypt path → Create DB record → Trigger `ragQueue` (if RAG enabled)
 - **Supported Formats** via `extractText(filePath, mimeType)`:
   - PDF: pdf-parse library
-  - DOCX: mammoth library  
+  - DOCX: mammoth library
   - TXT: plain text
   - Images: tesseract.js (OCR)
   - Audio/Video: youtube-transcript (transcripts only)
@@ -266,7 +296,9 @@ All logs include timestamp, request ID (if available), and structured context.
 - **Lifecycle**: Soft delete via `deletedAt` timestamp (GDPR compliance)
 
 ### 9. Tool Development & Registration
+
 Creating an AI tool:
+
 ```typescript
 // src/tools/my-tool.ts
 import { Tool } from "./index";
@@ -277,26 +309,28 @@ export const MyTool: Tool = {
   parameters: {
     type: "object",
     properties: {
-      input: { type: "string", description: "..." }
+      input: { type: "string", description: "..." },
     },
-    required: ["input"]
+    required: ["input"],
   },
   execute: async (args) => {
     // MUST be safe: no arbitrary code execution
     // Only static analysis, formatting, lookups allowed
     return { result: "..." };
-  }
+  },
 };
 ```
 
 Register in `src/tools/index.ts`:
+
 ```typescript
 export function registerAllTools() {
-  registerTool(MyTool);  // Automatically picked up by worker
+  registerTool(MyTool); // Automatically picked up by worker
 }
 ```
 
 **Safety Constraints**:
+
 - ✅ Static analysis (code review, linting)
 - ✅ Formatting and transformation
 - ✅ Data lookups and searches
@@ -307,8 +341,9 @@ export function registerAllTools() {
 ## Integration Points
 
 ### MCP (Model Context Protocol)
+
 - **Config**: `mcp-servers.json` lists available MCP servers
-- **Current Servers**: 
+- **Current Servers**:
   - `@modelcontextprotocol/server-filesystem` - File system access
   - `@modelcontextprotocol/server-github` - GitHub integration
   - `@modelcontextprotocol/server-puppeteer` - Web automation
@@ -316,6 +351,7 @@ export function registerAllTools() {
 - **Extension**: Add new servers to `mcp-servers.json`; they auto-register
 
 ### External Services
+
 - **OpenRouter API**: AI models via OpenAI SDK
   - Config: `OPENROUTER_API_KEY` in `.env`
   - Models: GPT-4o, Claude, etc.
@@ -331,18 +367,20 @@ export function registerAllTools() {
 ## Common Patterns
 
 ### Adding a New API Route
+
 1. Create file: `src/app/api/[feature]/route.ts`
 2. Import auth helper:
    ```typescript
    import { verifyAuth } from "@/services/auth/auth";
    ```
 3. Implement handler with auth + responses:
+
    ```typescript
    export async function POST(req: NextRequest) {
      try {
        const user = await verifyAuth(req);
        if (!user) return unauthorizedResponse();
-       
+
        // Business logic
        return successResponse({ ... });
      } catch (error) {
@@ -350,26 +388,31 @@ export function registerAllTools() {
      }
    }
    ```
+
 4. Add middleware matcher if auth-required (in `middleware.ts`)
 5. If heavy processing: enqueue to appropriate queue instead of blocking
 
 ### Adding a New Database Model
+
 1. Update `prisma/schema.prisma`:
+
    ```typescript
    model MyEntity {
      id String @id @default(uuid())
      userId String
      data String @db.Text
      createdAt DateTime @default(now())
-     
+
      @@index([userId, createdAt])  // Index query patterns
    }
    ```
+
 2. Run `npm run migrate` (creates migration file auto)
 3. For sensitive fields, encrypt in service layer before storing
 4. If admin action, create corresponding `AuditLog` entry
 
 ### Adding a New AI Tool
+
 1. Create tool file: `src/tools/my-tool.ts`
 2. Define and export `Tool` interface
 3. Register in `src/tools/index.ts` via `registerTool()`
@@ -390,6 +433,7 @@ export function registerAllTools() {
 ## Troubleshooting
 
 ### Chat Not Streaming
+
 - If using `/api/chat/stream-sse`:
   - Check browser network tab for SSE connection
   - Verify OpenRouter API key is valid
@@ -400,6 +444,7 @@ export function registerAllTools() {
   - Check job status: `GET /api/chat/status/{jobId}`
 
 ### RAG Not Retrieving Documents
+
 - Check file was ingested:
   - Verify `File` record exists in database
   - Check `data/lancedb/` directory has vector data
@@ -411,24 +456,28 @@ export function registerAllTools() {
   - Logs show "[DOCUMENT TEXT FILTERED - POTENTIAL INSTRUCTION]" if injection attempt detected
 
 ### Database Connection Issues
+
 - Run migrations: `npm run migrate`
 - Verify `DATABASE_URL`: `postgresql://[user]:[pass]@[host]:[port]/[db]`
 - Check Prisma Studio: `npm run studio`
 - Ensure 13+ indexes exist (check schema)
 
 ### Redis/Queue Issues
+
 - Verify Redis running: `redis-cli ping`
 - Check `REDIS_URL` format and connection
 - Clear queue if stuck: `redis-cli DEL chat-queue rag-queue dlq-queue`
 - Monitor queue: `redis-cli LLEN chat-queue`
 
 ### Vector Store Issues
+
 - Create `data/lancedb/` if missing
 - LanceDB is server-side only; don't import in client components
 - Check OpenAI embeddings API quota
 - Verify LanceDB marked external in Next.js config
 
 ## Documentation References
+
 - **[README.md](../README.md)** - Setup, features, deployment
 - **[docs/IMPLEMENTATION_GUIDE.md](../docs/IMPLEMENTATION_GUIDE.md)** - Common patterns and quick fixes
 - **[docs/RAG_IMPLEMENTATION.md](../docs/RAG_IMPLEMENTATION.md)** - RAG architecture and ingestion

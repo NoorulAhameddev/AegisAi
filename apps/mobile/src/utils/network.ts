@@ -2,8 +2,8 @@
  * Offline Support & Network Detection
  */
 
-import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
-import { logger } from './logger';
+import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
+import { logger } from "./logger";
 
 class NetworkManager {
   private isConnected: boolean = true;
@@ -21,7 +21,7 @@ class NetworkManager {
       this.isConnected = state.isConnected ?? false;
 
       if (wasConnected !== this.isConnected) {
-        logger.info('Network status changed', {
+        logger.info("Network status changed", {
           isConnected: this.isConnected,
           type: state.type,
         });
@@ -43,7 +43,7 @@ class NetworkManager {
    */
   addListener(callback: (isConnected: boolean) => void): () => void {
     this.listeners.push(callback);
-    
+
     // Return unsubscribe function
     return () => {
       this.listeners = this.listeners.filter((l) => l !== callback);
@@ -84,7 +84,7 @@ export const networkManager = new NetworkManager();
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   maxRetries: number = 3,
-  baseDelay: number = 1000
+  baseDelay: number = 1000,
 ): Promise<T> {
   let lastError: any;
 
@@ -101,10 +101,13 @@ export async function retryWithBackoff<T>(
 
       // Exponential backoff: 1s, 2s, 4s, 8s...
       const delay = baseDelay * Math.pow(2, attempt);
-      logger.warn(`Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms`, {
-        error: error instanceof Error ? error.message : String(error),
-      });
-      
+      logger.warn(
+        `Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms`,
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+      );
+
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
@@ -117,12 +120,12 @@ export async function retryWithBackoff<T>(
  */
 export async function withNetworkCheck<T>(
   fn: () => Promise<T>,
-  offlineMessage: string = 'This action requires an internet connection'
+  offlineMessage: string = "This action requires an internet connection",
 ): Promise<T> {
   const isOnline = await networkManager.isOnline();
-  
+
   if (!isOnline) {
-    logger.warn('Network check failed - offline', { message: offlineMessage });
+    logger.warn("Network check failed - offline", { message: offlineMessage });
     throw new Error(offlineMessage);
   }
 

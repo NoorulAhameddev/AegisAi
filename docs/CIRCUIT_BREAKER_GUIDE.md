@@ -9,6 +9,7 @@ Aegis AI uses production-grade circuit breakers (via [opossum](https://nodeshift
 A circuit breaker monitors failures and **prevents requests to a failing service**, allowing it time to recover while providing fallback responses to users.
 
 **States:**
+
 - **CLOSED** (Normal): All requests go through
 - **OPEN** (Failing): Requests fail fast (<1ms), fallback used
 - **HALF_OPEN** (Testing): Limited requests to test recovery
@@ -33,11 +34,11 @@ apps/web/src/
 
 ### Circuit Breakers
 
-| Name | Protected Service | Timeout | Error Threshold | Reset Timeout | Fallback |
-|------|-------------------|---------|-----------------|---------------|----------|
-| `openaiCircuitBreaker` | OpenAI/OpenRouter API | 30s | 50% | 60s | Degraded message |
-| `moderationCircuitBreaker` | OpenAI Moderation | 10s | 60% | 30s | Bypass check (⚠️) |
-| `ragCircuitBreaker` | RAG embeddings/search | 5s | 50% | 60s | Empty context |
+| Name                       | Protected Service     | Timeout | Error Threshold | Reset Timeout | Fallback          |
+| -------------------------- | --------------------- | ------- | --------------- | ------------- | ----------------- |
+| `openaiCircuitBreaker`     | OpenAI/OpenRouter API | 30s     | 50%             | 60s           | Degraded message  |
+| `moderationCircuitBreaker` | OpenAI Moderation     | 10s     | 60%             | 30s           | Bypass check (⚠️) |
+| `ragCircuitBreaker`        | RAG embeddings/search | 5s      | 50%             | 60s           | Empty context     |
 
 ---
 
@@ -46,7 +47,7 @@ apps/web/src/
 ### Wrapping External Calls
 
 ```typescript
-import { openaiCircuitBreaker } from '@/lib/circuit-breaker';
+import { openaiCircuitBreaker } from "@/lib/circuit-breaker";
 
 // Wrap async function
 const result = await openaiCircuitBreaker.fire(async () => {
@@ -57,17 +58,17 @@ const result = await openaiCircuitBreaker.fire(async () => {
 ### Creating New Circuit Breakers
 
 ```typescript
-import { createCircuitBreaker } from '@/lib/circuit-breaker';
+import { createCircuitBreaker } from "@/lib/circuit-breaker";
 
 export const myServiceBreaker = createCircuitBreaker({
-  name: 'MyService',
+  name: "MyService",
   timeout: 10000, // 10s
   errorThresholdPercentage: 50, // Open at 50% error rate
   resetTimeout: 30000, // Try recovery after 30s
   volumeThreshold: 10, // Need 10 requests before threshold applies
   fallback: () => {
-    return { error: 'Service temporarily unavailable' };
-  }
+    return { error: "Service temporarily unavailable" };
+  },
 });
 
 // Use it
@@ -87,11 +88,11 @@ const result = await myServiceBreaker.fire(() => myAPI.call());
 
 ### Tuning Guidelines
 
-| Service Type | Timeout | Error % | Reset | Reasoning |
-|--------------|---------|---------|-------|-----------|
-| Critical AI (OpenAI) | 30s | 50% | 60s | Balance availability vs. quality |
-| Non-critical API | 10s | 60% | 30s | More lenient, faster recovery |
-| Internal service | 5s | 40% | 15s | Strict, quick feedback loop |
+| Service Type         | Timeout | Error % | Reset | Reasoning                        |
+| -------------------- | ------- | ------- | ----- | -------------------------------- |
+| Critical AI (OpenAI) | 30s     | 50%     | 60s   | Balance availability vs. quality |
+| Non-critical API     | 10s     | 60%     | 30s   | More lenient, faster recovery    |
+| Internal service     | 5s      | 40%     | 15s   | Strict, quick feedback loop      |
 
 ---
 
@@ -122,6 +123,7 @@ Circuit breaker state included in `/api/health`:
 ```
 
 **Status Mapping:**
+
 - `healthy`: All circuits CLOSED, core systems OK
 - `degraded`: Circuits OPEN but service functional (fallbacks active)
 - `unhealthy`: Core systems (DB/Redis) down
@@ -178,6 +180,7 @@ Metrics:
 ```
 
 **CloudWatch Dashboard Query:**
+
 ```sql
 fields @timestamp, service, state, latencyMs
 | filter namespace = "Aegis/CircuitBreakers"
@@ -194,14 +197,16 @@ fields @timestamp, service, state, latencyMs
 
 ```typescript
 fallback: () => ({
-  choices: [{
-    message: {
-      role: 'assistant',
-      content: 'I apologize, but I am experiencing technical difficulties...'
+  choices: [
+    {
+      message: {
+        role: "assistant",
+        content: "I apologize, but I am experiencing technical difficulties...",
+      },
+      finish_reason: "stop",
     },
-    finish_reason: 'stop'
-  }]
-})
+  ],
+});
 ```
 
 **User Experience**: Clear error message instead of timeout
@@ -212,8 +217,8 @@ fallback: () => ({
 
 ```typescript
 fallback: () => ({
-  results: [{ flagged: false, categories: {}, category_scores: {} }]
-})
+  results: [{ flagged: false, categories: {}, category_scores: {} }],
+});
 ```
 
 **Rationale**: Allows chat to continue when moderation API down (logged as warning)
@@ -223,7 +228,7 @@ fallback: () => ({
 **Fallback**: Empty context (chat without retrieval)
 
 ```typescript
-fallback: () => ({ results: [], context: '' })
+fallback: () => ({ results: [], context: "" });
 ```
 
 **User Experience**: Chat continues without knowledge base augmentation
@@ -238,8 +243,8 @@ fallback: () => ({ results: [], context: '' })
 // Force failures to open circuit
 for (let i = 0; i < 10; i++) {
   try {
-    await openaiCircuitBreaker.fire(() => 
-      Promise.reject(new Error('Simulated failure'))
+    await openaiCircuitBreaker.fire(() =>
+      Promise.reject(new Error("Simulated failure")),
     );
   } catch {}
 }
@@ -253,11 +258,11 @@ console.log(stats.state); // Should be 'OPEN'
 
 ```typescript
 // When circuit OPEN, fallback is used
-const result = await openaiCircuitBreaker.fire(() => 
-  Promise.reject(new Error('Service down'))
+const result = await openaiCircuitBreaker.fire(() =>
+  Promise.reject(new Error("Service down")),
 );
 
-console.log(result.choices[0].message.content); 
+console.log(result.choices[0].message.content);
 // "I apologize, but I am experiencing technical difficulties..."
 ```
 
@@ -265,11 +270,11 @@ console.log(result.choices[0].message.content);
 
 ```typescript
 // Wait for resetTimeout (60s for OpenAI)
-await new Promise(r => setTimeout(r, 60000));
+await new Promise((r) => setTimeout(r, 60000));
 
 // Next call transitions to HALF_OPEN
-const result = await openaiCircuitBreaker.fire(() => 
-  Promise.resolve({ success: true })
+const result = await openaiCircuitBreaker.fire(() =>
+  Promise.resolve({ success: true }),
 );
 
 // After 2 successes (successThreshold), circuit CLOSES
@@ -286,17 +291,17 @@ const result = await openaiCircuitBreaker.fire(() =>
 openaiCircuitBreaker.close();
 
 // Or via monitoring endpoint (future feature)
-POST /api/admin/circuit-breakers/openai/reset
+POST / api / admin / circuit - breakers / openai / reset;
 ```
 
 ### Troubleshooting
 
-| Symptom | Cause | Solution |
-|---------|-------|----------|
-| Circuit constantly OPEN | External service degraded | Check service status, adjust thresholds |
-| Circuit flapping OPEN/CLOSED | Threshold too sensitive | Increase `volumeThreshold` or `errorThresholdPercentage` |
-| Requests timing out | Timeout too aggressive | Increase `timeout` value |
-| Users seeing degraded messages | Circuit OPEN | Check CloudWatch logs for root cause |
+| Symptom                        | Cause                     | Solution                                                 |
+| ------------------------------ | ------------------------- | -------------------------------------------------------- |
+| Circuit constantly OPEN        | External service degraded | Check service status, adjust thresholds                  |
+| Circuit flapping OPEN/CLOSED   | Threshold too sensitive   | Increase `volumeThreshold` or `errorThresholdPercentage` |
+| Requests timing out            | Timeout too aggressive    | Increase `timeout` value                                 |
+| Users seeing degraded messages | Circuit OPEN              | Check CloudWatch logs for root cause                     |
 
 ### Logs
 
@@ -321,25 +326,27 @@ Circuit breakers are **per-process** (not shared across workers by default).
 For cross-worker coordination:
 
 ```typescript
-import Redis from 'ioredis';
+import Redis from "ioredis";
 
 export function createDistributedCircuitBreaker(config: CircuitBreakerConfig) {
   const redis = new Redis(env.REDIS_URL);
   const breaker = createCircuitBreaker(config);
 
   // Sync state to Redis
-  breaker.on('open', () => redis.set(`circuit:${config.name}`, 'OPEN', 'EX', 60));
-  breaker.on('close', () => redis.del(`circuit:${config.name}`));
+  breaker.on("open", () =>
+    redis.set(`circuit:${config.name}`, "OPEN", "EX", 60),
+  );
+  breaker.on("close", () => redis.del(`circuit:${config.name}`));
 
   // Check Redis before firing
   return {
     async fire<T>(fn: () => Promise<T>): Promise<T> {
       const state = await redis.get(`circuit:${config.name}`);
-      if (state === 'OPEN') {
+      if (state === "OPEN") {
         throw new Error(`Circuit ${config.name} is OPEN across cluster`);
       }
       return breaker.fire(fn);
-    }
+    },
   };
 }
 ```
@@ -350,7 +357,7 @@ export function createDistributedCircuitBreaker(config: CircuitBreakerConfig) {
 
 1. **Always provide fallbacks**: Circuit breakers should degrade gracefully, not crash
 2. **Monitor metrics**: Set CloudWatch alarms for `CircuitState = 1` (OPEN)
-3. **Tune thresholds per environment**: 
+3. **Tune thresholds per environment**:
    - Dev: Lenient (avoid false positives)
    - Prod: Strict (protect user experience)
 4. **Test failure scenarios**: Simulate service outages in staging

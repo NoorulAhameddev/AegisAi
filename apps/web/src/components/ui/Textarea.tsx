@@ -23,8 +23,9 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             "focus:border-purple-500/50 focus:bg-black/60 focus:ring-4 focus:ring-purple-500/10",
             "placeholder:text-zinc-600 transition-all duration-200",
             "resize-vertical min-h-[100px]",
-            error && "border-red-500/50 focus:border-red-500 focus:ring-red-500/10",
-            className
+            error &&
+              "border-red-500/50 focus:border-red-500 focus:ring-red-500/10",
+            className,
           )}
           {...props}
         />
@@ -35,13 +36,11 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           </p>
         )}
         {helperText && !error && (
-          <p className="text-sm text-zinc-500 ml-1">
-            {helperText}
-          </p>
+          <p className="text-sm text-zinc-500 ml-1">{helperText}</p>
         )}
       </div>
     );
-  }
+  },
 );
 
 Textarea.displayName = "Textarea";

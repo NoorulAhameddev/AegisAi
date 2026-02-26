@@ -16,8 +16,7 @@
     },
     {
       "parameters": {
-        "functionCode": "// Normalize and validate input\nconst body = $json || {};\nconst message = body.message || body.text || body.prompt || '';
-const context = body.context || body.metadata || {};\nif (!message) {\n  throw new Error('Missing message in request body');\n}\nreturn [{ message, context }];"
+        "functionCode": "// Normalize and validate input\\nconst body = $json || {};\\nconst message = body.message || body.text || body.prompt || '';\\nconst context = body.context || body.metadata || {};\\nif (!message) {\\n  throw new Error('Missing message in request body');\\n}\\nreturn [{ message, context }];"
       },
       "id": "Normalize Input",
       "name": "Normalize Input",

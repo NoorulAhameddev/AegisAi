@@ -192,17 +192,20 @@ QUEUE_NAME="chat-queue"  # Default is fine
 ### Critical Configuration Notes
 
 ⚠️ **ENCRYPTION_KEY**:
+
 - MUST be exactly 32 characters
 - Used for AES-256-GCM encryption
 - Changing this will make old data unreadable
 - Generate securely: `node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"`
 
 ⚠️ **JWT Secrets**:
+
 - Use strong random values (min 32 characters)
 - Never commit to version control
 - Different for access and refresh tokens
 
 ⚠️ **DATABASE_URL**:
+
 - PostgreSQL 14+ required
 - Ensure database exists before running migrations
 - Use connection pooling in production
@@ -218,6 +221,7 @@ QUEUE_NAME="chat-queue"  # Default is fine
 The AI can search the web and read web pages autonomously.
 
 **How it works**:
+
 1. User asks: "What's the latest news about AI?"
 2. AI decides to use `search_web` tool
 3. Worker executes Google search
@@ -225,6 +229,7 @@ The AI can search the web and read web pages autonomously.
 5. AI generates response with current information
 
 **Tools**:
+
 - `search_web(query)` - Google search
 - `read_webpage(url)` - Fetch and parse webpage
 
@@ -235,12 +240,14 @@ The AI can search the web and read web pages autonomously.
 Contextual responses using vector similarity search.
 
 **How it works**:
+
 1. User messages stored in LanceDB with embeddings
 2. Before AI response, similar past messages retrieved
 3. Relevant context injected into system prompt
 4. AI generates contextually aware response
 
 **Features**:
+
 - Automatic embedding generation (OpenAI)
 - Vector similarity search
 - Per-user isolation (UUID validation)
@@ -253,11 +260,13 @@ Contextual responses using vector similarity search.
 Multimodal file processing with AI analysis.
 
 **Supported formats**:
+
 - **Images**: JPG, PNG, GIF (GPT-4o Vision)
 - **Documents**: PDF, TXT (text extraction)
 - **Future**: DOCX, XLSX, CSV
 
 **How it works**:
+
 1. File uploaded via FormData
 2. Stored locally in `uploads/` directory
 3. Metadata saved to database
@@ -271,10 +280,12 @@ Multimodal file processing with AI analysis.
 Persistent user facts and preferences.
 
 **Types**:
+
 - `USER_FACT` - Facts about the user
 - `SUMMARY` - Conversation summaries
 
 **How it works**:
+
 1. AI extracts facts during conversation
 2. Facts stored in Memory table
 3. Retrieved before each response
@@ -287,6 +298,7 @@ Persistent user facts and preferences.
 Comprehensive system management.
 
 **Features**:
+
 - User management (ban, role changes)
 - Usage metrics (tokens, requests)
 - System settings (runtime configuration)
@@ -300,9 +312,11 @@ Comprehensive system management.
 ### Authentication Endpoints
 
 #### POST `/api/auth/register`
+
 Create new user account.
 
 **Request**:
+
 ```json
 {
   "name": "John Doe",
@@ -312,6 +326,7 @@ Create new user account.
 ```
 
 **Response**:
+
 ```json
 {
   "message": "Registered & Logged in"
@@ -319,15 +334,18 @@ Create new user account.
 ```
 
 **Cookies Set**:
+
 - `auth_access` - Access token (10min)
 - `auth_refresh` - Refresh token (7d)
 
 ---
 
 #### POST `/api/auth/login`
+
 Authenticate existing user.
 
 **Request**:
+
 ```json
 {
   "email": "john@example.com",
@@ -336,6 +354,7 @@ Authenticate existing user.
 ```
 
 **Response**:
+
 ```json
 {
   "message": "Logged in successfully"
@@ -345,11 +364,13 @@ Authenticate existing user.
 ---
 
 #### POST `/api/auth/refresh`
+
 Refresh access token using refresh token.
 
 **Request**: No body (uses `auth_refresh` cookie)
 
 **Response**:
+
 ```json
 {
   "message": "Token refreshed"
@@ -361,9 +382,11 @@ Refresh access token using refresh token.
 ---
 
 #### POST `/api/auth/logout`
+
 Clear authentication cookies.
 
 **Response**:
+
 ```json
 {
   "message": "Logged out"
@@ -373,9 +396,11 @@ Clear authentication cookies.
 ---
 
 #### GET `/api/auth/me`
+
 Get current user information.
 
 **Response**:
+
 ```json
 {
   "id": "uuid",
@@ -391,9 +416,11 @@ Get current user information.
 ### Chat Endpoints
 
 #### POST `/api/chat/create`
+
 Create new chat session.
 
 **Response**:
+
 ```json
 {
   "chatId": "uuid"
@@ -403,9 +430,11 @@ Create new chat session.
 ---
 
 #### POST `/api/chat/stream`
+
 Send message and queue AI processing.
 
 **Request**:
+
 ```json
 {
   "chatId": "uuid",
@@ -415,6 +444,7 @@ Send message and queue AI processing.
 ```
 
 **Response**:
+
 ```json
 {
   "jobId": "uuid",
@@ -426,9 +456,11 @@ Send message and queue AI processing.
 ---
 
 #### GET `/api/chat/history?chatId=uuid`
+
 Get chat message history.
 
 **Response**:
+
 ```json
 [
   {
@@ -449,9 +481,11 @@ Get chat message history.
 ---
 
 #### GET `/api/chat/list`
+
 Get user's chat list.
 
 **Response**:
+
 ```json
 [
   {
@@ -465,9 +499,11 @@ Get user's chat list.
 ---
 
 #### GET `/api/chat/status?jobId=uuid`
+
 Check AI job processing status.
 
 **Response**:
+
 ```json
 {
   "status": "completed",
@@ -483,12 +519,15 @@ Check AI job processing status.
 ### File Endpoints
 
 #### POST `/api/files/upload`
+
 Upload file for analysis.
 
 **Request**: `multipart/form-data`
+
 - `file`: File object
 
 **Response**:
+
 ```json
 {
   "id": "uuid",
@@ -503,9 +542,11 @@ Upload file for analysis.
 ### Admin Endpoints (Requires ADMIN role)
 
 #### GET `/api/admin/users`
+
 List all users.
 
 **Response**:
+
 ```json
 [
   {
@@ -522,9 +563,11 @@ List all users.
 ---
 
 #### GET `/api/admin/metrics`
+
 Get system metrics.
 
 **Response**:
+
 ```json
 {
   "totalUsers": 150,
@@ -542,23 +585,27 @@ Get system metrics.
 ### Authentication & Authorization
 
 **JWT Token System**:
+
 - **Access Token**: Short-lived (10min), used for API requests
 - **Refresh Token**: Long-lived (7d), used to get new access tokens
 - **HTTP-Only Cookies**: Prevents XSS attacks
 - **Token Versioning**: Instant session revocation
 
 **RBAC (Role-Based Access Control)**:
+
 - `USER` - Standard user permissions
 - `ADMIN` - Full system access
 
 ### Data Protection
 
 **Encryption**:
+
 - **Algorithm**: AES-256-GCM (authenticated encryption)
 - **Scope**: All chat messages, sensitive user data
 - **Key Management**: Environment variable, strict validation
 
 **Password Security**:
+
 - **Algorithm**: Bcrypt
 - **Cost Factor**: 12 (2^12 iterations)
 - **Salt**: Automatic per-password
@@ -566,12 +613,14 @@ Get system metrics.
 ### Input Validation
 
 **Multi-Layer Approach**:
+
 1. **Regex Validation** - Basic pattern matching
 2. **AI Sentinel** - Intent classification
 3. **Length Limits** - Prevent DoS
 4. **Type Validation** - Zod schemas
 
 **Blocked Patterns**:
+
 - Jailbreak attempts
 - System override commands
 - Malicious prompts
@@ -579,6 +628,7 @@ Get system metrics.
 ### Output Validation
 
 **Leak Detection**:
+
 - API keys (OpenAI, etc.)
 - JWT tokens
 - Private keys
@@ -591,6 +641,7 @@ Get system metrics.
 **Implementation**: Redis-based distributed rate limiting
 
 **Limits**:
+
 - Global: 100 requests/minute
 - Chat: 20 requests/minute
 - Configurable per-endpoint
@@ -602,54 +653,63 @@ Get system metrics.
 ### Models
 
 **User** (9 fields, 1 index)
+
 - Auto-generated UUID
 - Email uniqueness constraint
 - Role enum (USER, ADMIN)
 - Token versioning for revocation
 
 **Chat** (5 fields, 1 index)
+
 - Auto-generated UUID
 - Title field for display
 - Cascade delete on user deletion
 - Updated timestamp
 
 **Message** (5 fields, 2 indexes)
+
 - Auto-generated UUID
 - Role enum (USER, ASSISTANT, SYSTEM)
 - Encrypted content
 - Indexed by chatId + createdAt
 
 **Session** (8 fields, 3 indexes)
+
 - Auto-generated UUID
 - Hashed refresh token
 - Expiration tracking
 - User agent & IP logging
 
 **Memory** (6 fields, 2 indexes)
+
 - Auto-generated UUID
 - Type enum (USER_FACT, SUMMARY)
 - Vector search ready
 - Per-user isolation
 
 **File** (7 fields, 1 index)
+
 - Auto-generated UUID
 - Type and path storage
 - Content for text files
 - Indexed by userId + createdAt
 
 **UsageMetric** (5 fields, 1 index)
+
 - Auto-generated UUID
 - Token counting
 - Model tracking
 - Billing/quota support
 
 **AuditLog** (5 fields, 2 indexes)
+
 - Auto-generated UUID
 - Action tracking
 - JSON metadata
 - Indexed by userId + action
 
 **SystemSetting** (3 fields)
+
 - Key-value store
 - Runtime configuration
 - Updated timestamp
@@ -661,10 +721,12 @@ Get system metrics.
 ### Architecture
 
 **Separation of Concerns**:
+
 - **API**: Fast request handling, job queuing
 - **Worker**: Heavy AI processing, tool execution
 
 **Benefits**:
+
 - API never blocks on AI requests
 - Worker can be scaled independently
 - Retry logic for failed jobs
@@ -746,31 +808,37 @@ npm run worker
 ### Common Issues
 
 **"Prisma Client not initialized"**
+
 ```bash
 npx prisma generate
 ```
 
 **"Database connection failed"**
+
 - Check DATABASE_URL format
 - Ensure PostgreSQL is running
 - Verify network connectivity
 
 **"ENCRYPTION_KEY must be exactly 32 characters"**
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
 ```
 
 **"Chat history shows encrypted text"**
+
 - Server not restarted after fixes
 - Decryption code not applied
 - Check `src/app/api/chat/history/route.ts`
 
 **"Jobs timeout after 120 seconds"**
+
 - Worker not running
 - Redis connection failed
 - Check worker logs
 
 **"Rate limit exceeded"**
+
 - Too many requests
 - Adjust limits in `src/lib/rate-limit.ts`
 - Check Redis connection
@@ -780,6 +848,7 @@ node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
 ## 📞 Support
 
 For technical support:
+
 - 📧 Email: support@aegis-ai.com
 - 🐛 Issues: [GitHub Issues](https://github.com/your-org/aegis-ai/issues)
 - 💬 Discussions: [GitHub Discussions](https://github.com/your-org/aegis-ai/discussions)

@@ -3,10 +3,16 @@
  * Centralized state for app-wide concerns
  */
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { networkManager } from '../utils/network';
-import { logger } from '../utils/logger';
-import { AppState, AppStateStatus } from 'react-native';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { networkManager } from "../utils/network";
+import { logger } from "../utils/logger";
+import { AppState, AppStateStatus } from "react-native";
 
 interface GlobalState {
   isOnline: boolean;
@@ -27,7 +33,7 @@ const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 export const useGlobalState = () => {
   const context = useContext(GlobalContext);
   if (!context) {
-    throw new Error('useGlobalState must be used within GlobalStateProvider');
+    throw new Error("useGlobalState must be used within GlobalStateProvider");
   }
   return context;
 };
@@ -49,14 +55,17 @@ export const GlobalStateProvider: React.FC<Props> = ({ children }) => {
     // Network status monitoring
     const unsubscribeNetwork = networkManager.addListener((isOnline) => {
       setState((prev) => ({ ...prev, isOnline }));
-      logger.info('Network status changed in global state', { isOnline });
+      logger.info("Network status changed in global state", { isOnline });
     });
 
     // App state monitoring (foreground/background)
-    const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
-      setState((prev) => ({ ...prev, appState: nextAppState }));
-      logger.info('App state changed', { state: nextAppState });
-    });
+    const appStateSubscription = AppState.addEventListener(
+      "change",
+      (nextAppState) => {
+        setState((prev) => ({ ...prev, appState: nextAppState }));
+        logger.info("App state changed", { state: nextAppState });
+      },
+    );
 
     return () => {
       unsubscribeNetwork();
@@ -75,7 +84,7 @@ export const GlobalStateProvider: React.FC<Props> = ({ children }) => {
       errorMessage: error,
     }));
     if (error) {
-      logger.error('Global error set', null, { message: error });
+      logger.error("Global error set", null, { message: error });
     }
   };
 
@@ -94,5 +103,7 @@ export const GlobalStateProvider: React.FC<Props> = ({ children }) => {
     clearError,
   };
 
-  return <GlobalContext.Provider value={value}>{children}</GlobalContext.Provider>;
+  return (
+    <GlobalContext.Provider value={value}>{children}</GlobalContext.Provider>
+  );
 };

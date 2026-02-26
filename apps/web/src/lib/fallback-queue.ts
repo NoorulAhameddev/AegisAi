@@ -1,18 +1,18 @@
 /**
  * PostgreSQL Fallback Queue
- * 
+ *
  * When Redis is unavailable, jobs are stored in PostgreSQL
  * Workers poll this table instead of Redis
- * 
+ *
  * Trade-offs:
  * - Slower than Redis (disk I/O vs memory)
  * - Less efficient polling
  * - But ensures critical jobs aren't lost
  */
 
-import { prisma } from './prisma';
-import { logger } from './logger';
-import { publishQueueDepthMetric } from './cloudwatch-metrics';
+import { prisma } from "./prisma";
+import { logger } from "./logger";
+import { publishQueueDepthMetric } from "./cloudwatch-metrics";
 
 export interface FallbackJob {
   id: string;
@@ -20,7 +20,7 @@ export interface FallbackJob {
   data: any;
   attempts: number;
   maxAttempts: number;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: "pending" | "processing" | "completed" | "failed";
   error?: string;
   createdAt: Date;
   processedAt?: Date;
@@ -33,7 +33,7 @@ export async function addFallbackJob(
   queueName: string,
   jobId: string,
   data: any,
-  maxAttempts: number = 3
+  maxAttempts: number = 3,
 ): Promise<void> {
   try {
     await prisma.$executeRaw`
@@ -42,7 +42,7 @@ export async function addFallbackJob(
       ON CONFLICT (id) DO NOTHING
     `;
 
-    logger.info('Job added to PostgreSQL fallback queue', {
+    logger.info("Job added to PostgreSQL fallback queue", {
       queueName,
       jobId,
     });
@@ -51,7 +51,7 @@ export async function addFallbackJob(
     const depth = await getFallbackQueueDepth(queueName);
     publishQueueDepthMetric(queueName, depth);
   } catch (error) {
-    logger.error('Failed to add job to fallback queue', error as Error, {
+    logger.error("Failed to add job to fallback queue", error as Error, {
       queueName,
       jobId,
     });
@@ -63,7 +63,7 @@ export async function addFallbackJob(
  * Get next pending job from fallback queue
  */
 export async function getNextFallbackJob(
-  queueName: string
+  queueName: string,
 ): Promise<FallbackJob | null> {
   try {
     // Use FOR UPDATE SKIP LOCKED for concurrent worker safety
@@ -100,7 +100,7 @@ export async function getNextFallbackJob(
       processedAt: job.processed_at,
     };
   } catch (error) {
-    logger.error('Failed to get next fallback job', error as Error, {
+    logger.error("Failed to get next fallback job", error as Error, {
       queueName,
     });
     return null;
@@ -119,9 +119,9 @@ export async function completeFallbackJob(jobId: string): Promise<void> {
       WHERE id = ${jobId}
     `;
 
-    logger.info('Fallback job completed', { jobId });
+    logger.info("Fallback job completed", { jobId });
   } catch (error) {
-    logger.error('Failed to complete fallback job', error as Error, { jobId });
+    logger.error("Failed to complete fallback job", error as Error, { jobId });
   }
 }
 
@@ -130,7 +130,7 @@ export async function completeFallbackJob(jobId: string): Promise<void> {
  */
 export async function failFallbackJob(
   jobId: string,
-  error: string
+  error: string,
 ): Promise<void> {
   try {
     await prisma.$executeRaw`
@@ -141,16 +141,18 @@ export async function failFallbackJob(
       WHERE id = ${jobId}
     `;
 
-    logger.warn('Fallback job failed', { jobId, error });
+    logger.warn("Fallback job failed", { jobId, error });
   } catch (err) {
-    logger.error('Failed to fail fallback job', err as Error, { jobId });
+    logger.error("Failed to fail fallback job", err as Error, { jobId });
   }
 }
 
 /**
  * Get fallback queue depth
  */
-export async function getFallbackQueueDepth(queueName: string): Promise<number> {
+export async function getFallbackQueueDepth(
+  queueName: string,
+): Promise<number> {
   try {
     const result: any = await prisma.$queryRaw`
       SELECT COUNT(*) as count
@@ -161,7 +163,7 @@ export async function getFallbackQueueDepth(queueName: string): Promise<number> 
 
     return Number(result[0]?.count || 0);
   } catch (error) {
-    logger.error('Failed to get fallback queue depth', error as Error, {
+    logger.error("Failed to get fallback queue depth", error as Error, {
       queueName,
     });
     return 0;
@@ -172,7 +174,9 @@ export async function getFallbackQueueDepth(queueName: string): Promise<number> 
  * Clean up old completed/failed jobs
  * Run periodically to prevent table bloat
  */
-export async function cleanupFallbackQueue(olderThanHours: number = 24): Promise<number> {
+export async function cleanupFallbackQueue(
+  olderThanHours: number = 24,
+): Promise<number> {
   try {
     const result = await prisma.$executeRaw`
       DELETE FROM fallback_queue
@@ -180,10 +184,10 @@ export async function cleanupFallbackQueue(olderThanHours: number = 24): Promise
         AND processed_at < NOW() - INTERVAL '${olderThanHours} hours'
     `;
 
-    logger.info('Cleaned up fallback queue', { deletedCount: result });
+    logger.info("Cleaned up fallback queue", { deletedCount: result });
     return Number(result);
   } catch (error) {
-    logger.error('Failed to cleanup fallback queue', error as Error);
+    logger.error("Failed to cleanup fallback queue", error as Error);
     return 0;
   }
 }
@@ -193,7 +197,7 @@ export async function cleanupFallbackQueue(olderThanHours: number = 24): Promise
  */
 export async function migrateFallbackJobsToRedis(
   queueName: string,
-  redisQueue: any
+  redisQueue: any,
 ): Promise<number> {
   try {
     const jobs: any = await prisma.$queryRaw`
@@ -218,20 +222,20 @@ export async function migrateFallbackJobsToRedis(
         await completeFallbackJob(job.id);
         migratedCount++;
       } catch (error) {
-        logger.error('Failed to migrate job to Redis', error as Error, {
+        logger.error("Failed to migrate job to Redis", error as Error, {
           jobId: job.id,
         });
       }
     }
 
-    logger.info('Migrated fallback jobs to Redis', {
+    logger.info("Migrated fallback jobs to Redis", {
       queueName,
       migratedCount,
     });
 
     return migratedCount;
   } catch (error) {
-    logger.error('Failed to migrate fallback jobs', error as Error, {
+    logger.error("Failed to migrate fallback jobs", error as Error, {
       queueName,
     });
     return 0;

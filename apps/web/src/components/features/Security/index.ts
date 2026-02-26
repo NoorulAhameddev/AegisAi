@@ -1,1 +1,1 @@
-export { SecuritySettings } from './SecuritySettings';
+export { SecuritySettings } from "./SecuritySettings";

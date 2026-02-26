@@ -1,7 +1,15 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { Send, Paperclip, Loader2, StopCircle, FileText, X, Sparkles } from "lucide-react";
+import {
+  Send,
+  Paperclip,
+  Loader2,
+  StopCircle,
+  FileText,
+  X,
+  Sparkles,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip } from "@/components/ui/Tooltip";
 
@@ -40,8 +48,9 @@ export function ChatInput({
 
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height =
+        Math.min(textareaRef.current.scrollHeight, 120) + "px";
     }
   }, [input]);
 
@@ -69,10 +78,14 @@ export function ChatInput({
             <FileText className="h-5 w-5" />
           </div>
           <div className="flex flex-col flex-1 min-w-0">
-            <span className="text-sm font-medium text-zinc-200 truncate">{file.name}</span>
-            <span className="text-xs text-zinc-500">{(file.size / 1024).toFixed(1)} KB</span>
+            <span className="text-sm font-medium text-zinc-200 truncate">
+              {file.name}
+            </span>
+            <span className="text-xs text-zinc-500">
+              {(file.size / 1024).toFixed(1)} KB
+            </span>
           </div>
-          <button 
+          <button
             onClick={() => setFile(null)}
             className="p-1.5 rounded-lg hover:bg-white/10 text-zinc-500 hover:text-zinc-300 transition-all hover:scale-110 active:scale-95"
             aria-label="Remove file"
@@ -83,22 +96,23 @@ export function ChatInput({
         </div>
       )}
 
-      <div className={cn(
-        "relative flex items-end gap-2 p-2 rounded-3xl transition-all duration-300",
-        "bg-zinc-900/70 backdrop-blur-2xl border border-white/10",
-        "focus-within:ring-2 focus-within:ring-purple-500/30 focus-within:border-purple-500/50 focus-within:bg-zinc-900/90",
-        "shadow-2xl shadow-black/50 hover:border-white/20"
-      )}>
-        
+      <div
+        className={cn(
+          "relative flex items-end gap-2 p-2 rounded-3xl transition-all duration-300",
+          "bg-zinc-900/70 backdrop-blur-2xl border border-white/10",
+          "focus-within:ring-2 focus-within:ring-purple-500/30 focus-within:border-purple-500/50 focus-within:bg-zinc-900/90",
+          "shadow-2xl shadow-black/50 hover:border-white/20",
+        )}
+      >
         <Tooltip content="Attach file" side="top">
           <div className="pb-1 pl-1">
-            <input 
-              type="file" 
-              id="file-upload" 
-              className="hidden" 
-              onChange={onUpload} 
+            <input
+              type="file"
+              id="file-upload"
+              className="hidden"
+              onChange={onUpload}
               disabled={isUploading || isLoading}
-              aria-label="File Upload" 
+              aria-label="File Upload"
             />
             <button
               onClick={() => document.getElementById("file-upload")?.click()}
@@ -128,16 +142,19 @@ export function ChatInput({
           rows={1}
         />
 
-        <Tooltip content={isLoading ? "Stop generation" : "Send message"} side="top">
+        <Tooltip
+          content={isLoading ? "Stop generation" : "Send message"}
+          side="top"
+        >
           <div className="pb-1 pr-1">
             <button
               onClick={isLoading ? onStop : onSubmit}
-              disabled={(!input.trim() && !file) && !isLoading}
+              disabled={!input.trim() && !file && !isLoading}
               className={cn(
                 "flex items-center justify-center h-11 w-11 rounded-xl transition-all duration-300 shadow-lg hover:scale-110 active:scale-95",
-                isLoading 
-                  ? "bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20" 
-                  : "bg-linear-to-br from-white to-zinc-100 text-black hover:from-zinc-100 hover:to-zinc-200 disabled:opacity-40 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:hover:scale-100 disabled:from-zinc-800 disabled:to-zinc-800"
+                isLoading
+                  ? "bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20"
+                  : "bg-linear-to-br from-white to-zinc-100 text-black hover:from-zinc-100 hover:to-zinc-200 disabled:opacity-40 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:hover:scale-100 disabled:from-zinc-800 disabled:to-zinc-800",
               )}
               title={isLoading ? "Stop" : "Send"}
               aria-label={isLoading ? "Stop generation" : "Send message"}
@@ -172,7 +189,7 @@ export function ChatInput({
           </div>
         </div>
       )}
-      
+
       <p className="text-center text-xs text-zinc-600 mt-4 font-medium flex items-center justify-center gap-2">
         <span className="h-1 w-1 rounded-full bg-zinc-700" />
         Aegis AI can make mistakes. Check important info.

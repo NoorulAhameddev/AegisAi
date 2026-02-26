@@ -2,12 +2,16 @@
  * Enhanced API Client with Offline Support and Retry Logic
  */
 
-import { api } from './api';
-import { ENV } from '../config/env';
-import { logger } from '../utils/logger';
-import { cache, requestDeduplicator, requestQueue } from '../utils/performance';
-import { retryWithBackoff, withNetworkCheck, networkManager } from '../utils/network';
-import { AppError, ErrorCode } from '../utils/errorHandler';
+import { api } from "./api";
+import { ENV } from "../config/env";
+import { logger } from "../utils/logger";
+import { cache, requestDeduplicator, requestQueue } from "../utils/performance";
+import {
+  retryWithBackoff,
+  withNetworkCheck,
+  networkManager,
+} from "../utils/network";
+import { AppError, ErrorCode } from "../utils/errorHandler";
 
 interface RequestConfig {
   useCache?: boolean;
@@ -15,7 +19,7 @@ interface RequestConfig {
   skipNetworkCheck?: boolean;
   skipRetry?: boolean;
   skipQueue?: boolean;
-  priority?: 'high' | 'normal';
+  priority?: "high" | "normal";
 }
 
 /**
@@ -23,7 +27,7 @@ interface RequestConfig {
  */
 export async function enhancedGet<T>(
   url: string,
-  config: RequestConfig = {}
+  config: RequestConfig = {},
 ): Promise<T> {
   const {
     useCache = true,
@@ -39,7 +43,7 @@ export async function enhancedGet<T>(
   if (useCache && ENV.OFFLINE_MODE) {
     const cached = cache.get(cacheKey);
     if (cached) {
-      logger.debug('Cache hit for GET request', { url });
+      logger.debug("Cache hit for GET request", { url });
       return cached;
     }
   }
@@ -48,12 +52,12 @@ export async function enhancedGet<T>(
   const makeRequest = async (): Promise<T> => {
     const executor = async () => {
       const response = await api.get(url);
-      
+
       // Cache successful response
       if (useCache && response.status === 200) {
         cache.set(cacheKey, response.data, cacheTTL);
       }
-      
+
       return response.data;
     };
 
@@ -61,7 +65,7 @@ export async function enhancedGet<T>(
     if (!skipNetworkCheck) {
       return await withNetworkCheck(executor);
     }
-    
+
     return executor();
   };
 
@@ -84,7 +88,7 @@ export async function enhancedGet<T>(
 export async function enhancedPost<T>(
   url: string,
   data?: any,
-  config: RequestConfig = {}
+  config: RequestConfig = {},
 ): Promise<T> {
   const {
     skipNetworkCheck = false,
@@ -103,7 +107,7 @@ export async function enhancedPost<T>(
     if (!skipNetworkCheck) {
       return await withNetworkCheck(executor);
     }
-    
+
     return executor();
   };
 
@@ -126,7 +130,7 @@ export async function enhancedPost<T>(
 export async function enhancedPut<T>(
   url: string,
   data?: any,
-  config: RequestConfig = {}
+  config: RequestConfig = {},
 ): Promise<T> {
   const {
     skipNetworkCheck = false,
@@ -143,7 +147,7 @@ export async function enhancedPut<T>(
     if (!skipNetworkCheck) {
       return await withNetworkCheck(executor);
     }
-    
+
     return executor();
   };
 
@@ -163,7 +167,7 @@ export async function enhancedPut<T>(
  */
 export async function enhancedDelete<T>(
   url: string,
-  config: RequestConfig = {}
+  config: RequestConfig = {},
 ): Promise<T> {
   const {
     skipNetworkCheck = false,
@@ -180,7 +184,7 @@ export async function enhancedDelete<T>(
     if (!skipNetworkCheck) {
       return await withNetworkCheck(executor);
     }
-    
+
     return executor();
   };
 
@@ -200,7 +204,7 @@ export async function enhancedDelete<T>(
  */
 export function clearCache() {
   cache.clear();
-  logger.info('API cache cleared');
+  logger.info("API cache cleared");
 }
 
 /**

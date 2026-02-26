@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 
-const http = require('http');
+const http = require("http");
 
 // Test 1: Check if web server is running
 function testWebServer() {
   return new Promise((resolve) => {
-    const req = http.get('http://localhost:3000', (res) => {
-      console.log('✓ Web Server Status:', res.statusCode);
-      res.on('data', () => {});
-      res.on('end', () => resolve(res.statusCode === 200));
+    const req = http.get("http://localhost:3000", (res) => {
+      console.log("✓ Web Server Status:", res.statusCode);
+      res.on("data", () => {});
+      res.on("end", () => resolve(res.statusCode === 200));
     });
-    
-    req.on('error', (err) => {
-      console.log('✗ Web Server Error:', err.message);
+
+    req.on("error", (err) => {
+      console.log("✗ Web Server Error:", err.message);
       resolve(false);
     });
-    
+
     req.setTimeout(5000);
   });
 }
@@ -24,33 +24,35 @@ function testWebServer() {
 function testChatApi() {
   return new Promise((resolve) => {
     const postData = JSON.stringify({
-      message: 'Hello, are you working?',
-      conversationId: 'test'
+      message: "Hello, are you working?",
+      conversationId: "test",
     });
 
     const options = {
-      hostname: 'localhost',
+      hostname: "localhost",
       port: 3000,
-      path: '/api/chat/stream-sse',
-      method: 'POST',
+      path: "/api/chat/stream-sse",
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
-      }
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(postData),
+      },
     };
 
     const req = http.request(options, (res) => {
-      console.log('✓ Chat API Endpoint Status:', res.statusCode);
-      let data = '';
-      res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => {
-        console.log('  Response:', data.substring(0, 100));
+      console.log("✓ Chat API Endpoint Status:", res.statusCode);
+      let data = "";
+      res.on("data", (chunk) => {
+        data += chunk;
+      });
+      res.on("end", () => {
+        console.log("  Response:", data.substring(0, 100));
         resolve(res.statusCode < 400);
       });
     });
 
-    req.on('error', (err) => {
-      console.log('✗ Chat API Error:', err.message);
+    req.on("error", (err) => {
+      console.log("✗ Chat API Error:", err.message);
       resolve(false);
     });
 
@@ -62,23 +64,28 @@ function testChatApi() {
 
 // Run tests
 async function runTests() {
-  console.log('\n🤖 Aegis AI Chatbot Test Suite\n');
-  console.log('Testing chatbot endpoints...\n');
-  
+  console.log("\n🤖 Aegis AI Chatbot Test Suite\n");
+  console.log("Testing chatbot endpoints...\n");
+
   const webTest = await testWebServer();
-  console.log('');
-  
+  console.log("");
+
   if (webTest) {
     const chatTest = await testChatApi();
-    
-    console.log('\n📊 Test Summary:');
-    console.log('  Web Server:', webTest ? '✓ Working' : '✗ Failed');
-    console.log('  Chat API:', chatTest ? '✓ Working' : '✗ Failed');
-    console.log('\nResult:', (webTest && chatTest) ? '✅ Chatbot is WORKING!' : '❌ Chatbot has issues');
+
+    console.log("\n📊 Test Summary:");
+    console.log("  Web Server:", webTest ? "✓ Working" : "✗ Failed");
+    console.log("  Chat API:", chatTest ? "✓ Working" : "✗ Failed");
+    console.log(
+      "\nResult:",
+      webTest && chatTest ? "✅ Chatbot is WORKING!" : "❌ Chatbot has issues",
+    );
   } else {
-    console.log('\n❌ Web server is not responding. Start it with: npm run dev');
+    console.log(
+      "\n❌ Web server is not responding. Start it with: npm run dev",
+    );
   }
-  
+
   process.exit(0);
 }
 

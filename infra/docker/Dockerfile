@@ -13,6 +13,7 @@ RUN npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
+RUN apk add --no-cache openssl
 
 ENV NODE_ENV=production
 
@@ -25,4 +26,6 @@ RUN mkdir -p /app/uploads /app/data
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
+# Run startup secret validation before starting the app.
+# Migrations should be executed as part of CI/CD, not automatically at container start.
+CMD ["sh", "-c", "node scripts/startup-secret-check.js && npm start"]

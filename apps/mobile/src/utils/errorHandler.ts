@@ -3,35 +3,35 @@
  * Standardized error types and handling utilities
  */
 
-import { logger } from './logger';
-import { Alert } from 'react-native';
+import { logger } from "./logger";
+import { Alert } from "react-native";
 
 export enum ErrorCode {
   // Network Errors
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  TIMEOUT = 'TIMEOUT',
-  CONNECTION_REFUSED = 'CONNECTION_REFUSED',
-  
+  NETWORK_ERROR = "NETWORK_ERROR",
+  TIMEOUT = "TIMEOUT",
+  CONNECTION_REFUSED = "CONNECTION_REFUSED",
+
   // Authentication Errors
-  UNAUTHORIZED = 'UNAUTHORIZED',
-  FORBIDDEN = 'FORBIDDEN',
-  SESSION_EXPIRED = 'SESSION_EXPIRED',
-  INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
-  
+  UNAUTHORIZED = "UNAUTHORIZED",
+  FORBIDDEN = "FORBIDDEN",
+  SESSION_EXPIRED = "SESSION_EXPIRED",
+  INVALID_CREDENTIALS = "INVALID_CREDENTIALS",
+
   // Validation Errors
-  VALIDATION_ERROR = 'VALIDATION_ERROR',
-  INVALID_INPUT = 'INVALID_INPUT',
-  
+  VALIDATION_ERROR = "VALIDATION_ERROR",
+  INVALID_INPUT = "INVALID_INPUT",
+
   // Server Errors
-  SERVER_ERROR = 'SERVER_ERROR',
-  SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
-  
+  SERVER_ERROR = "SERVER_ERROR",
+  SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE",
+
   // Client Errors
-  NOT_FOUND = 'NOT_FOUND',
-  RATE_LIMITED = 'RATE_LIMITED',
-  
+  NOT_FOUND = "NOT_FOUND",
+  RATE_LIMITED = "RATE_LIMITED",
+
   // Unknown
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+  UNKNOWN_ERROR = "UNKNOWN_ERROR",
 }
 
 export class AppError extends Error {
@@ -45,10 +45,10 @@ export class AppError extends Error {
     code: ErrorCode = ErrorCode.UNKNOWN_ERROR,
     statusCode?: number,
     isOperational: boolean = true,
-    context?: any
+    context?: any,
   ) {
     super(message);
-    this.name = 'AppError';
+    this.name = "AppError";
     this.code = code;
     this.statusCode = statusCode;
     this.isOperational = isOperational;
@@ -59,9 +59,9 @@ export class AppError extends Error {
 }
 
 export class NetworkError extends AppError {
-  constructor(message: string = 'Network request failed', context?: any) {
+  constructor(message: string = "Network request failed", context?: any) {
     super(message, ErrorCode.NETWORK_ERROR, undefined, true, context);
-    this.name = 'NetworkError';
+    this.name = "NetworkError";
   }
 }
 
@@ -74,20 +74,20 @@ export class ErrorHandler {
 
     if (error instanceof AppError) {
       appError = error;
-    } else if (error.code === 'ECONNABORTED') {
-      appError = new AppError('Server connection timed out', ErrorCode.TIMEOUT);
-    } else if (error.message === 'Network Error' || !error.response) {
+    } else if (error.code === "ECONNABORTED") {
+      appError = new AppError("Server connection timed out", ErrorCode.TIMEOUT);
+    } else if (error.message === "Network Error" || !error.response) {
       // This is the "Max Retries Reached" trigger
       appError = new NetworkError(
-        'Server is unreachable. Please ensure your backend is running and you are on the same WiFi network.',
-        { originalError: error }
+        "Server is unreachable. Please ensure your backend is running and you are on the same WiFi network.",
+        { originalError: error },
       );
 
       // Visual Alert for Development
       if (__DEV__) {
         Alert.alert(
-          'Backend Unreachable',
-          'The mobile app cannot find the API server. \n\n1. Check if backend is running.\n2. Verify WiFi connection.'
+          "Backend Unreachable",
+          "The mobile app cannot find the API server. \n\n1. Check if backend is running.\n2. Verify WiFi connection.",
         );
       }
     } else {
@@ -95,9 +95,9 @@ export class ErrorHandler {
     }
 
     logger.error(
-      `${context ? `[${context}] ` : ''}${appError.message}`,
+      `${context ? `[${context}] ` : ""}${appError.message}`,
       appError,
-      appError.context
+      appError.context,
     );
 
     return appError;
@@ -109,11 +109,20 @@ export class ErrorHandler {
     const message = data?.error || data?.message || error.message;
 
     switch (status) {
-      case 400: return new AppError(message, ErrorCode.VALIDATION_ERROR, 400);
-      case 401: return new AppError(message, ErrorCode.UNAUTHORIZED, 401);
-      case 429: return new AppError('Too many requests', ErrorCode.RATE_LIMITED, 429);
-      case 500: return new AppError('Internal server error', ErrorCode.SERVER_ERROR, 500);
-      default: return new AppError(message, ErrorCode.UNKNOWN_ERROR, status);
+      case 400:
+        return new AppError(message, ErrorCode.VALIDATION_ERROR, 400);
+      case 401:
+        return new AppError(message, ErrorCode.UNAUTHORIZED, 401);
+      case 429:
+        return new AppError("Too many requests", ErrorCode.RATE_LIMITED, 429);
+      case 500:
+        return new AppError(
+          "Internal server error",
+          ErrorCode.SERVER_ERROR,
+          500,
+        );
+      default:
+        return new AppError(message, ErrorCode.UNKNOWN_ERROR, status);
     }
   }
 }

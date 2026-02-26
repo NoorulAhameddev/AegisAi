@@ -5,8 +5,9 @@
 ### Core Components
 
 #### 1. Dialog (Modal)
+
 ```tsx
-import { Dialog } from '@/components/ui';
+import { Dialog } from "@/components/ui";
 
 <Dialog
   open={open}
@@ -17,10 +18,11 @@ import { Dialog } from '@/components/ui';
   footer={<button>Action</button>}
 >
   Content here
-</Dialog>
+</Dialog>;
 ```
 
 #### 2. Notification (Toast)
+
 ```tsx
 import { Notification, NotificationContainer } from '@/components/ui';
 
@@ -39,45 +41,48 @@ import { Notification, NotificationContainer } from '@/components/ui';
 ```
 
 #### 3. Tooltip
-```tsx
-import { Tooltip } from '@/components/ui';
 
-<Tooltip 
-  content="Help text" 
+```tsx
+import { Tooltip } from "@/components/ui";
+
+<Tooltip
+  content="Help text"
   side="top" // top, bottom, left, right
   delay={200}
 >
   <button>Hover me</button>
-</Tooltip>
+</Tooltip>;
 ```
 
 #### 4. Dropdown Menu
+
 ```tsx
-import { Dropdown } from '@/components/ui';
+import { Dropdown } from "@/components/ui";
 
 <Dropdown
   trigger="Menu"
   align="left" // left, right
   items={[
-    { 
-      label: "Edit", 
-      icon: <Edit />, 
-      onClick: () => {}, 
-      disabled: false 
-    },
-    { 
-      label: "Delete", 
-      icon: <Trash />, 
+    {
+      label: "Edit",
+      icon: <Edit />,
       onClick: () => {},
-      isDanger: true 
+      disabled: false,
+    },
+    {
+      label: "Delete",
+      icon: <Trash />,
+      onClick: () => {},
+      isDanger: true,
     },
   ]}
-/>
+/>;
 ```
 
 #### 5. Breadcrumb
+
 ```tsx
-import { Breadcrumb } from '@/components/ui';
+import { Breadcrumb } from "@/components/ui";
 
 <Breadcrumb
   items={[
@@ -85,12 +90,13 @@ import { Breadcrumb } from '@/components/ui';
     { label: "Files", href: "/files", icon: <FileIcon /> },
     { label: "Current", href: undefined }, // Last item not clickable
   ]}
-/>
+/>;
 ```
 
 #### 6. Collapsible Section
+
 ```tsx
-import { Collapsible } from '@/components/ui';
+import { Collapsible } from "@/components/ui";
 
 <Collapsible
   title="Settings"
@@ -99,10 +105,11 @@ import { Collapsible } from '@/components/ui';
   defaultOpen={false}
 >
   Content
-</Collapsible>
+</Collapsible>;
 ```
 
 #### 7. Tabs
+
 ```tsx
 import { Tabs, TabContent } from '@/components/ui';
 
@@ -123,6 +130,7 @@ const [tab, setTab] = useState("general");
 ```
 
 #### 8. Skeleton Loaders
+
 ```tsx
 import { SkeletonLoader, CardSkeletonLoader } from '@/components/ui';
 
@@ -138,15 +146,15 @@ import { SkeletonLoader, CardSkeletonLoader } from '@/components/ui';
 ## 🚀 Common Usage Patterns
 
 ### Loading with Skeleton
+
 ```tsx
-{isLoading ? (
-  <CardSkeletonLoader />
-) : (
-  <YourContent />
-)}
+{
+  isLoading ? <CardSkeletonLoader /> : <YourContent />;
+}
 ```
 
 ### Error Notification
+
 ```tsx
 catch (error) {
   setNotifications(prev => [...prev, {
@@ -159,16 +167,15 @@ catch (error) {
 ```
 
 ### Conditional Section
+
 ```tsx
-<Collapsible 
-  title="Advanced" 
-  defaultOpen={show}
->
+<Collapsible title="Advanced" defaultOpen={show}>
   <AdvancedSettings />
 </Collapsible>
 ```
 
 ### Modal Workflow
+
 ```tsx
 const [open, setOpen] = useState(false);
 
@@ -184,7 +191,7 @@ const [open, setOpen] = useState(false);
   }
 >
   Are you sure?
-</Dialog>
+</Dialog>;
 ```
 
 ---
@@ -192,6 +199,7 @@ const [open, setOpen] = useState(false);
 ## 🎨 Animation Classes
 
 ### Entrance Animations
+
 - `animate-fade-in` - Fade in
 - `animate-slide-up` - Slide up
 - `animate-slide-down` - Slide down
@@ -200,6 +208,7 @@ const [open, setOpen] = useState(false);
 - `animate-float-slow` - Slow float
 
 ### Continuous Animations
+
 - `animate-pulse-slow` - Slow pulse
 - `animate-pulse-subtle` - Subtle pulse
 - `animate-shimmer` - Shimmer effect
@@ -208,6 +217,7 @@ const [open, setOpen] = useState(false);
 - `animate-spin` - Spin (default Tailwind)
 
 ### Usage
+
 ```tsx
 <div className="animate-fade-in">Content</div>
 <div className="animate-slide-down">Modal</div>
@@ -219,6 +229,7 @@ const [open, setOpen] = useState(false);
 ## 🎯 Color Variants
 
 ### Text Colors
+
 - `text-zinc-400` - Secondary text
 - `text-zinc-500` - Tertiary text
 - `text-white` - Primary text
@@ -227,12 +238,14 @@ const [open, setOpen] = useState(false);
 - `text-red-400` - Error text
 
 ### Background Colors
+
 - `bg-zinc-900` - Primary dark
 - `bg-zinc-800` - Secondary dark
 - `bg-purple-500/10` - Accent highlight
 - `bg-white/5` - Subtle highlight
 
 ### Borders
+
 - `border-white/10` - Subtle border
 - `border-purple-500/20` - Accent border
 - `border-white/5` - Very subtle border
@@ -242,21 +255,22 @@ const [open, setOpen] = useState(false);
 ## 📱 Responsive Classes
 
 ### Hidden on Mobile
+
 ```tsx
 <div className="hidden md:block">Desktop only</div>
 <div className="md:hidden">Mobile only</div>
 ```
 
 ### Responsive Grid
+
 ```tsx
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 ```
 
 ### Responsive Text
+
 ```tsx
-<p className="text-sm md:text-base lg:text-lg">
-  Responsive text
-</p>
+<p className="text-sm md:text-base lg:text-lg">Responsive text</p>
 ```
 
 ---
@@ -264,6 +278,7 @@ const [open, setOpen] = useState(false);
 ## ♿ Accessibility Features
 
 ### All Components Include:
+
 - ✅ ARIA labels on interactive elements
 - ✅ Keyboard navigation support
 - ✅ Focus visible indicators
@@ -271,15 +286,19 @@ const [open, setOpen] = useState(false);
 - ✅ Color contrast compliance
 
 ### Keyboard Shortcuts
+
 - `Escape` - Close dialogs, dropdowns
 - `Tab` / `Shift+Tab` - Navigate
 - `Enter` - Confirm actions
 - `Space` - Toggle buttons
 
 ### Motion Preferences
+
 ```css
 @media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; }
+  * {
+    animation: none !important;
+  }
 }
 ```
 
@@ -288,16 +307,23 @@ const [open, setOpen] = useState(false);
 ## 🔧 Advanced Customization
 
 ### Custom Animation
+
 ```tsx
 // In your component
-<div className="animate-fade-in" style={{
-  '--duration': '1000ms'
-} as React.CSSProperties}>
+<div
+  className="animate-fade-in"
+  style={
+    {
+      "--duration": "1000ms",
+    } as React.CSSProperties
+  }
+>
   Content
 </div>
 ```
 
 ### Custom Colors
+
 ```tsx
 // Use Tailwind color utilities
 <div className="bg-purple-600/20 border border-purple-500/30">
@@ -306,6 +332,7 @@ const [open, setOpen] = useState(false);
 ```
 
 ### Custom Sizes
+
 ```tsx
 // Dialog sizes: sm (384px), md (448px), lg (512px), xl (576px)
 <Dialog size="lg">...</Dialog>
@@ -319,6 +346,7 @@ const [open, setOpen] = useState(false);
 ## 💡 Best Practices
 
 ### Do's ✅
+
 - Use `Tooltip` for all button hints
 - Use `Notification` for user feedback
 - Use `Collapsible` for settings sections
@@ -327,6 +355,7 @@ const [open, setOpen] = useState(false);
 - Add focus states to all interactive elements
 
 ### Don'ts ❌
+
 - Don't overuse animations (limit to meaningful UX)
 - Don't create custom modals (use Dialog)
 - Don't display multiple notifications (use container)
@@ -355,7 +384,7 @@ import {
   Input,
   Card,
   Badge,
-} from '@/components/ui';
+} from "@/components/ui";
 ```
 
 ---
@@ -363,21 +392,25 @@ import {
 ## 🐛 Common Issues & Solutions
 
 ### Notification doesn't appear
+
 - Ensure `NotificationContainer` is in your layout
 - Check notification state management
 - Verify `onRemove` callback is implemented
 
 ### Tooltip position wrong
+
 - Use `side` prop to adjust position
 - Check parent element z-index
 - Verify no parent has `overflow: hidden`
 
 ### Animation janky
+
 - Check for conflicting CSS
 - Use `will-change` sparingly
 - Profile with DevTools Performance
 
 ### Mobile layout broken
+
 - Use responsive classes (md:, lg:)
 - Test with device emulator
 - Ensure touch targets are 44px+
@@ -385,6 +418,7 @@ import {
 ---
 
 ## 🔗 Related Documentation
+
 - [UI/UX Improvements Guide](./UI_UX_IMPROVEMENTS.md)
 - [Global Styles](../src/app/globals.css)
 - [Component Library](../src/components/ui/)

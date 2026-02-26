@@ -1,6 +1,6 @@
-import { errorResponse, successResponse } from '@/lib/response';
-import { mcpClient } from '@/lib/mcp-client';
-import { logger } from '@/lib/logger';
+import { errorResponse, successResponse } from "@/lib/response";
+import { mcpClient } from "@/lib/mcp-client";
+import { logger } from "@/lib/logger";
 
 /**
  * API Route: GET /api/mcp/status
@@ -12,7 +12,7 @@ export async function GET() {
 
     return successResponse({ data: status });
   } catch (error) {
-    logger.error('MCP status check error', error as Error);
-    return errorResponse('Failed to get MCP status', { status: 500 });
+    logger.error("MCP status check error", error as Error);
+    return errorResponse("Failed to get MCP status", { status: 500 });
   }
 }

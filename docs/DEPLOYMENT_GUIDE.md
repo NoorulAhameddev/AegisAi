@@ -1,6 +1,7 @@
 # Aegis AI Study Hub - Deployment Guide
 
 ## Table of Contents
+
 1. [Prerequisites](#prerequisites)
 2. [Local Development Setup](#local-development-setup)
 3. [Docker Deployment](#docker-deployment)
@@ -12,12 +13,14 @@
 ## Prerequisites
 
 ### For Local Development
+
 - Node.js 20+ (LTS)
 - PostgreSQL 14+
 - Redis 7+
 - npm or yarn package manager
 
 ### For Docker Deployment
+
 - Docker 20.10+
 - Docker Compose 2.0+
 - At least 4GB RAM available
@@ -26,6 +29,7 @@
 ## Local Development Setup
 
 ### 1. Clone and Install Dependencies
+
 ```bash
 git clone <repository-url>
 cd aegis-ai
@@ -33,11 +37,13 @@ npm install --legacy-peer-deps
 ```
 
 ### 2. Setup Environment Variables
+
 ```bash
 cp .env.example .env.local
 ```
 
 Edit `.env.local` and fill in all required values:
+
 - `DATABASE_URL` - PostgreSQL connection string
 - `REDIS_URL` - Redis connection string
 - `JWT_ACCESS_SECRET` - Generate: `openssl rand -base64 32`
@@ -46,6 +52,7 @@ Edit `.env.local` and fill in all required values:
 - `OPENROUTER_API_KEY` - Get from https://openrouter.ai/keys
 
 ### 3. Setup PostgreSQL Database
+
 ```bash
 # Create database
 createdb aegis_ai
@@ -58,6 +65,7 @@ npm run studio
 ```
 
 ### 4. Setup Redis
+
 ```bash
 # On macOS with Homebrew
 brew services start redis
@@ -69,11 +77,13 @@ docker run -d -p 6379:6379 redis:7-alpine
 ### 5. Start Development Servers
 
 Terminal 1 - Start Next.js dev server:
+
 ```bash
 npm run dev
 ```
 
 Terminal 2 - Start AI worker (required for chat):
+
 ```bash
 npm run worker
 ```
@@ -83,11 +93,13 @@ Access the application at `http://localhost:3000`
 ## Docker Deployment
 
 ### 1. Prepare Environment File
+
 ```bash
 cp .env.example .env.docker
 ```
 
 Edit `.env.docker` with production values. At minimum set:
+
 - `JWT_ACCESS_SECRET`
 - `JWT_REFRESH_SECRET`
 - `ENCRYPTION_KEY`
@@ -96,6 +108,7 @@ Edit `.env.docker` with production values. At minimum set:
 - `SITE_URL` (your domain)
 
 ### 2. Build and Start Containers
+
 ```bash
 # Build images
 docker-compose build
@@ -108,12 +121,14 @@ docker-compose logs -f app
 ```
 
 ### 3. Run Migrations
+
 ```bash
 docker-compose exec app npx prisma migrate deploy
 docker-compose exec app npx prisma db seed  # Optional
 ```
 
 ### 4. Verify Services
+
 ```bash
 # Check all services are running
 docker-compose ps
@@ -133,6 +148,7 @@ docker-compose exec redis redis-cli ping
 ### Option 1: Vercel/Netlify (Recommended for Next.js)
 
 1. **Push to GitHub**
+
    ```bash
    git push origin main
    ```
@@ -156,6 +172,7 @@ docker-compose exec redis redis-cli ping
 #### On Your Server:
 
 1. **Install Docker & Docker Compose**
+
    ```bash
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
@@ -163,30 +180,35 @@ docker-compose exec redis redis-cli ping
    ```
 
 2. **Clone Repository**
+
    ```bash
    git clone <repository-url>
    cd aegis-ai
    ```
 
 3. **Setup Environment**
+
    ```bash
    nano .env.docker  # Edit with production values
    ```
 
 4. **Start Application**
+
    ```bash
    docker-compose up -d
-   
+
    # Verify
    docker-compose logs -f app
    ```
 
 5. **Setup SSL Certificate** (Let's Encrypt)
+
    ```bash
    docker-compose run --rm certbot certonly --standalone -d yourdomain.com
    ```
 
 6. **Configure Nginx Reverse Proxy** (Optional but recommended)
+
    ```nginx
    server {
        listen 443 ssl http2;
@@ -228,6 +250,7 @@ kubectl apply -f k8s/deployment.yaml -n aegis
 ## Environment Configuration
 
 ### Required Variables
+
 ```
 DATABASE_URL          # PostgreSQL connection string
 REDIS_URL            # Redis connection string
@@ -240,6 +263,7 @@ SITE_URL             # Your application URL
 ```
 
 ### Optional but Recommended
+
 ```
 MAX_FILE_SIZE        # Maximum upload size (default: 50MB)
 RAG_CHUNK_SIZE       # Document chunk size (default: 1000)
@@ -248,6 +272,7 @@ LOG_LEVEL            # 'info', 'warn', 'error', 'debug'
 ```
 
 ### Feature Flags
+
 ```
 ENABLE_RAG=true              # Semantic search
 ENABLE_ENCRYPTION=true       # File encryption
@@ -261,11 +286,13 @@ ENABLE_IMAGE_OCR=true
 ## Database Migrations
 
 ### Create New Migration
+
 ```bash
 npm run prisma migrate dev --name migration_name
 ```
 
 ### Deploy Migrations
+
 ```bash
 # Development
 npm run migrate
@@ -278,6 +305,7 @@ kubectl exec -it deployment/aegis-app npx prisma migrate deploy -n aegis
 ```
 
 ### Rollback Migration (if needed)
+
 ```bash
 npm run prisma migrate resolve --rolled-back migration_name
 ```
@@ -285,47 +313,61 @@ npm run prisma migrate resolve --rolled-back migration_name
 ## Troubleshooting
 
 ### Issue: "Connection refused" on DATABASE_URL
+
 **Solution:**
+
 - Verify PostgreSQL is running
 - Check credentials and port
 - Ensure database exists: `createdb aegis_ai`
 - Test connection: `psql -U postgres -d aegis_ai`
 
 ### Issue: "Redis connection timeout"
+
 **Solution:**
+
 - Verify Redis is running: `redis-cli ping`
 - Check REDIS_URL is correct
 - Ensure port 6379 is not blocked by firewall
 
 ### Issue: "JWT_ACCESS_SECRET not configured"
+
 **Solution:**
+
 - Generate: `openssl rand -base64 32`
 - Add to .env file
 - Restart application
 
 ### Issue: "AI Worker not processing messages"
+
 **Solution:**
+
 - Ensure worker is running: `npm run worker`
 - Check Redis connection
 - Verify OPENROUTER_API_KEY is valid
 - Check worker logs for errors
 
 ### Issue: "File uploads failing"
+
 **Solution:**
+
 - Verify uploads directory exists and is writable
 - Check disk space: `df -h`
 - Verify MAX_FILE_SIZE configuration
 - Check file permissions: `chmod 755 uploads`
 
 ### Issue: "Docker compose up fails"
+
 **Solution:**
+
 - Check Docker daemon: `docker ps`
 - Verify ports are available: `lsof -i :3000,5432,6379`
 - Check disk space: `df -h`
 - Review logs: `docker-compose logs`
 
 ### Issue: "Slow database queries"
+
 **Solution:**
+
 - Run migrations to ensure indexes exist
 - Check database stats: `npm run studio`
 - Verify REDIS_URL is configured for caching
@@ -334,6 +376,7 @@ npm run prisma migrate resolve --rolled-back migration_name
 ## Monitoring & Maintenance
 
 ### Health Checks
+
 ```bash
 # API health
 curl http://localhost:3000/api/ping
@@ -349,6 +392,7 @@ docker-compose logs app | grep "worker"
 ```
 
 ### Backup Database
+
 ```bash
 # Full backup
 docker-compose exec postgres pg_dump -U postgres aegis_ai > backup.sql
@@ -358,6 +402,7 @@ docker-compose exec -T postgres psql -U postgres aegis_ai < backup.sql
 ```
 
 ### Update Application
+
 ```bash
 # Pull latest changes
 git pull origin main

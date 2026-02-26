@@ -11,6 +11,7 @@
 This report details the implementation progress of the RAG (Retrieval Augmented Generation) enhancement plan. The goal was to implement a provider-agnostic vector database layer with advanced capabilities including pgvector support, multi-modal embeddings, cross-encoder reranking, and semantic caching.
 
 **Overall Progress**: 1.5 out of 5 phases completed (30%)
+
 - ✅ Phase 3: Advanced Reranking (Cross-Encoder) - **COMPLETE**
 - 🟡 Phase 2: Multi-Modal Embeddings - **PARTIAL** (OCR + server-side image handling)
 - ⏸️ Phase 1: Vector DB Provider Abstraction - **NOT STARTED**
@@ -28,15 +29,18 @@ Implemented a production-ready cross-encoder reranking system with intelligent f
 ### Files Created
 
 #### 1. `src/lib/rerank-cache.ts` (NEW)
+
 **Purpose**: Lightweight caching layer for rerank scores to optimize repeated queries.
 
 **Key Features**:
+
 - Dual-storage: Redis (primary) + in-memory Map (fallback)
 - TTL: 900 seconds (15 minutes) - shorter than embedding cache for fresher relevance
 - Cache key: SHA-256 hash of `model:query:documentId`
 - Graceful degradation when Redis unavailable
 
 **API**:
+
 ```typescript
 getCachedRerankScores(keys: string[]): Promise<(number | null)[]>
 setCachedRerankScores(entries: Array<{ key: string; value: number }>, ttlSeconds?: number): Promise<void>
@@ -47,11 +51,13 @@ setCachedRerankScores(entries: Array<{ key: string; value: number }>, ttlSeconds
 ---
 
 #### 2. `src/app/api/rag/rerank-status/route.ts` (NEW)
+
 **Purpose**: Diagnostics endpoint for monitoring reranker health.
 
 **Endpoint**: `GET /api/rag/rerank-status`
 
 **Response Schema**:
+
 ```typescript
 {
   success: true,
@@ -68,6 +74,7 @@ setCachedRerankScores(entries: Array<{ key: string; value: number }>, ttlSeconds
 ```
 
 **Status Codes**:
+
 - `ok`: Cross-encoder model responsive, valid scores returned
 - `degraded`: Non-OpenRouter model configured, heuristic fallback active
 - `unavailable`: Model call failed, heuristic fallback active
@@ -79,7 +86,9 @@ setCachedRerankScores(entries: Array<{ key: string; value: number }>, ttlSeconds
 ### Files Modified
 
 #### 1. `src/services/rag/rerank.ts` (MAJOR REFACTOR)
+
 **Changes**:
+
 - Added `rerankDocumentsCrossEncoderWithScores()` - Returns both documents AND scores map
 - Added `getRerankerStatus()` - Health probe for diagnostics endpoint
 - Added cache integration with query normalization and SHA-256 key generation
@@ -87,6 +96,7 @@ setCachedRerankScores(entries: Array<{ key: string; value: number }>, ttlSeconds
 - Added cache-aware batch processing (only scores missing documents)
 
 **Cache Strategy**:
+
 ```typescript
 // Cache key format
 const normalizedQuery = query.toLowerCase().trim().replace(/\s+/g, " ");
@@ -100,6 +110,7 @@ const key = `rerank:${sha256(model:normalizedQuery:docId)}`;
 ```
 
 **Scoring Flow**:
+
 ```
 rerankDocumentsCrossEncoderWithScores()
   ├─ Check if model is OpenRouter-compatible
@@ -119,77 +130,94 @@ rerankDocumentsCrossEncoderWithScores()
 ---
 
 #### 2. `src/services/rag/rag-retrieval.ts` (ENHANCED)
+
 **Changes**:
+
 - Import `rerankDocumentsCrossEncoderWithScores` instead of legacy function
 - Added `rerankScores` field to `RetrievalResult` interface
 - Capture rerank scores in retrieval pipeline for downstream consumers
 
 **Before**:
+
 ```typescript
 let rankedDocs = documents;
 if (config.retrieval.rerank) {
-    rankedDocs = await rerankDocumentsCrossEncoder(query, documents);
+  rankedDocs = await rerankDocumentsCrossEncoder(query, documents);
 }
 ```
 
 **After**:
+
 ```typescript
 let rankedDocs = documents;
 let rerankScores: Map<string, number> | undefined;
 if (config.retrieval.rerank) {
-    const rerankResult = await rerankDocumentsCrossEncoderWithScores(query, documents);
-    rankedDocs = rerankResult.documents;
-    rerankScores = rerankResult.scores; // NEW: Capture scores
+  const rerankResult = await rerankDocumentsCrossEncoderWithScores(
+    query,
+    documents,
+  );
+  rankedDocs = rerankResult.documents;
+  rerankScores = rerankResult.scores; // NEW: Capture scores
 }
 ```
 
 **RetrievalResult Interface**:
+
 ```typescript
 export interface RetrievalResult {
-    documents: Document[];
-    context: string;
-    tokensUsed: number;
-    sources: Set<string>;
-    trustScores?: Map<string, number>;      // Safety/injection detection scores
-    rerankScores?: Map<string, number>;     // NEW: Relevance scores from cross-encoder
-    injectionRisks?: string[];
+  documents: Document[];
+  context: string;
+  tokensUsed: number;
+  sources: Set<string>;
+  trustScores?: Map<string, number>; // Safety/injection detection scores
+  rerankScores?: Map<string, number>; // NEW: Relevance scores from cross-encoder
+  injectionRisks?: string[];
 }
 ```
 
 ---
 
 #### 3. `src/app/api/rag/search/route.ts` (ENHANCED)
+
 **Changes**:
+
 - Import `retrieveContext` instead of direct `searchSimilar` call
 - Use advanced retrieval pipeline with reranking
 - Include `relevance` field in response with rerank scores
 
 **Before** (Basic vector search):
+
 ```typescript
 const results = await searchSimilar(query, user.id, limit, filters);
-let formattedResults = results.map(doc => ({
-    id: doc.id,
-    text: doc.text,
-    metadata: JSON.parse(doc.metadata),
-    // ... no relevance score
+let formattedResults = results.map((doc) => ({
+  id: doc.id,
+  text: doc.text,
+  metadata: JSON.parse(doc.metadata),
+  // ... no relevance score
 }));
 ```
 
 **After** (Advanced retrieval with reranking):
+
 ```typescript
-const retrieval = await retrieveContext(query, user.id, { topK: limit, filters });
-let formattedResults = retrieval.documents.map(doc => ({
-    id: doc.id,
-    text: doc.text,
-    metadata: typeof doc.metadata === 'string' ? JSON.parse(doc.metadata) : doc.metadata,
-    chunkIndex: doc.chunkIndex,
-    sourceId: doc.sourceId,
-    createdAt: doc.createdAt,
-    relevance: retrieval.rerankScores?.get(doc.id) ?? null, // NEW: Rerank score [0,1]
+const retrieval = await retrieveContext(query, user.id, {
+  topK: limit,
+  filters,
+});
+let formattedResults = retrieval.documents.map((doc) => ({
+  id: doc.id,
+  text: doc.text,
+  metadata:
+    typeof doc.metadata === "string" ? JSON.parse(doc.metadata) : doc.metadata,
+  chunkIndex: doc.chunkIndex,
+  sourceId: doc.sourceId,
+  createdAt: doc.createdAt,
+  relevance: retrieval.rerankScores?.get(doc.id) ?? null, // NEW: Rerank score [0,1]
 }));
 ```
 
 **Response Example**:
+
 ```json
 {
   "success": true,
@@ -223,25 +251,27 @@ Cross-encoder reranking is controlled via runtime configuration in `src/services
 
 ```typescript
 export interface RAGConfig {
-    // ... other config
-    enableCrossEncoderReranking: boolean;  // Toggle reranking
-    enableCaching: boolean;                // Toggle cache
-    cacheTTL: number;                      // Cache TTL (seconds)
+  // ... other config
+  enableCrossEncoderReranking: boolean; // Toggle reranking
+  enableCaching: boolean; // Toggle cache
+  cacheTTL: number; // Cache TTL (seconds)
 }
 ```
 
 **Enable Reranking**:
+
 ```typescript
-import { updateRAGConfig } from '@/services/rag/config';
+import { updateRAGConfig } from "@/services/rag/config";
 
 updateRAGConfig({
-    enableCrossEncoderReranking: true,
-    enableCaching: true,
-    cacheTTL: 900  // 15 minutes
+  enableCrossEncoderReranking: true,
+  enableCaching: true,
+  cacheTTL: 900, // 15 minutes
 });
 ```
 
 **Environment Variables**:
+
 ```bash
 CROSS_ENCODER_MODEL=openai/gpt-4o-mini  # Or any OpenRouter model
 REDIS_URL=redis://localhost:6379        # Required for cache
@@ -251,14 +281,15 @@ REDIS_URL=redis://localhost:6379        # Required for cache
 
 ### Performance Characteristics
 
-| Metric | Without Reranking | With Reranking (No Cache) | With Reranking (Cache Hit) |
-|--------|-------------------|---------------------------|----------------------------|
-| Latency | 150ms | 230ms (+80ms) | 155ms (+5ms) |
-| API Calls | 1 (vector search) | 2 (vector + rerank) | 1 (vector only) |
-| Cost per Query | $0.0001 | $0.0011 | $0.0001 |
-| Relevance Accuracy | 72% | 94% | 94% |
+| Metric             | Without Reranking | With Reranking (No Cache) | With Reranking (Cache Hit) |
+| ------------------ | ----------------- | ------------------------- | -------------------------- |
+| Latency            | 150ms             | 230ms (+80ms)             | 155ms (+5ms)               |
+| API Calls          | 1 (vector search) | 2 (vector + rerank)       | 1 (vector only)            |
+| Cost per Query     | $0.0001           | $0.0011                   | $0.0001                    |
+| Relevance Accuracy | 72%               | 94%                       | 94%                        |
 
 **Cache Hit Rate** (observed):
+
 - Cold start: 0%
 - After 100 queries: 35-45%
 - Steady state: 40-50%
@@ -272,12 +303,14 @@ REDIS_URL=redis://localhost:6379        # Required for cache
 #### Manual Testing Steps
 
 1. **Test Reranker Status**:
+
 ```bash
 curl -H "Authorization: Bearer $TOKEN" \
      http://localhost:3000/api/rag/rerank-status
 ```
 
 Expected response:
+
 ```json
 {
   "success": true,
@@ -293,6 +326,7 @@ Expected response:
 ```
 
 2. **Test Search with Relevance Scores**:
+
 ```bash
 curl -X POST http://localhost:3000/api/rag/search \
      -H "Authorization: Bearer $TOKEN" \
@@ -306,6 +340,7 @@ curl -X POST http://localhost:3000/api/rag/search \
 Verify `relevance` field present in each result (0-1 range).
 
 3. **Test Cache Behavior**:
+
 ```bash
 # First query (cache miss)
 curl -X POST http://localhost:3000/api/rag/search \
@@ -322,6 +357,7 @@ curl -X POST http://localhost:3000/api/rag/search \
 Second query should be ~70ms faster (cache hit).
 
 4. **Test Fallback Behavior**:
+
 ```bash
 # Set invalid model in .env
 CROSS_ENCODER_MODEL=invalid-model
@@ -338,6 +374,7 @@ Expected: `status: "degraded"`, `usedFallback: true`.
 #### TypeScript Validation
 
 All files pass TypeScript strict mode compilation:
+
 ```bash
 npx tsc --noEmit
 # No errors in:
@@ -410,12 +447,12 @@ npx tsc --noEmit
 ```typescript
 // TODO: Create src/services/rag/multi-modal-embeddings.ts
 export async function generateMultiModalEmbedding(
-    content: string | Buffer,
-    contentType: 'text' | 'image' | 'mixed'
+  content: string | Buffer,
+  contentType: "text" | "image" | "mixed",
 ): Promise<{ textEmbedding?: number[]; imageEmbedding?: number[] }> {
-    // Detect content type
-    // Route to appropriate embedding model
-    // Merge embeddings based on strategy
+  // Detect content type
+  // Route to appropriate embedding model
+  // Merge embeddings based on strategy
 }
 ```
 
@@ -424,9 +461,11 @@ export async function generateMultiModalEmbedding(
 ## Phase 1: Vector DB Provider Abstraction ⏸️ NOT STARTED
 
 ### Objective
+
 Create provider-agnostic layer supporting both LanceDB (local) and pgvector (PostgreSQL).
 
 ### Current State
+
 - LanceDB hardcoded in `src/ai/rag/vector-store.ts`
 - No abstraction layer or provider interface
 - No pgvector support
@@ -434,13 +473,19 @@ Create provider-agnostic layer supporting both LanceDB (local) and pgvector (Pos
 ### Required Work
 
 1. **Create Provider Interface** (`src/lib/vector-db-provider.ts`):
+
 ```typescript
 export interface VectorDBProvider {
-    search(query: number[], userId: string, limit: number, filters?: any): Promise<Document[]>;
-    insert(documents: Document[]): Promise<void>;
-    delete(ids: string[], userId: string): Promise<void>;
-    exists(id: string, userId: string): Promise<boolean>;
-    getStats(userId: string): Promise<{ count: number; size: number }>;
+  search(
+    query: number[],
+    userId: string,
+    limit: number,
+    filters?: any,
+  ): Promise<Document[]>;
+  insert(documents: Document[]): Promise<void>;
+  delete(ids: string[], userId: string): Promise<void>;
+  exists(id: string, userId: string): Promise<boolean>;
+  getStats(userId: string): Promise<{ count: number; size: number }>;
 }
 ```
 
@@ -456,17 +501,19 @@ export interface VectorDBProvider {
    - Add indexing (IVFFlat or HNSW)
 
 4. **Provider Factory** (`src/lib/vector-store.ts`):
+
 ```typescript
 export function getVectorDBProvider(): VectorDBProvider {
-    const provider = env.VECTOR_DB_PROVIDER || 'lancedb';
-    if (provider === 'pgvector') {
-        return new PgVectorProvider();
-    }
-    return new LanceDBProvider();
+  const provider = env.VECTOR_DB_PROVIDER || "lancedb";
+  if (provider === "pgvector") {
+    return new PgVectorProvider();
+  }
+  return new LanceDBProvider();
 }
 ```
 
 5. **Database Schema** (Prisma):
+
 ```prisma
 model Document {
   id          String   @id @default(uuid())
@@ -478,13 +525,14 @@ model Document {
   chunkIndex  Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   @@index([userId, sourceId])
   @@index([userId, createdAt])
 }
 ```
 
 6. **Migration Script**:
+
 ```sql
 -- Add pgvector extension
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -499,6 +547,7 @@ CREATE INDEX ON "Document" USING ivfflat (vector vector_cosine_ops)
 ## Phase 4: Semantic Caching ⏸️ NOT STARTED
 
 ### Objective
+
 Cache query results based on semantic similarity (not exact match).
 
 ### Strategy
@@ -511,57 +560,60 @@ Cache query results based on semantic similarity (not exact match).
 ### Required Work
 
 1. **Create Semantic Cache Service** (`src/services/rag/semantic-cache.ts`):
+
 ```typescript
 export interface CachedQuery {
-    id: string;
-    queryEmbedding: number[];
-    results: Document[];
-    timestamp: number;
-    userId: string;
+  id: string;
+  queryEmbedding: number[];
+  results: Document[];
+  timestamp: number;
+  userId: string;
 }
 
 export async function getCachedResults(
-    queryEmbedding: number[],
-    userId: string,
-    threshold = 0.95
+  queryEmbedding: number[],
+  userId: string,
+  threshold = 0.95,
 ): Promise<Document[] | null> {
-    // Search cached embeddings for similar query
-    // Return results if similarity > threshold
+  // Search cached embeddings for similar query
+  // Return results if similarity > threshold
 }
 
 export async function cacheResults(
-    queryEmbedding: number[],
-    results: Document[],
-    userId: string,
-    ttl = 86400
+  queryEmbedding: number[],
+  results: Document[],
+  userId: string,
+  ttl = 86400,
 ): Promise<void> {
-    // Store query embedding + results in Redis
+  // Store query embedding + results in Redis
 }
 ```
 
 2. **Integrate into Retrieval Pipeline** (`src/services/rag/rag-retrieval.ts`):
+
 ```typescript
 export async function retrieveContext(...) {
     // 1. Generate query embedding
     const queryEmbedding = await generateEmbedding(query);
-    
+
     // 2. Check semantic cache
     const cached = await getCachedResults(queryEmbedding, userId);
     if (cached) {
         return buildContextFromCache(cached);
     }
-    
+
     // 3. Proceed with vector search + rerank
     const documents = await searchSimilar(...);
-    
+
     // 4. Store in semantic cache
     await cacheResults(queryEmbedding, rankedDocs, userId);
-    
+
     return { documents, ... };
 }
 ```
 
 3. **Cache Stats Endpoint** (`src/app/api/rag/cache-stats/route.ts`):
+
 ```typescript
 GET /api/rag/cache-stats
 {
@@ -581,6 +633,7 @@ GET /api/rag/cache-stats
 ### Required Environment Variables
 
 Add to `.env.example`:
+
 ```bash
 # Vector Database Configuration
 VECTOR_DB_PROVIDER=lancedb          # lancedb | pgvector
@@ -694,23 +747,23 @@ Return Results
 
 Per 1000 queries with reranking enabled:
 
-| Component | Cost | Notes |
-|-----------|------|-------|
-| Vector Search (LanceDB) | $0.00 | Local, no API calls |
-| Embedding Generation | $0.10 | text-embedding-3-small @ $0.0001/query |
-| Cross-Encoder Reranking | $0.60 | gpt-4o-mini @ $0.0006/query (50% cache hit) |
-| **Total** | **$0.70** | Per 1000 queries |
+| Component               | Cost      | Notes                                       |
+| ----------------------- | --------- | ------------------------------------------- |
+| Vector Search (LanceDB) | $0.00     | Local, no API calls                         |
+| Embedding Generation    | $0.10     | text-embedding-3-small @ $0.0001/query      |
+| Cross-Encoder Reranking | $0.60     | gpt-4o-mini @ $0.0006/query (50% cache hit) |
+| **Total**               | **$0.70** | Per 1000 queries                            |
 
 ### Target With All Features (All Phases)
 
-| Component | Cost | Savings |
-|-----------|------|---------|
-| Vector Search (pgvector) | $0.00 | Hosted on existing DB |
-| Embedding Generation | $0.05 | 50% cache hit rate |
-| Image Embeddings (CLIP) | $0.00 | Hugging Face free tier |
-| Cross-Encoder Reranking | $0.30 | 50% cache hit |
-| Semantic Cache | $0.00 | Redis, 70% hit rate |
-| **Total** | **$0.35** | **50% cost reduction** |
+| Component                | Cost      | Savings                |
+| ------------------------ | --------- | ---------------------- |
+| Vector Search (pgvector) | $0.00     | Hosted on existing DB  |
+| Embedding Generation     | $0.05     | 50% cache hit rate     |
+| Image Embeddings (CLIP)  | $0.00     | Hugging Face free tier |
+| Cross-Encoder Reranking  | $0.30     | 50% cache hit          |
+| Semantic Cache           | $0.00     | Redis, 70% hit rate    |
+| **Total**                | **$0.35** | **50% cost reduction** |
 
 ---
 
@@ -765,24 +818,26 @@ Per 1000 queries with reranking enabled:
 
 ### Troubleshooting
 
-| Symptom | Likely Cause | Solution |
-|---------|-------------|----------|
-| `status: "unavailable"` | OpenRouter API down | Check OpenRouter status page |
-| High latency (>500ms) | Redis cache miss | Increase cache TTL or warm cache |
-| Low cache hit rate (<20%) | Diverse query patterns | Normal, consider semantic cache (Phase 4) |
+| Symptom                      | Likely Cause                 | Solution                                   |
+| ---------------------------- | ---------------------------- | ------------------------------------------ |
+| `status: "unavailable"`      | OpenRouter API down          | Check OpenRouter status page               |
+| High latency (>500ms)        | Redis cache miss             | Increase cache TTL or warm cache           |
+| Low cache hit rate (<20%)    | Diverse query patterns       | Normal, consider semantic cache (Phase 4)  |
 | `relevance: null` in results | Reranking disabled or failed | Check `enableCrossEncoderReranking` config |
-| Memory leak in worker | Tesseract not released | Restart worker, check cached loader |
+| Memory leak in worker        | Tesseract not released       | Restart worker, check cached loader        |
 
 ### Rollback Procedure
 
 If Phase 3 causes issues in production:
 
 1. **Disable Reranking**:
+
 ```typescript
 updateRAGConfig({ enableCrossEncoderReranking: false });
 ```
 
 2. **Revert API Route** (if needed):
+
 ```bash
 git revert <commit-hash>  # Revert src/app/api/rag/search/route.ts
 npm run build
@@ -790,6 +845,7 @@ pm2 restart aegis-ai
 ```
 
 3. **Verify Rollback**:
+
 ```bash
 curl -X POST /api/rag/search -d '{"query": "test", "limit": 5}'
 # Should work without `relevance` field
@@ -803,29 +859,31 @@ curl -X POST /api/rag/search -d '{"query": "test", "limit": 5}'
 
 Test setup: 10 documents, query length 50 chars
 
-| Scenario | p50 | p95 | p99 |
-|----------|-----|-----|-----|
-| No reranking | 150ms | 180ms | 220ms |
+| Scenario            | p50   | p95   | p99   |
+| ------------------- | ----- | ----- | ----- |
+| No reranking        | 150ms | 180ms | 220ms |
 | Rerank (cache miss) | 230ms | 280ms | 350ms |
-| Rerank (cache hit) | 155ms | 185ms | 230ms |
+| Rerank (cache hit)  | 155ms | 185ms | 230ms |
 
 ### Cache Hit Rate Over Time
 
-| Time Period | Hit Rate | Notes |
-|-------------|----------|-------|
-| 0-100 queries | 0-10% | Cold start |
-| 100-500 queries | 25-35% | Cache warming |
-| 500+ queries | 40-50% | Steady state |
-| 1000+ queries | 45-55% | Optimal |
+| Time Period     | Hit Rate | Notes         |
+| --------------- | -------- | ------------- |
+| 0-100 queries   | 0-10%    | Cold start    |
+| 100-500 queries | 25-35%   | Cache warming |
+| 500+ queries    | 40-50%   | Steady state  |
+| 1000+ queries   | 45-55%   | Optimal       |
 
 ### Cost Reduction
 
 At 1000 queries/day:
+
 - **Without caching**: $0.70/day = $21/month
 - **With caching (40% hit)**: $0.42/day = $12.60/month
 - **Savings**: $8.40/month (40% reduction)
 
 At 10,000 queries/day:
+
 - **Without caching**: $7/day = $210/month
 - **With caching (50% hit)**: $3.50/day = $105/month
 - **Savings**: $105/month (50% reduction)
@@ -883,6 +941,7 @@ At 10,000 queries/day:
 ## Conclusion
 
 Phase 3 (Cross-Encoder Reranking) is production-ready and delivers immediate value:
+
 - ✅ 22% latency increase (150ms → 230ms) for 30% relevance improvement
 - ✅ 40-50% cache hit rate reduces cost by 50%
 - ✅ Graceful fallback ensures zero downtime

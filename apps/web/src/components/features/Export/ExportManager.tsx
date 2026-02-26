@@ -1,55 +1,55 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Download, FileText, Loader2 } from 'lucide-react';
+import React, { useState } from "react";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Download, FileText, Loader2 } from "lucide-react";
 
-type ExportFormat = 'pdf' | 'markdown' | 'docx' | 'json' | 'txt';
+type ExportFormat = "pdf" | "markdown" | "docx" | "json" | "txt";
 
 interface ExportOption {
   format: ExportFormat;
   label: string;
   icon: string;
   description: string;
-  speed: 'fast' | 'medium' | 'slow';
+  speed: "fast" | "medium" | "slow";
 }
 
 const EXPORT_OPTIONS: ExportOption[] = [
   {
-    format: 'markdown',
-    label: 'Markdown',
-    icon: '📝',
-    description: 'Clean markdown format, best for editing',
-    speed: 'fast',
+    format: "markdown",
+    label: "Markdown",
+    icon: "📝",
+    description: "Clean markdown format, best for editing",
+    speed: "fast",
   },
   {
-    format: 'pdf',
-    label: 'PDF',
-    icon: '📄',
-    description: 'Professional PDF with formatting',
-    speed: 'medium',
+    format: "pdf",
+    label: "PDF",
+    icon: "📄",
+    description: "Professional PDF with formatting",
+    speed: "medium",
   },
   {
-    format: 'docx',
-    label: 'Word',
-    icon: '📋',
-    description: 'Microsoft Word format, editable',
-    speed: 'medium',
+    format: "docx",
+    label: "Word",
+    icon: "📋",
+    description: "Microsoft Word format, editable",
+    speed: "medium",
   },
   {
-    format: 'json',
-    label: 'JSON',
-    icon: '{}',
-    description: 'Structured data format',
-    speed: 'fast',
+    format: "json",
+    label: "JSON",
+    icon: "{}",
+    description: "Structured data format",
+    speed: "fast",
   },
   {
-    format: 'txt',
-    label: 'Text',
-    icon: '📃',
-    description: 'Plain text format',
-    speed: 'fast',
+    format: "txt",
+    label: "Text",
+    icon: "📃",
+    description: "Plain text format",
+    speed: "fast",
   },
 ];
 
@@ -59,8 +59,13 @@ interface ExportProps {
   filename?: string;
 }
 
-export function ExportManager({ content, onExport, filename = 'export' }: ExportProps) {
-  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('markdown');
+export function ExportManager({
+  content,
+  onExport,
+  filename = "export",
+}: ExportProps) {
+  const [selectedFormat, setSelectedFormat] =
+    useState<ExportFormat>("markdown");
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState<ExportFormat | null>(null);
 
@@ -71,7 +76,7 @@ export function ExportManager({ content, onExport, filename = 'export' }: Export
 
       // Create download link
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `${filename}.${selectedFormat}`;
       document.body.appendChild(a);
@@ -82,7 +87,7 @@ export function ExportManager({ content, onExport, filename = 'export' }: Export
       setExported(selectedFormat);
       setTimeout(() => setExported(null), 3000);
     } catch (error) {
-      console.error('Export failed:', error);
+      console.error("Export failed:", error);
     } finally {
       setExporting(false);
     }
@@ -100,8 +105,8 @@ export function ExportManager({ content, onExport, filename = 'export' }: Export
               onClick={() => setSelectedFormat(option.format)}
               className={`p-3 rounded-lg border-2 transition text-center ${
                 selectedFormat === option.format
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? "border-blue-600 bg-blue-50"
+                  : "border-gray-200 hover:border-gray-300"
               }`}
             >
               <p className="text-xl mb-1">{option.icon}</p>
@@ -114,7 +119,10 @@ export function ExportManager({ content, onExport, filename = 'export' }: Export
         {EXPORT_OPTIONS.find((o) => o.format === selectedFormat) && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
             <p className="text-sm text-blue-900">
-              {EXPORT_OPTIONS.find((o) => o.format === selectedFormat)?.description}
+              {
+                EXPORT_OPTIONS.find((o) => o.format === selectedFormat)
+                  ?.description
+              }
             </p>
           </div>
         )}
@@ -149,18 +157,23 @@ export function ExportManager({ content, onExport, filename = 'export' }: Export
         <div className="grid grid-cols-3 gap-3 text-sm">
           <div>
             <p className="text-gray-500">Characters</p>
-            <p className="text-lg font-bold">{content.length.toLocaleString()}</p>
+            <p className="text-lg font-bold">
+              {content.length.toLocaleString()}
+            </p>
           </div>
           <div>
             <p className="text-gray-500">Words</p>
             <p className="text-lg font-bold">
-              {content.split(/\s+/).filter((w) => w.length > 0).length.toLocaleString()}
+              {content
+                .split(/\s+/)
+                .filter((w) => w.length > 0)
+                .length.toLocaleString()}
             </p>
           </div>
           <div>
             <p className="text-gray-500">Lines</p>
             <p className="text-lg font-bold">
-              {content.split('\n').length.toLocaleString()}
+              {content.split("\n").length.toLocaleString()}
             </p>
           </div>
         </div>

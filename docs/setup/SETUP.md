@@ -3,6 +3,7 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 20+
 - Docker & Docker Compose (for database)
 - Git
@@ -49,6 +50,7 @@ npm run docker:down
 ```
 
 Services running:
+
 - App: `http://localhost:3000`
 - PostgreSQL: `localhost:5432`
 - Redis: `localhost:6379` (if configured)
@@ -71,6 +73,7 @@ npx expo start
 ## 🔧 Available Commands
 
 ### Development
+
 ```bash
 npm run dev              # Start dev server (http://localhost:3000)
 npm run build            # Build for production
@@ -78,6 +81,7 @@ npm run start            # Start production server
 ```
 
 ### Database
+
 ```bash
 npm run migrate          # Create migration & apply changes
 npm run migrate:deploy   # Deploy migrations (production)
@@ -85,6 +89,7 @@ npm run studio           # Open Prisma Studio (visual DB tool)
 ```
 
 ### Scripts
+
 ```bash
 npm run setup-admin                    # Create admin account
 npm run cleanup:sessions               # Clean old sessions
@@ -92,6 +97,7 @@ npm run worker                         # Start AI worker
 ```
 
 ### Quality
+
 ```bash
 npm run lint                           # Run ESLint
 npm test                              # Run tests once
@@ -100,6 +106,7 @@ npm run test:coverage                 # Coverage report
 ```
 
 ### Docker
+
 ```bash
 npm run docker:build                  # Build Docker image
 npm run docker:up                     # Start Docker containers
@@ -109,6 +116,7 @@ npm run docker:down                   # Stop Docker containers
 ## 🔑 Environment Variables
 
 ### Required
+
 ```env
 OPENAI_API_KEY=sk_xxx                # OpenRouter API key
 DATABASE_URL=postgres://user:pass@localhost:5432/aegis
@@ -117,6 +125,7 @@ NEXTAUTH_SECRET=your-secret
 ```
 
 ### Optional
+
 ```env
 REDIS_URL=redis://localhost:6379
 LOG_LEVEL=info
@@ -152,6 +161,7 @@ See [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) for detailed info.
 ## 🛠️ VS Code Setup
 
 ### Recommended Extensions
+
 - ESLint
 - Prettier - Code formatter
 - TypeScript Vue Plugin
@@ -202,6 +212,7 @@ Add `.vscode/launch.json`:
 Start with: `NODE_OPTIONS='--inspect' npm run dev`
 
 ### Browser DevTools
+
 - Open `http://localhost:3000`
 - F12 or Cmd+Option+I for DevTools
 - Network tab for API debugging
@@ -264,6 +275,7 @@ docker push myregistry/aegis-ai:latest
 ## 🆘 Troubleshooting
 
 ### Database Connection Issues
+
 ```bash
 # Check DATABASE_URL in .env.local
 # Reset database
@@ -273,6 +285,7 @@ docker-compose down -v
 ```
 
 ### Port Already in Use
+
 ```bash
 # Find process on port 3000
 netstat -ano | findstr :3000
@@ -283,6 +296,7 @@ npm run dev -- -p 3001
 ```
 
 ### Module Not Found
+
 ```bash
 # Clear cache and reinstall
 rm -rf node_modules package-lock.json
@@ -291,6 +305,7 @@ npm run build
 ```
 
 ### API Key Issues
+
 ```bash
 # Verify your keys in .env.local
 # Test API connection

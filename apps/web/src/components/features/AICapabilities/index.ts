@@ -1,2 +1,2 @@
-export { AICapabilities } from './AICapabilities';
-export { FlashcardGenerator } from './FlashcardGenerator';
+export { AICapabilities } from "./AICapabilities";
+export { FlashcardGenerator } from "./FlashcardGenerator";

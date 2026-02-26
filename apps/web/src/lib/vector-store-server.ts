@@ -9,28 +9,28 @@ const DB_DIR = path.join(process.cwd(), "data", "lancedb");
 let lancedbInstance: any = null;
 
 async function getLanceDBModule() {
-	if (!lancedbInstance) {
-		try {
-			// Use dynamic require to avoid bundling
-			lancedbInstance = await (async () => {
-				return await import("@lancedb/lancedb");
-			})();
-		} catch (error) {
-			console.error("Failed to load LanceDB:", error);
-			throw error;
-		}
-	}
-	return lancedbInstance;
+  if (!lancedbInstance) {
+    try {
+      // Use dynamic require to avoid bundling
+      lancedbInstance = await (async () => {
+        return await import("@lancedb/lancedb");
+      })();
+    } catch (error) {
+      console.error("Failed to load LanceDB:", error);
+      throw error;
+    }
+  }
+  return lancedbInstance;
 }
 
 // Ensure DB directory exists
 if (!fs.existsSync(DB_DIR)) {
-    fs.mkdirSync(DB_DIR, { recursive: true });
+  fs.mkdirSync(DB_DIR, { recursive: true });
 }
 
 export async function getDb() {
-    const lancedb = await getLanceDBModule();
-    return await lancedb.connect(DB_DIR);
+  const lancedb = await getLanceDBModule();
+  return await lancedb.connect(DB_DIR);
 }
 
 export { DB_DIR };

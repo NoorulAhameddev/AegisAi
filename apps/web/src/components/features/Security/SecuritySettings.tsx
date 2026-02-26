@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Shield, Eye, EyeOff, AlertTriangle, CheckCircle } from 'lucide-react';
+import React, { useState } from "react";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Shield, Eye, EyeOff, AlertTriangle, CheckCircle } from "lucide-react";
 
 interface SecurityInfo {
-  encryption: 'enabled' | 'disabled';
+  encryption: "enabled" | "disabled";
   encryptionKeyVersion?: number;
   dataLocalization?: string;
   auditLogging: boolean;
@@ -15,7 +15,9 @@ interface SecurityInfo {
 }
 
 interface SecuritySettingsProps {
-  onChangeDataPrivacy: (level: 'public' | 'private' | 'encrypted') => Promise<void>;
+  onChangeDataPrivacy: (
+    level: "public" | "private" | "encrypted",
+  ) => Promise<void>;
   onChangeTokenExpiry: (minutes: number) => Promise<void>;
   onRevokeAllSessions: () => Promise<void>;
   securityInfo?: SecurityInfo;
@@ -29,17 +31,21 @@ export function SecuritySettings({
   securityInfo,
   loading = false,
 }: SecuritySettingsProps) {
-  const [privacyLevel, setPrivacyLevel] = useState<'public' | 'private' | 'encrypted'>('private');
+  const [privacyLevel, setPrivacyLevel] = useState<
+    "public" | "private" | "encrypted"
+  >("private");
   const [tokenExpiry, setTokenExpiry] = useState(10);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [revokeConfirm, setRevokeConfirm] = useState(false);
 
-  const handlePrivacyChange = async (level: 'public' | 'private' | 'encrypted') => {
+  const handlePrivacyChange = async (
+    level: "public" | "private" | "encrypted",
+  ) => {
     setPrivacyLevel(level);
     try {
       await onChangeDataPrivacy(level);
     } catch (error) {
-      console.error('Failed to change privacy level:', error);
+      console.error("Failed to change privacy level:", error);
     }
   };
 
@@ -48,7 +54,7 @@ export function SecuritySettings({
       await onRevokeAllSessions();
       setRevokeConfirm(false);
     } catch (error) {
-      console.error('Failed to revoke sessions:', error);
+      console.error("Failed to revoke sessions:", error);
     }
   };
 
@@ -59,9 +65,11 @@ export function SecuritySettings({
         <div className="flex items-start gap-3">
           <CheckCircle size={24} className="text-green-600 flex-shrink-0" />
           <div>
-            <h3 className="font-semibold text-green-900 mb-1">Security Status</h3>
+            <h3 className="font-semibold text-green-900 mb-1">
+              Security Status
+            </h3>
             <div className="space-y-1 text-sm text-green-800">
-              {securityInfo?.encryption === 'enabled' && (
+              {securityInfo?.encryption === "enabled" && (
                 <p>✓ End-to-end encryption enabled</p>
               )}
               {securityInfo?.auditLogging && <p>✓ Audit logging active</p>}
@@ -82,22 +90,22 @@ export function SecuritySettings({
         <div className="space-y-2 mb-4">
           {[
             {
-              level: 'public' as const,
-              label: '🌐 Public',
-              description: 'Accessible to everyone (not recommended)',
-              color: 'gray',
+              level: "public" as const,
+              label: "🌐 Public",
+              description: "Accessible to everyone (not recommended)",
+              color: "gray",
             },
             {
-              level: 'private' as const,
-              label: '🔒 Private',
-              description: 'Only you can access',
-              color: 'blue',
+              level: "private" as const,
+              label: "🔒 Private",
+              description: "Only you can access",
+              color: "blue",
             },
             {
-              level: 'encrypted' as const,
-              label: '🔐 End-to-End Encrypted',
-              description: 'Maximum security with client-side encryption',
-              color: 'green',
+              level: "encrypted" as const,
+              label: "🔐 End-to-End Encrypted",
+              description: "Maximum security with client-side encryption",
+              color: "green",
             },
           ].map((option) => (
             <button
@@ -106,16 +114,23 @@ export function SecuritySettings({
               className={`w-full text-left p-3 rounded-lg border-2 transition ${
                 privacyLevel === option.level
                   ? `border-${option.color}-500 bg-${option.color}-50`
-                  : 'border-gray-200 hover:border-gray-300'
+                  : "border-gray-200 hover:border-gray-300"
               }`}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-sm text-gray-900">{option.label}</p>
-                  <p className="text-xs text-gray-600 mt-1">{option.description}</p>
+                  <p className="font-medium text-sm text-gray-900">
+                    {option.label}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {option.description}
+                  </p>
                 </div>
                 {privacyLevel === option.level && (
-                  <CheckCircle size={18} className={`text-${option.color}-600`} />
+                  <CheckCircle
+                    size={18}
+                    className={`text-${option.color}-600`}
+                  />
                 )}
               </div>
             </button>
@@ -196,7 +211,10 @@ export function SecuritySettings({
         {showAdvanced && (
           <div className="mt-4 space-y-3 pt-4 border-t">
             <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <AlertTriangle size={18} className="text-yellow-600 flex-shrink-0" />
+              <AlertTriangle
+                size={18}
+                className="text-yellow-600 flex-shrink-0"
+              />
               <div>
                 <p className="text-xs font-semibold text-yellow-900">
                   Encryption Key Version
@@ -209,7 +227,8 @@ export function SecuritySettings({
 
             {securityInfo?.lastSecurityUpdate && (
               <div className="text-xs text-gray-600">
-                Last security update: {new Date(securityInfo.lastSecurityUpdate).toLocaleDateString()}
+                Last security update:{" "}
+                {new Date(securityInfo.lastSecurityUpdate).toLocaleDateString()}
               </div>
             )}
           </div>

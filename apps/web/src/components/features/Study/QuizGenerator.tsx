@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Loader2, CheckCircle, XCircle, SkipForward } from 'lucide-react';
+import React, { useState } from "react";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Loader2, CheckCircle, XCircle, SkipForward } from "lucide-react";
 
 interface QuizQuestion {
   id: string;
@@ -11,7 +11,7 @@ interface QuizQuestion {
   options: string[];
   correctAnswer: number;
   explanation?: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
 }
 
 interface UserAnswer {
@@ -25,7 +25,10 @@ interface QuizGeneratorProps {
   loading?: boolean;
 }
 
-export function QuizGenerator({ onGenerate, loading = false }: QuizGeneratorProps) {
+export function QuizGenerator({
+  onGenerate,
+  loading = false,
+}: QuizGeneratorProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<UserAnswer[]>([]);
@@ -44,7 +47,9 @@ export function QuizGenerator({ onGenerate, loading = false }: QuizGeneratorProp
     const isCorrect = optionIndex === question.correctAnswer;
 
     const newAnswers = [...answers];
-    const existingAnswerIndex = newAnswers.findIndex((a) => a.questionId === question.id);
+    const existingAnswerIndex = newAnswers.findIndex(
+      (a) => a.questionId === question.id,
+    );
 
     if (existingAnswerIndex >= 0) {
       newAnswers[existingAnswerIndex] = {
@@ -81,7 +86,7 @@ export function QuizGenerator({ onGenerate, loading = false }: QuizGeneratorProp
           disabled={loading}
           className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-6 rounded-lg transition"
         >
-          {loading ? 'Generating Quiz...' : 'Generate Quiz'}
+          {loading ? "Generating Quiz..." : "Generate Quiz"}
         </button>
       </Card>
     );
@@ -95,7 +100,9 @@ export function QuizGenerator({ onGenerate, loading = false }: QuizGeneratorProp
       <div className="space-y-4">
         <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50">
           <div className="text-center">
-            <p className="text-4xl font-bold text-blue-600 mb-2">{percentage}%</p>
+            <p className="text-4xl font-bold text-blue-600 mb-2">
+              {percentage}%
+            </p>
             <p className="text-lg font-semibold text-gray-800 mb-2">
               {correctCount} out of {questions.length} correct
             </p>
@@ -124,16 +131,24 @@ export function QuizGenerator({ onGenerate, loading = false }: QuizGeneratorProp
           <h3 className="font-semibold mb-3">Review Answers</h3>
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {questions.map((question, idx) => {
-              const userAnswer = answers.find((a) => a.questionId === question.id);
+              const userAnswer = answers.find(
+                (a) => a.questionId === question.id,
+              );
               const isCorrect = userAnswer?.correct;
 
               return (
                 <div key={question.id} className="p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-start gap-2 mb-2">
                     {isCorrect ? (
-                      <CheckCircle size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
+                      <CheckCircle
+                        size={18}
+                        className="text-green-600 flex-shrink-0 mt-0.5"
+                      />
                     ) : (
-                      <XCircle size={18} className="text-red-600 flex-shrink-0 mt-0.5" />
+                      <XCircle
+                        size={18}
+                        className="text-red-600 flex-shrink-0 mt-0.5"
+                      />
                     )}
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">
@@ -188,11 +203,11 @@ export function QuizGenerator({ onGenerate, loading = false }: QuizGeneratorProp
           </p>
           <Badge
             variant={
-              question.difficulty === 'easy'
-                ? 'success'
-                : question.difficulty === 'medium'
-                  ? 'warning'
-                  : 'error'
+              question.difficulty === "easy"
+                ? "success"
+                : question.difficulty === "medium"
+                  ? "warning"
+                  : "error"
             }
           >
             {question.difficulty.toUpperCase()}
@@ -201,14 +216,18 @@ export function QuizGenerator({ onGenerate, loading = false }: QuizGeneratorProp
         <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
             className="h-full bg-blue-500 transition-all duration-300"
-            style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
+            style={{
+              width: `${((currentIndex + 1) / questions.length) * 100}%`,
+            }}
           />
         </div>
       </Card>
 
       {/* Question */}
       <Card className="p-6 bg-blue-50">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">{question.question}</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">
+          {question.question}
+        </h2>
 
         {/* Options */}
         <div className="space-y-2 mb-4">
@@ -219,9 +238,9 @@ export function QuizGenerator({ onGenerate, loading = false }: QuizGeneratorProp
               className={`w-full p-3 text-left rounded-lg border-2 transition ${
                 userAnswer?.answer === idx
                   ? userAnswer.correct
-                    ? 'border-green-500 bg-green-50'
-                    : 'border-red-500 bg-red-50'
-                  : 'border-gray-200 hover:border-blue-300'
+                    ? "border-green-500 bg-green-50"
+                    : "border-red-500 bg-red-50"
+                  : "border-gray-200 hover:border-blue-300"
               }`}
             >
               <div className="flex items-start gap-3">
@@ -229,14 +248,14 @@ export function QuizGenerator({ onGenerate, loading = false }: QuizGeneratorProp
                   className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
                     userAnswer?.answer === idx
                       ? userAnswer.correct
-                        ? 'border-green-500 bg-green-500'
-                        : 'border-red-500 bg-red-500'
-                      : 'border-gray-300'
+                        ? "border-green-500 bg-green-500"
+                        : "border-red-500 bg-red-500"
+                      : "border-gray-300"
                   }`}
                 >
                   {userAnswer?.answer === idx && (
                     <span className="text-white font-semibold">
-                      {userAnswer.correct ? '✓' : '✕'}
+                      {userAnswer.correct ? "✓" : "✕"}
                     </span>
                   )}
                 </div>
@@ -268,7 +287,7 @@ export function QuizGenerator({ onGenerate, loading = false }: QuizGeneratorProp
           }}
           className="flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition"
         >
-          {currentIndex === questions.length - 1 ? 'Finish' : 'Next'}
+          {currentIndex === questions.length - 1 ? "Finish" : "Next"}
         </button>
       </div>
     </div>

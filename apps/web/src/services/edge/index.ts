@@ -3,19 +3,19 @@
  * Deploy and manage edge functions across regions
  */
 
-import { prisma } from '@/lib/prisma';
-import { logger } from '@/lib/logger';
-import { encrypt, decrypt } from '@/lib/encryption';
-import path from 'path';
-import fs from 'fs/promises';
+import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
+import { encrypt, decrypt } from "@/lib/encryption";
+import path from "path";
+import fs from "fs/promises";
 
 export type EdgeRegion =
-  | 'us-east'
-  | 'us-west'
-  | 'eu-west'
-  | 'eu-central'
-  | 'asia-pacific'
-  | 'global';
+  | "us-east"
+  | "us-west"
+  | "eu-west"
+  | "eu-central"
+  | "asia-pacific"
+  | "global";
 
 export interface EdgeFunction {
   id: string;
@@ -27,7 +27,7 @@ export interface EdgeFunction {
   environmentVariables?: Record<string, string>;
   routes?: string[];
   cacheControl?: string;
-  status: 'draft' | 'deployed' | 'archived';
+  status: "draft" | "deployed" | "archived";
   deployments?: EdgeDeployment[];
   createdAt: Date;
   updatedAt: Date;
@@ -39,7 +39,7 @@ export interface EdgeDeployment {
   region: EdgeRegion;
   version: number;
   url: string;
-  status: 'deploying' | 'deployed' | 'failed';
+  status: "deploying" | "deployed" | "failed";
   deployedAt: Date;
 }
 
@@ -56,7 +56,7 @@ export async function createEdgeFunction(
     environmentVariables?: Record<string, string>;
     routes?: string[];
     cacheControl?: string;
-  }
+  },
 ): Promise<EdgeFunction> {
   try {
     // Validate code
@@ -71,12 +71,13 @@ export async function createEdgeFunction(
     });
 
     if (existing) {
-      throw new Error('Function slug already exists');
+      throw new Error("Function slug already exists");
     }
 
     const encryptedCode = await encrypt(code);
     const encryptedEnv =
-      options?.environmentVariables && Object.keys(options.environmentVariables).length > 0
+      options?.environmentVariables &&
+      Object.keys(options.environmentVariables).length > 0
         ? await encrypt(JSON.stringify(options.environmentVariables))
         : undefined;
 
@@ -86,15 +87,15 @@ export async function createEdgeFunction(
         name,
         slug: finalSlug,
         code: encryptedCode,
-        regions: options?.regions || ['global'],
+        regions: options?.regions || ["global"],
         environmentVariables: encryptedEnv,
-        routes: options?.routes || ['/api/function'],
-        cacheControl: options?.cacheControl || 'public, max-age=300',
-        status: 'draft',
+        routes: options?.routes || ["/api/function"],
+        cacheControl: options?.cacheControl || "public, max-age=300",
+        status: "draft",
       },
     });
 
-    logger.worker('edge-function:create', 'success', {
+    logger.worker("edge-function:create", "success", {
       userId,
       funcId: func.id,
       slug: finalSlug,
@@ -102,7 +103,7 @@ export async function createEdgeFunction(
 
     return func as EdgeFunction;
   } catch (error) {
-    logger.error('Failed to create edge function', error as Error, { userId });
+    logger.error("Failed to create edge function", error as Error, { userId });
     throw error;
   }
 }
@@ -113,7 +114,7 @@ export async function createEdgeFunction(
 export async function deployEdgeFunction(
   functionId: string,
   userId: string,
-  regions?: EdgeRegion[]
+  regions?: EdgeRegion[],
 ): Promise<EdgeDeployment[]> {
   try {
     // Get function
@@ -122,11 +123,11 @@ export async function deployEdgeFunction(
     });
 
     if (!func || func.userId !== userId) {
-      throw new Error('Function not found or access denied');
+      throw new Error("Function not found or access denied");
     }
 
     // Determine regions to deploy to
-    const deployRegions = regions || func.regions || ['global'];
+    const deployRegions = regions || func.regions || ["global"];
 
     // Decrypt code
     const decryptedCode = await decrypt(func.code);
@@ -141,7 +142,7 @@ export async function deployEdgeFunction(
           decryptedCode,
           region,
           func.slug,
-          func.environmentVariables
+          func.environmentVariables,
         );
 
         deployments.push(deployment);
@@ -149,7 +150,7 @@ export async function deployEdgeFunction(
         // Update function status
         await prisma.edgeFunction.update({
           where: { id: functionId },
-          data: { status: 'deployed' },
+          data: { status: "deployed" },
         });
       } catch (regionError) {
         logger.error(`Failed to deploy to ${region}`, regionError as Error);
@@ -157,7 +158,7 @@ export async function deployEdgeFunction(
       }
     }
 
-    logger.worker('edge-function:deploy', 'success', {
+    logger.worker("edge-function:deploy", "success", {
       userId,
       funcId: functionId,
       regions: deployRegions,
@@ -166,7 +167,9 @@ export async function deployEdgeFunction(
 
     return deployments;
   } catch (error) {
-    logger.error('Failed to deploy edge function', error as Error, { functionId });
+    logger.error("Failed to deploy edge function", error as Error, {
+      functionId,
+    });
     throw error;
   }
 }
@@ -179,20 +182,24 @@ async function deployToRegion(
   code: string,
   region: EdgeRegion,
   slug: string,
-  encryptedEnv?: string
+  encryptedEnv?: string,
 ): Promise<EdgeDeployment> {
   try {
     // Generate deployment package
-    const packagePath = await generateDeploymentPackage(code, slug, encryptedEnv);
+    const packagePath = await generateDeploymentPackage(
+      code,
+      slug,
+      encryptedEnv,
+    );
 
     // Determine region endpoint
     const regionEndpoints: Record<EdgeRegion, string> = {
-      'us-east': 'https://us-east.edge.aegisai.dev',
-      'us-west': 'https://us-west.edge.aegisai.dev',
-      'eu-west': 'https://eu-west.edge.aegisai.dev',
-      'eu-central': 'https://eu-central.edge.aegisai.dev',
-      'asia-pacific': 'https://asia-pacific.edge.aegisai.dev',
-      'global': 'https://edge.aegisai.dev',
+      "us-east": "https://us-east.edge.aegisai.dev",
+      "us-west": "https://us-west.edge.aegisai.dev",
+      "eu-west": "https://eu-west.edge.aegisai.dev",
+      "eu-central": "https://eu-central.edge.aegisai.dev",
+      "asia-pacific": "https://asia-pacific.edge.aegisai.dev",
+      global: "https://edge.aegisai.dev",
     };
 
     const regionUrl = regionEndpoints[region];
@@ -210,11 +217,11 @@ async function deployToRegion(
         region,
         version: 1,
         url: functionUrl,
-        status: 'deployed',
+        status: "deployed",
       },
     });
 
-    logger.worker('edge-deploy:region', 'success', {
+    logger.worker("edge-deploy:region", "success", {
       functionId,
       region,
       url: functionUrl,
@@ -230,8 +237,8 @@ async function deployToRegion(
         functionId,
         region,
         version: 1,
-        url: '',
-        status: 'failed',
+        url: "",
+        status: "failed",
       },
     });
 
@@ -245,10 +252,10 @@ async function deployToRegion(
 async function generateDeploymentPackage(
   code: string,
   slug: string,
-  encryptedEnv?: string
+  encryptedEnv?: string,
 ): Promise<string> {
   try {
-    const DEPLOYMENTS_DIR = path.join(process.cwd(), 'dist', 'edge-functions');
+    const DEPLOYMENTS_DIR = path.join(process.cwd(), "dist", "edge-functions");
     await fs.mkdir(DEPLOYMENTS_DIR, { recursive: true });
 
     const packagePath = path.join(DEPLOYMENTS_DIR, `${slug}_${Date.now()}.js`);
@@ -275,7 +282,7 @@ export default async function handler(request) {
 
     return packagePath;
   } catch (error) {
-    logger.error('Failed to generate deployment package', error as Error);
+    logger.error("Failed to generate deployment package", error as Error);
     throw error;
   }
 }
@@ -296,7 +303,9 @@ async function validateEdgeFunctionCode(code: string) {
 
     for (const pattern of forbiddenPatterns) {
       if (pattern.test(code)) {
-        throw new Error('Code contains forbidden operations for edge functions');
+        throw new Error(
+          "Code contains forbidden operations for edge functions",
+        );
       }
     }
 
@@ -312,7 +321,7 @@ async function validateEdgeFunctionCode(code: string) {
  */
 export async function getEdgeFunction(
   functionId: string,
-  userId: string
+  userId: string,
 ): Promise<EdgeFunction> {
   try {
     const func = await prisma.edgeFunction.findUnique({
@@ -321,7 +330,7 @@ export async function getEdgeFunction(
     });
 
     if (!func || func.userId !== userId) {
-      throw new Error('Function not found or access denied');
+      throw new Error("Function not found or access denied");
     }
 
     // Decrypt code
@@ -332,7 +341,7 @@ export async function getEdgeFunction(
       code: decryptedCode,
     } as EdgeFunction;
   } catch (error) {
-    logger.error('Failed to fetch edge function', error as Error);
+    logger.error("Failed to fetch edge function", error as Error);
     throw error;
   }
 }
@@ -345,12 +354,12 @@ export async function listEdgeFunctions(userId: string) {
     const functions = await prisma.edgeFunction.findMany({
       where: { userId },
       include: { deployments: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     return functions;
   } catch (error) {
-    logger.error('Failed to list edge functions', error as Error);
+    logger.error("Failed to list edge functions", error as Error);
     return [];
   }
 }
@@ -367,7 +376,7 @@ export async function updateEdgeFunction(
     regions?: EdgeRegion[];
     routes?: string[];
     cacheControl?: string;
-  }
+  },
 ) {
   try {
     // Verify ownership
@@ -376,7 +385,7 @@ export async function updateEdgeFunction(
     });
 
     if (!func || func.userId !== userId) {
-      throw new Error('Function not found or access denied');
+      throw new Error("Function not found or access denied");
     }
 
     // Validate code if provided
@@ -390,11 +399,14 @@ export async function updateEdgeFunction(
       data: updates,
     });
 
-    logger.worker('edge-function:update', 'success', { userId, funcId: functionId });
+    logger.worker("edge-function:update", "success", {
+      userId,
+      funcId: functionId,
+    });
 
     return updated;
   } catch (error) {
-    logger.error('Failed to update edge function', error as Error);
+    logger.error("Failed to update edge function", error as Error);
     throw error;
   }
 }
@@ -409,7 +421,7 @@ export async function deleteEdgeFunction(functionId: string, userId: string) {
     });
 
     if (!func || func.userId !== userId) {
-      throw new Error('Function not found or access denied');
+      throw new Error("Function not found or access denied");
     }
 
     // Delete deployments
@@ -422,9 +434,12 @@ export async function deleteEdgeFunction(functionId: string, userId: string) {
       where: { id: functionId },
     });
 
-    logger.worker('edge-function:delete', 'success', { userId, funcId: functionId });
+    logger.worker("edge-function:delete", "success", {
+      userId,
+      funcId: functionId,
+    });
   } catch (error) {
-    logger.error('Failed to delete edge function', error as Error);
+    logger.error("Failed to delete edge function", error as Error);
     throw error;
   }
 }
@@ -435,8 +450,8 @@ export async function deleteEdgeFunction(functionId: string, userId: string) {
 function generateSlug(name: string): string {
   return name
     .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w-]/g, '')
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]/g, "")
     .substring(0, 50);
 }
 
@@ -445,7 +460,7 @@ function generateSlug(name: string): string {
  */
 export async function rollbackEdgeDeployment(
   deploymentId: string,
-  userId: string
+  userId: string,
 ) {
   try {
     const deployment = await prisma.edgeDeployment.findUnique({
@@ -454,18 +469,18 @@ export async function rollbackEdgeDeployment(
     });
 
     if (!deployment) {
-      throw new Error('Deployment not found');
+      throw new Error("Deployment not found");
     }
 
     const func = deployment.function as any;
     if (func.userId !== userId) {
-      throw new Error('Access denied');
+      throw new Error("Access denied");
     }
 
     // In production, would rollback to previous version
-    logger.worker('edge-deploy:rollback', 'success', { deploymentId });
+    logger.worker("edge-deploy:rollback", "success", { deploymentId });
   } catch (error) {
-    logger.error('Failed to rollback deployment', error as Error);
+    logger.error("Failed to rollback deployment", error as Error);
     throw error;
   }
 }

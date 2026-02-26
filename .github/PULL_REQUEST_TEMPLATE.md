@@ -1,11 +1,15 @@
 ## Description
+
 <!-- Describe your changes -->
 
 ## Related Issue
+
 <!-- Link to related issue (e.g., Closes #123) -->
+
 Closes #
 
 ## Type of Change
+
 <!-- Delete options that are not relevant -->
 
 - [ ] Bug fix (non-breaking change which fixes an issue)
@@ -16,6 +20,7 @@ Closes #
 - [ ] Security improvement
 
 ## How Has This Been Tested?
+
 <!-- Describe the tests you ran and how to reproduce -->
 
 - [ ] Unit tests added/updated
@@ -23,11 +28,13 @@ Closes #
 - [ ] Manual testing performed
 
 **Test Configuration:**
-- Node version: 
-- Database: 
-- Browser (if applicable): 
+
+- Node version:
+- Database:
+- Browser (if applicable):
 
 ## Checklist
+
 <!-- Ensure all items are checked before submitting -->
 
 - [ ] My code follows the code style of this project ([CONTRIBUTING.md](../CONTRIBUTING.md))
@@ -42,9 +49,11 @@ Closes #
 - [ ] I have verified the changes work in the target environment
 
 ## Screenshots (if applicable)
+
 <!-- Add screenshots to help explain your changes -->
 
 ## Performance Impact
+
 <!-- Describe any performance implications -->
 
 - [ ] No performance impact
@@ -54,6 +63,7 @@ Closes #
 **Details:**
 
 ## Breaking Changes
+
 <!-- Describe any breaking changes -->
 
 - [ ] No breaking changes
@@ -62,10 +72,12 @@ Closes #
 **Details:**
 
 ## Additional Context
+
 <!-- Add any other context about the PR here -->
 
 ---
 
 **Reviewer Notes:**
-- Estimated review time: 
+
+- Estimated review time:
 - Priority level: Low / Medium / High / Critical

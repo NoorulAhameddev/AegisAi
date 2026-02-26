@@ -66,7 +66,7 @@ export function Dialog({
       className={cn(
         "fixed inset-0 z-50 flex items-center justify-center p-4",
         "bg-black/60 backdrop-blur-sm transition-opacity duration-200",
-        open ? "opacity-100" : "opacity-0 pointer-events-none"
+        open ? "opacity-100" : "opacity-0 pointer-events-none",
       )}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -82,7 +82,7 @@ export function Dialog({
           "border border-white/10 shadow-2xl shadow-black/50",
           "animate-scale-up max-h-[90vh] overflow-y-auto",
           sizeClasses[size],
-          className
+          className,
         )}
       >
         {/* Header */}
@@ -112,9 +112,7 @@ export function Dialog({
         )}
 
         {/* Content */}
-        <div className="p-6">
-          {children}
-        </div>
+        <div className="p-6">{children}</div>
 
         {/* Footer */}
         {footer && (

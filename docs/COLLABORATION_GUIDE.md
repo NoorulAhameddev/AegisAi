@@ -13,30 +13,35 @@ Aegis AI now supports **real-time collaborative chat sessions** - multiple users
 ## 🎯 Features Implemented
 
 ### 1. Multi-User Shared Chats ✅
+
 - **Owner-based access control**: Chat creator has full control
 - **Role-based permissions**: 5 roles (VIEWER, COMMENTER, EDITOR, ADMIN, OWNER)
 - **Public share links**: Generate shareable URLs with tokens
 - **Email invitations**: Invite specific users (even if not registered yet)
 
 ### 2. Real-Time Synchronization ✅
+
 - **WebSocket-based**: Instant updates using Socket.IO
 - **Message broadcasting**: New messages appear for all users immediately
 - **Edit propagation**: Message edits sync in real-time
 - **Delete synchronization**: Deletions reflect instantly
 
 ### 3. Presence Tracking ✅
+
 - **Active users list**: See who's currently viewing the chat
 - **Last seen timestamps**: Track when users were last active
 - **Typing indicators**: (Framework ready, UI pending)
 - **Cursor positions**: (Framework ready, UI pending)
 
 ### 4. Activity Logging ✅
+
 - **Complete audit trail**: Who joined, left, edited, deleted
 - **Timestamped events**: Full activity history
 - **Metadata tracking**: Context for each action
 - **Queryable feed**: Pagination support for long histories
 
 ### 5. Permission Management ✅
+
 - **Grant access**: Invite users with specific roles
 - **Change roles**: Upgrade/downgrade user permissions
 - **Revoke access**: Remove users from chat
@@ -46,15 +51,16 @@ Aegis AI now supports **real-time collaborative chat sessions** - multiple users
 
 ## 🔐 Role System
 
-| Role | View | Comment | Add Messages | Edit | Delete | Manage Users |
-|------|------|---------|--------------|------|--------|--------------|
-| **VIEWER** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **COMMENTER** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **EDITOR** | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-| **ADMIN** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **OWNER** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Role          | View | Comment | Add Messages | Edit | Delete | Manage Users |
+| ------------- | ---- | ------- | ------------ | ---- | ------ | ------------ |
+| **VIEWER**    | ✅   | ❌      | ❌           | ❌   | ❌     | ❌           |
+| **COMMENTER** | ✅   | ✅      | ❌           | ❌   | ❌     | ❌           |
+| **EDITOR**    | ✅   | ✅      | ✅           | ✅   | ❌     | ❌           |
+| **ADMIN**     | ✅   | ✅      | ✅           | ✅   | ✅     | ✅           |
+| **OWNER**     | ✅   | ✅      | ✅           | ✅   | ✅     | ✅           |
 
 **Notes**:
+
 - OWNER: Only one per chat (creator), cannot be changed
 - ADMIN: Can manage permissions but can't remove owner
 - EDITOR: Can add/edit their own messages
@@ -68,6 +74,7 @@ Aegis AI now supports **real-time collaborative chat sessions** - multiple users
 ### New Models
 
 #### ChatPermission
+
 ```prisma
 model ChatPermission {
   id        String   @id @default(uuid())
@@ -76,7 +83,7 @@ model ChatPermission {
   role      ChatRole @default(VIEWER)
   invitedBy String?
   createdAt DateTime @default(now())
-  
+
   @@unique([chatId, userId])
   @@index([chatId])
   @@index([userId])
@@ -84,6 +91,7 @@ model ChatPermission {
 ```
 
 #### ChatActivity
+
 ```prisma
 model ChatActivity {
   id        String   @id @default(uuid())
@@ -92,12 +100,13 @@ model ChatActivity {
   action    String   // joined, left, edited, deleted_message, etc.
   metadata  Json?
   createdAt DateTime @default(now())
-  
+
   @@index([chatId, createdAt])
 }
 ```
 
 #### ChatInvitation
+
 ```prisma
 model ChatInvitation {
   id           String   @id @default(uuid())
@@ -108,7 +117,7 @@ model ChatInvitation {
   message      String?
   expiresAt    DateTime
   createdAt    DateTime @default(now())
-  
+
   @@unique([chatId, inviteeEmail])
 }
 ```
@@ -116,12 +125,13 @@ model ChatInvitation {
 ### Modified Models
 
 #### Chat (Enhanced)
+
 ```prisma
 model Chat {
   // ... existing fields ...
   isShared   Boolean   @default(false)
   shareToken String?   @unique  // Public share link token
-  
+
   // Relations
   ChatPermission ChatPermission[]
   ChatActivity   ChatActivity[]
@@ -161,27 +171,27 @@ Client receives presence-list
 
 #### Client → Server
 
-| Event | Payload | Purpose |
-|-------|---------|---------|
-| `join-chat` | `chatId: string` | Join a chat room |
-| `leave-chat` | `chatId: string` | Leave a chat room |
-| `presence-update` | `{ cursor, chatId }` | Update typing/cursor |
-| `message-sent` | `ChatMessage` | Broadcast new message |
-| `message-edited` | `{ messageId, content, chatId }` | Broadcast edit |
-| `message-deleted` | `{ messageId, chatId }` | Broadcast deletion |
+| Event             | Payload                          | Purpose               |
+| ----------------- | -------------------------------- | --------------------- |
+| `join-chat`       | `chatId: string`                 | Join a chat room      |
+| `leave-chat`      | `chatId: string`                 | Leave a chat room     |
+| `presence-update` | `{ cursor, chatId }`             | Update typing/cursor  |
+| `message-sent`    | `ChatMessage`                    | Broadcast new message |
+| `message-edited`  | `{ messageId, content, chatId }` | Broadcast edit        |
+| `message-deleted` | `{ messageId, chatId }`          | Broadcast deletion    |
 
 #### Server → Client
 
-| Event | Payload | Purpose |
-|-------|---------|---------|
-| `user-joined` | `{ userId, userName, timestamp }` | Someone joined |
-| `user-left` | `{ userId, timestamp }` | Someone left |
-| `presence-list` | `PresenceData[]` | Current users |
-| `presence-update` | `{ userId, cursor, lastSeen }` | User activity |
-| `message-received` | `ChatMessage` | New message |
-| `message-edited` | `{ messageId, content, editedAt }` | Message edited |
-| `message-deleted` | `{ messageId, deletedAt }` | Message deleted |
-| `error` | `{ message }` | Error occurred |
+| Event              | Payload                            | Purpose         |
+| ------------------ | ---------------------------------- | --------------- |
+| `user-joined`      | `{ userId, userName, timestamp }`  | Someone joined  |
+| `user-left`        | `{ userId, timestamp }`            | Someone left    |
+| `presence-list`    | `PresenceData[]`                   | Current users   |
+| `presence-update`  | `{ userId, cursor, lastSeen }`     | User activity   |
+| `message-received` | `ChatMessage`                      | New message     |
+| `message-edited`   | `{ messageId, content, editedAt }` | Message edited  |
+| `message-deleted`  | `{ messageId, deletedAt }`         | Message deleted |
+| `error`            | `{ message }`                      | Error occurred  |
 
 ### WebSocket Security
 
@@ -199,6 +209,7 @@ Client receives presence-list
 **POST** `/api/collaboration/share`
 
 **Request**:
+
 ```json
 {
   "chatId": "chat-uuid",
@@ -209,6 +220,7 @@ Client receives presence-list
 ```
 
 **Response**:
+
 ```json
 {
   "invitations": [
@@ -220,6 +232,7 @@ Client receives presence-list
 ```
 
 **Generate Public Link** (no emails):
+
 ```json
 {
   "chatId": "chat-uuid"
@@ -227,6 +240,7 @@ Client receives presence-list
 ```
 
 Response:
+
 ```json
 {
   "shareUrl": "https://aegisai.com/chat/chat-uuid/join?token=abc123...",
@@ -243,6 +257,7 @@ Returns list of all users with access and their roles.
 **PUT** `/api/collaboration/[chatId]/permissions`
 
 Update a user's role:
+
 ```json
 {
   "userId": "user-uuid",
@@ -263,6 +278,7 @@ Get current user's pending invitations.
 **POST** `/api/collaboration/invitations/accept`
 
 Accept via invitation ID:
+
 ```json
 {
   "invitationId": "invitation-uuid"
@@ -270,6 +286,7 @@ Accept via invitation ID:
 ```
 
 Or via share link:
+
 ```json
 {
   "chatId": "chat-uuid",
@@ -282,11 +299,17 @@ Or via share link:
 **GET** `/api/collaboration/[chatId]/presence`
 
 Get list of currently active users:
+
 ```json
 {
   "chatId": "...",
   "presence": [
-    { "userId": "...", "userName": "Alice", "isActive": true, "lastSeen": 1234567890 }
+    {
+      "userId": "...",
+      "userName": "Alice",
+      "isActive": true,
+      "lastSeen": 1234567890
+    }
   ],
   "activeCount": 3,
   "totalCount": 5
@@ -298,6 +321,7 @@ Get list of currently active users:
 **GET** `/api/collaboration/[chatId]/activity?limit=50&offset=0`
 
 Get chat activity log:
+
 ```json
 {
   "activities": [
@@ -328,25 +352,25 @@ Get chat activity log:
 ### 1. Socket.IO Client Setup
 
 ```typescript
-import io from 'socket.io-client';
+import io from "socket.io-client";
 
-const socket = io('/', {
-  path: '/api/socket',
+const socket = io("/", {
+  path: "/api/socket",
   auth: {
-    token: 'user-jwt-token'
-  }
+    token: "user-jwt-token",
+  },
 });
 
 // Join chat
-socket.emit('join-chat', chatId);
+socket.emit("join-chat", chatId);
 
 // Listen for new messages
-socket.on('message-received', (message) => {
+socket.on("message-received", (message) => {
   // Add message to UI
 });
 
 // Listen for users joining
-socket.on('user-joined', ({ userName }) => {
+socket.on("user-joined", ({ userName }) => {
   // Show notification: "Alice joined the chat"
 });
 ```
@@ -372,12 +396,12 @@ presence.map(user => (
 
 ```typescript
 async function shareChat(chatId: string, emails: string[]) {
-  const response = await fetch('/api/collaboration/share', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chatId, emails, role: 'VIEWER' })
+  const response = await fetch("/api/collaboration/share", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chatId, emails, role: "VIEWER" }),
   });
-  
+
   const { invitations } = await response.json();
   // Show success message
 }
@@ -406,14 +430,15 @@ async function shareChat(chatId: string, emails: string[]) {
 
 ### Revenue Model
 
-| Tier | Collaboration Features | Price |
-|------|----------------------|-------|
-| **FREE** | No collaboration | $0 |
-| **PRO** | View-only shared chats (3 max) | $9.99/mo |
-| **TEAM** | Full collaboration (10 users) | $49.99/mo |
-| **ENTERPRISE** | Unlimited users + admin controls | Custom |
+| Tier           | Collaboration Features           | Price     |
+| -------------- | -------------------------------- | --------- |
+| **FREE**       | No collaboration                 | $0        |
+| **PRO**        | View-only shared chats (3 max)   | $9.99/mo  |
+| **TEAM**       | Full collaboration (10 users)    | $49.99/mo |
+| **ENTERPRISE** | Unlimited users + admin controls | Custom    |
 
 **Estimated Revenue** (Year 1):
+
 - 100 TEAM subscriptions = $60K/year
 - 20 ENTERPRISE deals @ $500/mo = $120K/year
 - **Total Collaboration Revenue**: $180K/year
@@ -429,6 +454,7 @@ npx prisma migrate dev --name add-collaboration-features
 ```
 
 Creates:
+
 - ChatPermission table
 - ChatActivity table
 - ChatInvitation table
@@ -448,12 +474,12 @@ The WebSocket server starts automatically when Next.js starts. No additional con
 **Optional**: Add custom server in `server.ts`:
 
 ```typescript
-import { createServer } from 'http';
-import { parse } from 'url';
-import next from 'next';
-import { initCollaborationServer } from './src/services/collaboration/websocket';
+import { createServer } from "http";
+import { parse } from "url";
+import next from "next";
+import { initCollaborationServer } from "./src/services/collaboration/websocket";
 
-const app = next({ dev: process.env.NODE_ENV !== 'production' });
+const app = next({ dev: process.env.NODE_ENV !== "production" });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
@@ -466,7 +492,7 @@ app.prepare().then(() => {
   initCollaborationServer(server);
 
   server.listen(3000, () => {
-    console.log('> Ready on http://localhost:3000');
+    console.log("> Ready on http://localhost:3000");
   });
 });
 ```
@@ -486,6 +512,7 @@ WS_PATH=/api/socket
 ### Manual Testing Flow
 
 1. **Create a shared chat**:
+
    ```bash
    POST /api/collaboration/share
    {
@@ -508,14 +535,14 @@ WS_PATH=/api/socket
 
 ```javascript
 // In browser console
-const socket = io('/', {
-  path: '/api/socket',
-  auth: { token: 'your-jwt-token' }
+const socket = io("/", {
+  path: "/api/socket",
+  auth: { token: "your-jwt-token" },
 });
 
-socket.on('connect', () => console.log('Connected'));
-socket.emit('join-chat', 'chat-id');
-socket.on('user-joined', (data) => console.log('User joined:', data));
+socket.on("connect", () => console.log("Connected"));
+socket.emit("join-chat", "chat-id");
+socket.on("user-joined", (data) => console.log("User joined:", data));
 ```
 
 ---
@@ -525,11 +552,13 @@ socket.on('user-joined', (data) => console.log('User joined:', data));
 ### Scalability
 
 **Current Implementation** (Single Server):
+
 - Handles ~1000 concurrent connections
 - Presence updates every 30 seconds
 - Message broadcasting: <50ms latency
 
 **Future Scaling** (Multiple Servers):
+
 - Add Redis Adapter for Socket.IO
 - Share presence across servers via Redis pub/sub
 - Horizontal scaling to 10K+ connections
@@ -577,15 +606,15 @@ socket.on('user-joined', (data) => console.log('User joined:', data));
 
 ## 📊 Implementation Status
 
-| Component | Status | Lines of Code |
-|-----------|--------|---------------|
-| **Database Schema** | ✅ Complete | ~80 lines |
-| **WebSocket Server** | ✅ Complete | ~400 lines |
-| **API Endpoints** | ✅ Complete | ~600 lines (5 routes) |
-| **Documentation** | ✅ Complete | This file |
-| **Client Integration** | ⏳ Pending | TBD |
-| **UI Components** | ⏳ Pending | TBD |
-| **Testing** | ⏳ Pending | TBD |
+| Component              | Status      | Lines of Code         |
+| ---------------------- | ----------- | --------------------- |
+| **Database Schema**    | ✅ Complete | ~80 lines             |
+| **WebSocket Server**   | ✅ Complete | ~400 lines            |
+| **API Endpoints**      | ✅ Complete | ~600 lines (5 routes) |
+| **Documentation**      | ✅ Complete | This file             |
+| **Client Integration** | ⏳ Pending  | TBD                   |
+| **UI Components**      | ⏳ Pending  | TBD                   |
+| **Testing**            | ⏳ Pending  | TBD                   |
 
 **Total Backend Code**: 1080+ lines  
 **Estimated Frontend**: 800-1200 lines
@@ -595,18 +624,21 @@ socket.on('user-joined', (data) => console.log('User joined:', data));
 ## 🚀 Next Steps
 
 ### Immediate (Required for MVP)
+
 1. Deploy database migration
 2. Test WebSocket server startup
 3. Verify API endpoints work
 4. Create basic share button UI
 
 ### Short Term (Week 1-2)
+
 1. Build collaborators list component
 2. Add presence avatars
 3. Implement typing indicators
 4. Create permission management UI
 
 ### Long Term (Month 1-3)
+
 1. Redis adapter for multi-server scaling
 2. Advanced conflict resolution (OT/CRDT)
 3. Real-time cursor tracking in UI

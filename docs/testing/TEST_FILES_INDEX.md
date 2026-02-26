@@ -11,12 +11,12 @@
 
 ### 1. Configuration & Setup
 
-| File | Purpose | Status |
-|------|---------|--------|
-| [apps/web/jest.config.ts](./apps/web/jest.config.ts) | Jest configuration with Next.js integration | âœ… Working |
-| [config/jest.setup.ts](./config/jest.setup.ts) | Global setup: env vars, fetch polyfill | âœ… Working |
-| [apps/web/src/__tests__/setup.ts](./apps/web/src/__tests__/setup.ts) | Test utilities, mock factories | âœ… Working |
-| [apps/web/.env.test](./.env.test) | Test environment variables | âœ… Working |
+| File                                                                 | Purpose                                     | Status      |
+| -------------------------------------------------------------------- | ------------------------------------------- | ----------- |
+| [apps/web/jest.config.ts](./apps/web/jest.config.ts)                 | Jest configuration with Next.js integration | âœ… Working |
+| [config/jest.setup.ts](./config/jest.setup.ts)                       | Global setup: env vars, fetch polyfill      | âœ… Working |
+| [apps/web/src/**tests**/setup.ts](./apps/web/src/__tests__/setup.ts) | Test utilities, mock factories              | âœ… Working |
+| [apps/web/.env.test](./.env.test)                                    | Test environment variables                  | âœ… Working |
 
 ---
 
@@ -25,11 +25,13 @@
 ### API Endpoint Tests (76 tests)
 
 #### 1. Authentication Tests
-**File**: [apps/web/src/__tests__/api.auth.integration.test.ts](./apps/web/src/__tests__/api.auth.integration.test.ts)  
+
+**File**: [apps/web/src/**tests**/api.auth.integration.test.ts](./apps/web/src/__tests__/api.auth.integration.test.ts)  
 **Tests**: 54  
 **Passing**: 45+ âœ…
 
 **Coverage**:
+
 ```
 âœ… POST /api/auth/register
    - Valid email/password acceptance
@@ -60,6 +62,7 @@
 ```
 
 **Key Assertions**:
+
 - Authentication flow end-to-end
 - Token generation and validation
 - Session management
@@ -68,11 +71,13 @@
 ---
 
 #### 2. Chat Streaming Tests
-**File**: [apps/web/src/__tests__/api.chat.streaming.test.ts](./apps/web/src/__tests__/api.chat.streaming.test.ts)  
+
+**File**: [apps/web/src/**tests**/api.chat.streaming.test.ts](./apps/web/src/__tests__/api.chat.streaming.test.ts)  
 **Tests**: 31  
 **Passing**: 20+ âœ…
 
 **Coverage**:
+
 ```
 âœ… POST /api/chat/create
    - Create new conversation
@@ -100,6 +105,7 @@
 ```
 
 **Key Assertions**:
+
 - Chat CRUD operations
 - Job queue integration
 - Streaming format correctness
@@ -108,11 +114,13 @@
 ---
 
 #### 3. Chat Delete Tests
-**File**: [apps/web/src/__tests__/api.chat.delete.test.ts](./apps/web/src/__tests__/api.chat.delete.test.ts)  
+
+**File**: [apps/web/src/**tests**/api.chat.delete.test.ts](./apps/web/src/__tests__/api.chat.delete.test.ts)  
 **Tests**: 12  
 **Passing**: 8+ âš ï¸
 
 **Coverage**:
+
 ```
 âœ… DELETE /api/chat/delete
    - Soft delete chat
@@ -123,6 +131,7 @@
 ```
 
 **Known Issues**:
+
 - Response mock structure needs refinement
 - See TEST_DEBUGGING_GUIDE.md for fixes
 
@@ -131,54 +140,57 @@
 ### Integration Tests (34 tests)
 
 #### 4. User Journey Integration Tests
-**File**: [apps/web/src/__tests__/integration/user-journey.integration.test.ts](./apps/web/src/__tests__/integration/user-journey.integration.test.ts)  
+
+**File**: [apps/web/src/**tests**/integration/user-journey.integration.test.ts](./apps/web/src/__tests__/integration/user-journey.integration.test.ts)  
 **Tests**: 34  
 **Passing**: 15+ âœ…
 
 **Coverage**:
+
 ```
 âœ… Complete User Flow
    1. User Registration
       - Email validation
       - Password requirements
       - Account creation
-   
+
    2. User Login
       - Credential verification
       - Session establishment
       - Token generation
-   
+
    3. Token Refresh
       - Session validation
       - Token rotation
       - User continuation
-   
+
    4. Chat Creation
       - New conversation
       - Metadata setup
       - RAG context prep
-   
+
    5. Message Sending
       - Message validation
       - RAG retrieval
       - Moderation check
       - Worker job enqueue
-   
+
    6. Chat History
       - Message retrieval
       - Pagination
       - Timestamp ordering
-   
+
    7. Chat Deletion
       - Soft delete
       - Cascade cleanup
-   
+
    8. Logout
       - Session cleanup
       - Token invalidation
 ```
 
 **Key Assertions**:
+
 - Complete signup â†’ chat â†’ message flow
 - Component integration
 - State persistence
@@ -189,33 +201,35 @@
 ### Worker/Queue Tests (28 tests)
 
 #### 5. Queue Processing Tests
-**File**: [apps/web/src/__tests__/workers/queue-processing.test.ts](./apps/web/src/__tests__/workers/queue-processing.test.ts)  
+
+**File**: [apps/web/src/**tests**/workers/queue-processing.test.ts](./apps/web/src/__tests__/workers/queue-processing.test.ts)  
 **Tests**: 28  
 **Passing**: 18+ âœ…
 
 **Coverage**:
+
 ```
 âœ… BullMQ Job Processing
    - Job state machine
      waiting â†’ active â†’ completed
      waiting â†’ active â†’ failed â†’ retry
      waiting â†’ active â†’ scheduled (delayed)
-   
+
    - Concurrent job handling
      Race condition prevention
      Order preservation
      FIFO processing
-   
+
    - Error handling & retry
      Automatic retries
      Dead letter queue
      Max attempts enforcement
-   
+
    - Job completion
      State transition
      Result storage
      Cleanup
-   
+
    - Memory management
      Job data cleanup
      Event listener removal
@@ -223,6 +237,7 @@
 ```
 
 **Key Assertions**:
+
 - Job state transitions
 - Concurrency safety
 - Error recovery
@@ -233,11 +248,13 @@
 ### Security & Validation Tests (47 tests)
 
 #### 6. Input Validation Tests
-**File**: [apps/web/src/__tests__/lib/input-validation.test.ts](./apps/web/src/__tests__/lib/input-validation.test.ts)  
+
+**File**: [apps/web/src/**tests**/lib/input-validation.test.ts](./apps/web/src/__tests__/lib/input-validation.test.ts)  
 **Tests**: 47  
 **Passing**: 20+ âœ…
 
 **Coverage**:
+
 ```
 âœ… Email Validation (8 tests)
    - Valid formats: user@example.com
@@ -271,6 +288,7 @@
 ```
 
 **Key Assertions**:
+
 - Invalid input rejection
 - Safe character handling
 - Attack pattern detection
@@ -280,11 +298,13 @@
 ### Database Operation Tests (39 tests)
 
 #### 7. Database Operations Tests
-**File**: [apps/web/src/__tests__/lib/database-operations.test.ts](./apps/web/src/__tests__/lib/database-operations.test.ts)  
+
+**File**: [apps/web/src/**tests**/lib/database-operations.test.ts](./apps/web/src/__tests__/lib/database-operations.test.ts)  
 **Tests**: 39  
 **Passing**: 22+ âœ…
 
 **Coverage**:
+
 ```
 âœ… User Operations (9 tests)
    - Create user with validation
@@ -329,6 +349,7 @@
 ```
 
 **Key Assertions**:
+
 - CRUD correctness
 - Data integrity
 - Referential constraints
@@ -339,11 +360,13 @@
 ### Helper Utilities (Not counted as tests)
 
 #### 8. BullMQ Mock Helpers
-**File**: [apps/web/src/__tests__/lib/bullmq-mocks.ts](./apps/web/src/__tests__/lib/bullmq-mocks.ts)  
+
+**File**: [apps/web/src/**tests**/lib/bullmq-mocks.ts](./apps/web/src/__tests__/lib/bullmq-mocks.ts)  
 **Purpose**: Queue/job mocking utilities  
 **Status**: âœ… Ready
 
 **Exports**:
+
 ```typescript
 âœ… createMockJob(overrides)
    - Full job state management
@@ -389,6 +412,7 @@
 ## How to Run Specific Tests
 
 ### By Feature
+
 ```bash
 cd apps/web
 
@@ -409,6 +433,7 @@ npm test -- database-operations
 ```
 
 ### By Individual Scenario
+
 ```bash
 # Test user registration
 npm test -- --testNamePattern="register"
@@ -428,6 +453,7 @@ npm test -- --testNamePattern="injection|sanitize|validate"
 ## Test Dependencies & Mocks
 
 ### Mock Hierarchy
+
 ```
 Jest
  â”œâ”€ Prisma (Database)
@@ -457,16 +483,17 @@ Jest
 ## Coverage Summary
 
 ### By Module
-| Module | Tests | Coverage |
-|--------|-------|----------|
-| Authentication | 54 | âœ… 78% |
-| Chat Management | 43 | âœ… 72% |
-| Workers/Queues | 28 | âœ… 64% |
-| Security | 47 | âœ… 55% |
-| Database | 39 | âœ… 60% |
-| API Routes | 76 | âš ï¸ 48% |
-| Services | 13 | âš ï¸ 30% |
-| **Overall** | **256** | **52%** |
+
+| Module          | Tests   | Coverage  |
+| --------------- | ------- | --------- |
+| Authentication  | 54      | âœ… 78%   |
+| Chat Management | 43      | âœ… 72%   |
+| Workers/Queues  | 28      | âœ… 64%   |
+| Security        | 47      | âœ… 55%   |
+| Database        | 39      | âœ… 60%   |
+| API Routes      | 76      | âš ï¸ 48% |
+| Services        | 13      | âš ï¸ 30% |
+| **Overall**     | **256** | **52%**   |
 
 ---
 
@@ -497,19 +524,22 @@ Jest
 ## Test Maintenance Guidelines
 
 ### Adding New Tests
+
 1. âœ… Use existing mock patterns
-2. âœ… Place in appropriate __tests__ directory
+2. âœ… Place in appropriate **tests** directory
 3. âœ… Follow naming: `feature.type.test.ts`
 4. âœ… Include error cases
 5. âœ… Use descriptive assertions
 
 ### Fixing Failing Tests
+
 1. âœ… Check TEST_DEBUGGING_GUIDE.md for common patterns
 2. âœ… Run with --verbose for detailed output
 3. âœ… Update mocks in jest.setup.ts if needed
 4. âœ… Verify with local npm test before commit
 
 ### Performance Considerations
+
 - Tests run in ~55 seconds (good benchmark)
 - Parallel execution: Jest default
 - Use --runInBand for deterministic debugging
@@ -530,4 +560,3 @@ Jest
 **Version**: 1.0  
 **Last Updated**: February 15, 2026  
 **Maintained By**: Aegis AI QA Team
-

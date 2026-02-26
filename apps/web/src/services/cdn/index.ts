@@ -3,12 +3,12 @@
  * Handles caching, distribution, and optimization of images/files
  */
 
-import { logger } from '@/lib/logger';
-import { prisma } from '@/lib/prisma';
-import crypto from 'crypto';
+import { logger } from "@/lib/logger";
+import { prisma } from "@/lib/prisma";
+import crypto from "crypto";
 
 export interface CDNConfig {
-  type: 'cloudflare' | 'cloudfront' | 'bunny' | 'local';
+  type: "cloudflare" | "cloudfront" | "bunny" | "local";
   apiKey?: string;
   zoneId?: string;
   bucketName?: string;
@@ -26,18 +26,21 @@ export interface CacheRule {
 
 // Default CDN config (local caching)
 const defaultConfig: CDNConfig = {
-  type: 'local',
+  type: "local",
   cacheTTL: 86400, // 24 hours
   cacheRules: [
-    { pattern: '\\.(jpg|jpeg|png|gif|webp)$', ttl: 604800 }, // 7 days for images
-    { pattern: '\\.(js|css)$', ttl: 86400 }, // 1 day for scripts/styles
-    { pattern: '\\.(html|xml|json)$', ttl: 3600 }, // 1 hour for markup
-    { pattern: '\\.(mp4|webm|ogg)$', ttl: 604800 }, // 7 days for video
+    { pattern: "\\.(jpg|jpeg|png|gif|webp)$", ttl: 604800 }, // 7 days for images
+    { pattern: "\\.(js|css)$", ttl: 86400 }, // 1 day for scripts/styles
+    { pattern: "\\.(html|xml|json)$", ttl: 3600 }, // 1 hour for markup
+    { pattern: "\\.(mp4|webm|ogg)$", ttl: 604800 }, // 7 days for video
   ],
 };
 
 // In-memory cache stats
-const cacheStats = new Map<string, { hits: number; misses: number; size: number }>();
+const cacheStats = new Map<
+  string,
+  { hits: number; misses: number; size: number }
+>();
 
 /**
  * Generate cache key for resource
@@ -45,10 +48,10 @@ const cacheStats = new Map<string, { hits: number; misses: number; size: number 
 export function generateCacheKey(
   userId: string,
   resourceId: string,
-  version?: string
+  version?: string,
 ): string {
-  const payload = `${userId}:${resourceId}:${version || '1'}`;
-  return crypto.createHash('sha256').update(payload).digest('hex');
+  const payload = `${userId}:${resourceId}:${version || "1"}`;
+  return crypto.createHash("sha256").update(payload).digest("hex");
 }
 
 /**
@@ -57,21 +60,21 @@ export function generateCacheKey(
 export function getCDNUrl(
   resourceId: string,
   userId: string,
-  config: CDNConfig = defaultConfig
+  config: CDNConfig = defaultConfig,
 ): string {
   const cacheKey = generateCacheKey(userId, resourceId);
 
   switch (config.type) {
-    case 'cloudflare':
-      return `https://${config.zoneId}.${config.baseUrl || 'cdn.example.com'}/cache/${cacheKey}`;
+    case "cloudflare":
+      return `https://${config.zoneId}.${config.baseUrl || "cdn.example.com"}/cache/${cacheKey}`;
 
-    case 'cloudfront':
+    case "cloudfront":
       return `https://${config.bucketName}.cloudfront.net/${cacheKey}`;
 
-    case 'bunny':
+    case "bunny":
       return `https://${config.bucketName}.b-cdn.net/${cacheKey}`;
 
-    case 'local':
+    case "local":
     default:
       return `/api/cdn/${cacheKey}`;
   }
@@ -83,7 +86,7 @@ export function getCDNUrl(
 export async function purgeCacheResource(
   resourceId: string,
   userId: string,
-  config: CDNConfig = defaultConfig
+  config: CDNConfig = defaultConfig,
 ) {
   try {
     const cacheKey = generateCacheKey(userId, resourceId);
@@ -101,7 +104,7 @@ export async function purgeCacheResource(
     });
 
     switch (config.type) {
-      case 'cloudflare':
+      case "cloudflare":
         // Purge Cloudflare cache
         if (config.apiKey && config.zoneId) {
           await purgeCloudflareCache(config.zoneId, config.apiKey, [
@@ -110,14 +113,14 @@ export async function purgeCacheResource(
         }
         break;
 
-      case 'cloudfront':
+      case "cloudfront":
         // Purge CloudFront distribution
         if (config.bucketName) {
           await purgeCloudFrontCache([`/${cacheKey}`]);
         }
         break;
 
-      case 'bunny':
+      case "bunny":
         // Purge Bunny cache
         if (config.apiKey && config.bucketName) {
           await purgeBunnyCache(config.bucketName, config.apiKey, cacheKey);
@@ -125,16 +128,22 @@ export async function purgeCacheResource(
         break;
     }
 
-    logger.worker('cdn:purge', 'success', { resourceId, userId });
+    logger.worker("cdn:purge", "success", { resourceId, userId });
   } catch (error) {
-    logger.error('Failed to purge cache', error as Error, { resourceId, userId });
+    logger.error("Failed to purge cache", error as Error, {
+      resourceId,
+      userId,
+    });
   }
 }
 
 /**
  * Purge all cache for user
  */
-export async function purgeUserCache(userId: string, config: CDNConfig = defaultConfig) {
+export async function purgeUserCache(
+  userId: string,
+  config: CDNConfig = defaultConfig,
+) {
   try {
     const entries = await prisma.cacheEntry.findMany({
       where: { userId, purgedAt: null },
@@ -144,17 +153,17 @@ export async function purgeUserCache(userId: string, config: CDNConfig = default
 
     // Purge based on CDN type
     switch (config.type) {
-      case 'cloudflare':
+      case "cloudflare":
         if (config.apiKey && config.zoneId) {
           await purgeCloudflareCache(config.zoneId, config.apiKey, urls);
         }
         break;
 
-      case 'cloudfront':
+      case "cloudfront":
         await purgeCloudFrontCache(urls.map((u) => new URL(u).pathname));
         break;
 
-      case 'bunny':
+      case "bunny":
         if (config.apiKey && config.bucketName) {
           for (const entry of entries) {
             const cacheKey = generateCacheKey(userId, entry.resourceId);
@@ -170,9 +179,12 @@ export async function purgeUserCache(userId: string, config: CDNConfig = default
       data: { purgedAt: new Date() },
     });
 
-    logger.worker('cdn:purge-user', 'success', { userId, count: entries.length });
+    logger.worker("cdn:purge-user", "success", {
+      userId,
+      count: entries.length,
+    });
   } catch (error) {
-    logger.error('Failed to purge user cache', error as Error, { userId });
+    logger.error("Failed to purge user cache", error as Error, { userId });
   }
 }
 
@@ -182,7 +194,7 @@ export async function purgeUserCache(userId: string, config: CDNConfig = default
 export async function recordCacheMetric(
   cacheKey: string,
   hit: boolean,
-  size?: number
+  size?: number,
 ) {
   const stats = cacheStats.get(cacheKey) || { hits: 0, misses: 0, size: 0 };
 
@@ -232,7 +244,7 @@ export function getCacheStatistics(cacheKey?: string) {
  */
 export async function optimizeImageForCDN(
   imageBuffer: Buffer,
-  format: 'webp' | 'avif' | 'jpg' = 'webp'
+  format: "webp" | "avif" | "jpg" = "webp",
 ): Promise<Buffer> {
   try {
     // Note: In production, use sharp library for actual optimization
@@ -243,10 +255,10 @@ export async function optimizeImageForCDN(
     //   .toFormat(format, { quality: 80 })
     //   .toBuffer();
 
-    logger.worker('cdn:optimize', 'processing', { format });
+    logger.worker("cdn:optimize", "processing", { format });
     return imageBuffer; // For now, return as-is
   } catch (error) {
-    logger.error('Image optimization failed', error as Error);
+    logger.error("Image optimization failed", error as Error);
     return imageBuffer; // Return original if optimization fails
   }
 }
@@ -254,24 +266,31 @@ export async function optimizeImageForCDN(
 /**
  * Purge Cloudflare cache
  */
-async function purgeCloudflareCache(zoneId: string, apiKey: string, urls: string[]) {
+async function purgeCloudflareCache(
+  zoneId: string,
+  apiKey: string,
+  urls: string[],
+) {
   try {
-    const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/purge_cache`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/zones/${zoneId}/purge_cache`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ files: urls }),
       },
-      body: JSON.stringify({ files: urls }),
-    });
+    );
 
     if (!response.ok) {
       throw new Error(`Cloudflare API error: ${response.status}`);
     }
 
-    logger.worker('cdn:cloudflare', 'purged', { count: urls.length });
+    logger.worker("cdn:cloudflare", "purged", { count: urls.length });
   } catch (error) {
-    logger.error('Cloudflare purge failed', error as Error);
+    logger.error("Cloudflare purge failed", error as Error);
   }
 }
 
@@ -282,52 +301,58 @@ async function purgeCloudFrontCache(paths: string[]) {
   try {
     // Implement AWS CloudFront invalidation
     // Requires AWS SDK and proper credentials
-    logger.worker('cdn:cloudfront', 'purged', { count: paths.length });
+    logger.worker("cdn:cloudfront", "purged", { count: paths.length });
   } catch (error) {
-    logger.error('CloudFront purge failed', error as Error);
+    logger.error("CloudFront purge failed", error as Error);
   }
 }
 
 /**
  * Purge Bunny cache
  */
-async function purgeBunnyCache(bucketName: string, apiKey: string, cacheKey: string) {
+async function purgeBunnyCache(
+  bucketName: string,
+  apiKey: string,
+  cacheKey: string,
+) {
   try {
     const response = await fetch(
       `https://api.bunny.net/purge?url=https://${bucketName}.b-cdn.net/${cacheKey}`,
       {
-        method: 'POST',
+        method: "POST",
         headers: {
           AccessKey: apiKey,
         },
-      }
+      },
     );
 
     if (!response.ok) {
       throw new Error(`Bunny API error: ${response.status}`);
     }
 
-    logger.worker('cdn:bunny', 'purged', { cacheKey });
+    logger.worker("cdn:bunny", "purged", { cacheKey });
   } catch (error) {
-    logger.error('Bunny purge failed', error as Error);
+    logger.error("Bunny purge failed", error as Error);
   }
 }
 
 /**
  * Get optimal format based on browser support
  */
-export function getOptimalImageFormat(userAgent?: string): 'webp' | 'avif' | 'jpg' {
-  if (!userAgent) return 'jpg';
+export function getOptimalImageFormat(
+  userAgent?: string,
+): "webp" | "avif" | "jpg" {
+  if (!userAgent) return "jpg";
 
-  if (userAgent.includes('Chrome') || userAgent.includes('Edge')) {
-    return 'webp';
+  if (userAgent.includes("Chrome") || userAgent.includes("Edge")) {
+    return "webp";
   }
 
-  if (userAgent.includes('Firefox')) {
-    return userAgent.includes('version/') ? 'webp' : 'jpg';
+  if (userAgent.includes("Firefox")) {
+    return userAgent.includes("version/") ? "webp" : "jpg";
   }
 
-  return 'jpg';
+  return "jpg";
 }
 
 /**
@@ -336,7 +361,7 @@ export function getOptimalImageFormat(userAgent?: string): 'webp' | 'avif' | 'jp
 export function generateResponsiveImageURLs(
   resourceId: string,
   userId: string,
-  sizes: number[] = [320, 640, 1024, 1920]
+  sizes: number[] = [320, 640, 1024, 1920],
 ): { [key: string]: string } {
   const urls: { [key: string]: string } = {};
 

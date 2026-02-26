@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
+import React, { useState, useRef, useEffect } from "react";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Badge } from "@/components/ui/Badge";
 import {
   Send,
   Loader2,
@@ -12,11 +12,11 @@ import {
   RotateCcw,
   Volume2,
   Lightbulb,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: string;
   sources?: string[];
@@ -35,12 +35,12 @@ export function AdvancedChat({
   suggestedQuestions = [],
 }: AdvancedChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -52,20 +52,20 @@ export function AdvancedChat({
 
     const userMessage: Message = {
       id: `msg-${Date.now()}`,
-      role: 'user',
+      role: "user",
       content: input,
       timestamp: new Date().toLocaleTimeString(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput('');
+    setInput("");
 
     try {
       const response = await onSendMessage(input);
 
       const assistantMessage: Message = {
         id: `msg-${Date.now()}-response`,
-        role: 'assistant',
+        role: "assistant",
         content: response,
         timestamp: new Date().toLocaleTimeString(),
       };
@@ -74,8 +74,8 @@ export function AdvancedChat({
     } catch (error) {
       const errorMessage: Message = {
         id: `msg-${Date.now()}-error`,
-        role: 'assistant',
-        content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        role: "assistant",
+        content: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
         timestamp: new Date().toLocaleTimeString(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -102,13 +102,13 @@ export function AdvancedChat({
         const response = await onSendMessage(prevUserMessage.content);
         const assistantMessage: Message = {
           id: `msg-${Date.now()}-regenerated`,
-          role: 'assistant',
+          role: "assistant",
           content: response,
           timestamp: new Date().toLocaleTimeString(),
         };
         setMessages((prev) => [...prev, assistantMessage]);
       } catch (error) {
-        console.error('Regeneration failed:', error);
+        console.error("Regeneration failed:", error);
       }
     }
   };
@@ -118,12 +118,16 @@ export function AdvancedChat({
       <div className="space-y-4">
         <div className="text-center py-12">
           <Lightbulb size={48} className="mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600 mb-6">No messages yet. Start a conversation!</p>
+          <p className="text-gray-600 mb-6">
+            No messages yet. Start a conversation!
+          </p>
         </div>
 
         {suggestedQuestions.length > 0 && (
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-gray-700">Suggested questions:</p>
+            <p className="text-sm font-semibold text-gray-700">
+              Suggested questions:
+            </p>
             {suggestedQuestions.map((q, idx) => (
               <button
                 key={idx}
@@ -146,12 +150,15 @@ export function AdvancedChat({
       {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-4 mb-4">
         {messages.map((message) => (
-          <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div
+            key={message.id}
+            className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+          >
             <div
               className={`max-w-xs lg:max-w-md xl:max-w-lg ${
-                message.role === 'user'
-                  ? 'bg-blue-600 text-white rounded-l-lg rounded-tr-lg'
-                  : 'bg-gray-100 text-gray-900 rounded-r-lg rounded-tl-lg'
+                message.role === "user"
+                  ? "bg-blue-600 text-white rounded-l-lg rounded-tr-lg"
+                  : "bg-gray-100 text-gray-900 rounded-r-lg rounded-tl-lg"
               } p-4`}
             >
               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -169,7 +176,7 @@ export function AdvancedChat({
 
               <div className="flex items-center gap-2 mt-2 text-xs opacity-70">
                 <span>{message.timestamp}</span>
-                {message.role === 'assistant' && (
+                {message.role === "assistant" && (
                   <>
                     <button
                       onClick={() => handleCopy(message.id)}
@@ -209,7 +216,7 @@ export function AdvancedChat({
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+          onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
           placeholder="Type your message..."
           disabled={loading}
         />
@@ -218,7 +225,11 @@ export function AdvancedChat({
           disabled={loading || !input.trim()}
           className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center gap-2"
         >
-          {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+          {loading ? (
+            <Loader2 size={18} className="animate-spin" />
+          ) : (
+            <Send size={18} />
+          )}
         </button>
       </div>
     </div>

@@ -32,14 +32,18 @@ export function Dropdown({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setOpen(false);
       }
     };
 
     if (open) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [open]);
 
@@ -51,12 +55,14 @@ export function Dropdown({
           "flex items-center gap-2 px-3 py-2 rounded-lg",
           "text-zinc-400 hover:text-white hover:bg-white/5",
           "transition-colors",
-          triggerClassName
+          triggerClassName,
         )}
       >
         {trigger}
         {typeof trigger === "string" && (
-          <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
+          <ChevronDown
+            className={cn("h-4 w-4 transition-transform", open && "rotate-180")}
+          />
         )}
       </button>
 
@@ -67,7 +73,7 @@ export function Dropdown({
             "bg-zinc-900/95 backdrop-blur-xl border border-white/10",
             "shadow-lg shadow-black/50 animate-slide-down",
             align === "right" ? "right-0" : "left-0",
-            className
+            className,
           )}
         >
           <div className="p-1">
@@ -85,10 +91,12 @@ export function Dropdown({
                   item.isDanger
                     ? "text-red-400 hover:bg-red-500/10 disabled:opacity-50"
                     : "text-zinc-300 hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:hover:bg-transparent",
-                  "disabled:cursor-not-allowed"
+                  "disabled:cursor-not-allowed",
                 )}
               >
-                {item.icon && <span className="h-4 w-4 flex-shrink-0">{item.icon}</span>}
+                {item.icon && (
+                  <span className="h-4 w-4 flex-shrink-0">{item.icon}</span>
+                )}
                 <span className="flex-1">{item.label}</span>
               </button>
             ))}

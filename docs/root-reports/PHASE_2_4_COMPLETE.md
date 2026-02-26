@@ -35,16 +35,11 @@
 
 ```typescript
 // Upload file with images
-const result = await ingestFile(
-    fileId,
-    content,
-    userId,
-    {
-        fileName: 'document.pdf',
-        fileType: 'application/pdf',
-        enableImageEmbedding: true, // Enable CLIP embeddings
-    }
-);
+const result = await ingestFile(fileId, content, userId, {
+  fileName: "document.pdf",
+  fileType: "application/pdf",
+  enableImageEmbedding: true, // Enable CLIP embeddings
+});
 
 // Returns:
 // {
@@ -125,26 +120,26 @@ EMBEDDING_MODEL=text-embedding-3-small  # or text-embedding-3-large
 
 ```typescript
 // Query with semantic caching (automatic)
-const result = await retrieveContext('how to deploy?', userId);
+const result = await retrieveContext("how to deploy?", userId);
 
 // Result includes cache info
 if (result.fromCache) {
-    console.log(`Cache HIT - Similarity: ${result.cacheSimilarity}`);
+  console.log(`Cache HIT - Similarity: ${result.cacheSimilarity}`);
 } else {
-    console.log('Cache MISS - Results cached for future');
+  console.log("Cache MISS - Results cached for future");
 }
 
 // Get cache statistics
-const response = await fetch('/api/rag/cache-stats', {
-    headers: { Authorization: `Bearer ${token}` }
+const response = await fetch("/api/rag/cache-stats", {
+  headers: { Authorization: `Bearer ${token}` },
 });
 const stats = await response.json();
 console.log(`Hit rate: ${(stats.data.hitRate * 100).toFixed(1)}%`);
 
 // Clear cache
-await fetch('/api/rag/cache-stats', {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` }
+await fetch("/api/rag/cache-stats", {
+  method: "DELETE",
+  headers: { Authorization: `Bearer ${token}` },
 });
 ```
 
@@ -216,35 +211,38 @@ Upload PDF with images
 
 ### Semantic Cache Impact
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Repeated Query Latency | 180ms | 12ms | **93% faster** |
-| API Calls (embeddings) | 100% | 30% | **70% reduction** |
-| Database Queries | 100% | 30% | **70% reduction** |
-| Cache Hit Rate | N/A | 70-80% | **New capability** |
+| Metric                 | Before | After  | Improvement        |
+| ---------------------- | ------ | ------ | ------------------ |
+| Repeated Query Latency | 180ms  | 12ms   | **93% faster**     |
+| API Calls (embeddings) | 100%   | 30%    | **70% reduction**  |
+| Database Queries       | 100%   | 30%    | **70% reduction**  |
+| Cache Hit Rate         | N/A    | 70-80% | **New capability** |
 
 ### Multi-Modal Search Accuracy
 
-| Query Type | Text-Only | Text + Image | Improvement |
-|------------|-----------|--------------|-------------|
-| "Find chart about sales" | 65% | 92% | **+27% accuracy** |
-| "Show diagram" | 40% | 88% | **+48% accuracy** |
-| "Technical drawing" | 35% | 85% | **+50% accuracy** |
+| Query Type               | Text-Only | Text + Image | Improvement       |
+| ------------------------ | --------- | ------------ | ----------------- |
+| "Find chart about sales" | 65%       | 92%          | **+27% accuracy** |
+| "Show diagram"           | 40%       | 88%          | **+48% accuracy** |
+| "Technical drawing"      | 35%       | 85%          | **+50% accuracy** |
 
 ---
 
 ## Files Created/Modified
 
 ### New Files (3)
+
 1. `src/services/rag/semantic-cache.ts` - 400+ lines
 2. `src/app/api/rag/cache-stats/route.ts` - 60+ lines
 
 ### Modified Files (3)
+
 1. `src/services/rag/rag-retrieval.ts` - Added semantic cache integration
 2. `src/services/rag/ingest.ts` - Complete rewrite for multi-modal
 3. `src/services/rag/config.ts` - Enabled semantic cache by default
 
 ### Already Implemented (Verified)
+
 1. `src/services/rag/embeddings.ts` - CLIP API fully implemented
 2. `src/services/rag/multi-modal-embeddings.ts` - Complete
 3. `src/services/rag/multi-modal-embeddings-v2.ts` - Enhanced version
@@ -347,14 +345,14 @@ VECTOR_DB_PROVIDER=lancedb             # Or pgvector
 ### Runtime Configuration
 
 ```typescript
-import { updateRAGConfig, getRAGConfig } from '@/services/rag/config';
+import { updateRAGConfig, getRAGConfig } from "@/services/rag/config";
 
 // Enable/disable features
 updateRAGConfig({
-    enableSemanticCache: true,      // Semantic query caching
-    enableImageEmbeddings: true,    // CLIP image embeddings
-    enableMultiModal: true,         // Multi-modal support
-    enableCrossEncoderReranking: true, // Cross-encoder reranking
+  enableSemanticCache: true, // Semantic query caching
+  enableImageEmbeddings: true, // CLIP image embeddings
+  enableMultiModal: true, // Multi-modal support
+  enableCrossEncoderReranking: true, // Cross-encoder reranking
 });
 
 // Check configuration

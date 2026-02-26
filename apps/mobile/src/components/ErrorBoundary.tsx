@@ -3,9 +3,9 @@
  * Catches and handles React component errors
  */
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { logger } from '../utils/logger';
+import React, { Component, ErrorInfo, ReactNode } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { logger } from "../utils/logger";
 
 interface Props {
   children: ReactNode;
@@ -33,7 +33,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    logger.error('Error Boundary caught error', error, {
+    logger.error("Error Boundary caught error", error, {
       componentStack: errorInfo.componentStack,
     });
   }
@@ -53,7 +53,7 @@ class ErrorBoundary extends Component<Props, State> {
             <Text style={styles.emoji}>⚠️</Text>
             <Text style={styles.title}>Something went wrong</Text>
             <Text style={styles.message}>
-              {this.state.error?.message || 'An unexpected error occurred'}
+              {this.state.error?.message || "An unexpected error occurred"}
             </Text>
             <TouchableOpacity style={styles.button} onPress={this.handleReset}>
               <Text style={styles.buttonText}>Try Again</Text>
@@ -70,13 +70,13 @@ class ErrorBoundary extends Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#0F172A",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   content: {
-    alignItems: 'center',
+    alignItems: "center",
     maxWidth: 400,
   },
   emoji: {
@@ -85,28 +85,28 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 12,
-    textAlign: 'center',
+    textAlign: "center",
   },
   message: {
     fontSize: 16,
-    color: '#94A3B8',
+    color: "#94A3B8",
     marginBottom: 32,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 24,
   },
   button: {
-    backgroundColor: '#4F46E5',
+    backgroundColor: "#4F46E5",
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 8,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

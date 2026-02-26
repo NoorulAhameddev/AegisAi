@@ -1,7 +1,7 @@
 /**
  * Study Hub Integration Tests
  * Comprehensive test suite for all Study Hub features
- * 
+ *
  * Run with: npm run test -- study-hub.test.ts
  */
 
@@ -19,13 +19,13 @@ async function apiCall(
   endpoint: string,
   method: string = "GET",
   body?: any,
-  headers: Record<string, string> = {}
+  headers: Record<string, string> = {},
 ) {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     method,
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${MOCK_TOKEN}`,
+      Authorization: `Bearer ${MOCK_TOKEN}`,
       ...headers,
     },
     body: body ? JSON.stringify(body) : undefined,
@@ -39,7 +39,8 @@ async function apiCall(
   return response;
 }
 
-const describeFn = (process.env.RUN_INTEGRATION === 'true') ? describe : describe.skip;
+const describeFn =
+  process.env.RUN_INTEGRATION === "true" ? describe : describe.skip;
 describeFn("Study Hub Integration Tests", () => {
   let projectId: string;
   let noteId: string;
@@ -126,7 +127,7 @@ describeFn("Study Hub Integration Tests", () => {
       const data = await response.json();
       expect(data.content).toBeDefined();
       expect(data.content.includes("•") || data.content.includes("-")).toBe(
-        true
+        true,
       );
     });
 
@@ -141,7 +142,7 @@ describeFn("Study Hub Integration Tests", () => {
       expect(data.content).toBeDefined();
       expect(
         data.content.toLowerCase().includes("learning") ||
-          data.content.toLowerCase().includes("neural")
+          data.content.toLowerCase().includes("neural"),
       ).toBe(true);
     });
 
@@ -190,7 +191,7 @@ describeFn("Study Hub Integration Tests", () => {
       const data = await response.json();
       expect(data.content).toBeDefined();
       expect(data.content.includes("Q:") || data.content.includes("Q.")).toBe(
-        true
+        true,
       );
     });
 
@@ -206,7 +207,7 @@ describeFn("Study Hub Integration Tests", () => {
       expect(
         data.content.includes("A)") ||
           data.content.includes("B)") ||
-          data.content.includes("Option")
+          data.content.includes("Option"),
       ).toBe(true);
     });
 
@@ -285,7 +286,7 @@ describeFn("Study Hub Integration Tests", () => {
       const testFile = new File(
         ["Test file content for ingestion"],
         "test.txt",
-        { type: "text/plain" }
+        { type: "text/plain" },
       );
       formData.append("file-0", testFile);
       formData.append("projectId", projectId);
@@ -370,7 +371,7 @@ describeFn("Study Hub Integration Tests", () => {
       try {
         await fetch(`${API_BASE_URL}/api/projects`, {
           method: "GET",
-        }).then(r => {
+        }).then((r) => {
           if (!r.ok) throw new Error(`${r.status}`);
           return r;
         });
@@ -433,12 +434,12 @@ describeFn("Study Hub Integration Tests", () => {
           operation: "summary-short",
           text: `Test content ${i}`,
           projectId,
-        })
+        }),
       );
 
       const results = await Promise.all(promises);
       expect(results).toHaveLength(5);
-      results.forEach(r => {
+      results.forEach((r) => {
         expect(r.ok).toBe(true);
       });
     });

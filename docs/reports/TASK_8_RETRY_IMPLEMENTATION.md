@@ -11,6 +11,7 @@ Implemented centralized retry logic with exponential backoff for all external se
 ## Architecture
 
 ### Layered Resilience Strategy
+
 ```
 Request → Retry (p-retry) → Circuit Breaker (opossum) → API Call
     ↓            ↓                    ↓                    ↓
@@ -26,6 +27,7 @@ failures     jitter              broken              embeddings, DB)
 **Purpose**: Centralized retry logic for all external service calls
 
 **Key Features**:
+
 - **5 Service-Specific Strategies**: Custom retry policies per service type
 - **Exponential Backoff**: Prevents API hammering (2x multiplier)
 - **Jitter**: ±20% randomization to prevent thundering herd
@@ -35,65 +37,73 @@ failures     jitter              broken              embeddings, DB)
 
 **Retry Strategies**:
 
-| Strategy | Retries | Min Timeout | Max Timeout | Factor | Use Case |
-|----------|---------|-------------|-------------|--------|----------|
-| `openai` | 3 | 1000ms | 4000ms | 2 | Chat completions (fast fail) |
-| `embeddings` | 5 | 1000ms | 10000ms | 2 | Vector generation (more lenient) |
-| `rag` | 2 | 500ms | 1000ms | 1.5 | Context retrieval (fast recovery) |
-| `database` | 3 | 500ms | 2000ms | 2 | SQL queries (quick retry) |
-| `generic` | 3 | 1000ms | 5000ms | 2 | Default strategy |
+| Strategy     | Retries | Min Timeout | Max Timeout | Factor | Use Case                          |
+| ------------ | ------- | ----------- | ----------- | ------ | --------------------------------- |
+| `openai`     | 3       | 1000ms      | 4000ms      | 2      | Chat completions (fast fail)      |
+| `embeddings` | 5       | 1000ms      | 10000ms     | 2      | Vector generation (more lenient)  |
+| `rag`        | 2       | 500ms       | 1000ms      | 1.5    | Context retrieval (fast recovery) |
+| `database`   | 3       | 500ms       | 2000ms      | 2      | SQL queries (quick retry)         |
+| `generic`    | 3       | 1000ms      | 5000ms      | 2      | Default strategy                  |
 
 **Error Filtering Logic**:
+
 ```typescript
 function shouldRetryError(error: any): boolean {
-    // Don't retry client errors (4xx) except rate limits (429)
-    if (error.status >= 400 && error.status < 500 && error.status !== 429) {
-        return false; // Client error, not transient
-    }
-    
-    // Retry server errors (5xx), network errors, timeouts
-    if (error.status >= 500 || 
-        error.code === 'ECONNRESET' || 
-        error.code === 'ETIMEDOUT' ||
-        error.name === 'AbortError') {
-        return true; // Transient error, retry
-    }
-    
-    return true; // Default: retry unknown errors
+  // Don't retry client errors (4xx) except rate limits (429)
+  if (error.status >= 400 && error.status < 500 && error.status !== 429) {
+    return false; // Client error, not transient
+  }
+
+  // Retry server errors (5xx), network errors, timeouts
+  if (
+    error.status >= 500 ||
+    error.code === "ECONNRESET" ||
+    error.code === "ETIMEDOUT" ||
+    error.name === "AbortError"
+  ) {
+    return true; // Transient error, retry
+  }
+
+  return true; // Default: retry unknown errors
 }
 ```
 
 ### 2. Worker Integration (`apps/web/src/workers/processor.ts`)
 
 **Changes**:
+
 - Added import: `import { retryWithBackoff, RetryStrategies } from '../lib/retry'`
 - Wrapped 2 OpenAI API calls with retry logic
 
 **Before** (line 262):
+
 ```typescript
 response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
-    messages: formattedMessages,
-    tools: tools,
-    tool_choice: "auto"
+  model: "openai/gpt-4o-mini",
+  messages: formattedMessages,
+  tools: tools,
+  tool_choice: "auto",
 });
 ```
 
 **After**:
+
 ```typescript
 response = await retryWithBackoff(
-    async () => openai.chat.completions.create({
-        model: "openai/gpt-4o-mini",
-        messages: formattedMessages,
-        tools: tools,
-        tool_choice: "auto"
+  async () =>
+    openai.chat.completions.create({
+      model: "openai/gpt-4o-mini",
+      messages: formattedMessages,
+      tools: tools,
+      tool_choice: "auto",
     }),
-    RetryStrategies.openai,
-    `openai-chat-${job.id}`
+  RetryStrategies.openai,
+  `openai-chat-${job.id}`,
 );
 ```
 
 **Impact**:
+
 - 3 automatic retries for transient failures (1s → 2s → 4s delays)
 - Preserves existing error handling for rate limits (429), auth errors (401/403)
 - Context-aware logging with job ID
@@ -101,11 +111,13 @@ response = await retryWithBackoff(
 ### 3. Embeddings Service (`apps/web/src/services/rag/embeddings.ts`)
 
 **Changes**:
+
 - Added import: `import { retryWithBackoff, RetryStrategies } from '@/lib/retry'`
 - Replaced 2 manual retry loops with centralized retry utility
 - Removed custom backoff functions (`sleep`, `getBackoffDelay`)
 
 **Before** (lines 118-183):
+
 ```typescript
 let lastError: Error | null = null;
 for (let attempt = 0; attempt < config.maxRetries; attempt++) {
@@ -125,6 +137,7 @@ throw new Error(`Failed after ${config.maxRetries} attempts`);
 ```
 
 **After** (simplified):
+
 ```typescript
 try {
     const response = await retryWithBackoff(
@@ -149,12 +162,14 @@ try {
 ```
 
 **Impact**:
+
 - 5 automatic retries for embedding API (more lenient than chat)
 - Exponential backoff up to 10 seconds (handles quota limits better)
 - Preserved timeout logic (30s default) and dimension normalization
 - Cleaner code: ~65 lines reduced to ~45 lines
 
 **Batch Processing** (lines 316-383):
+
 - Applied same retry strategy to batch embeddings (200 texts per batch)
 - Each batch gets 5 retry attempts with exponential backoff
 - Failed batches return nulls (graceful degradation)
@@ -186,17 +201,20 @@ try {
 ### Performance Impact
 
 **Before Retry Implementation**:
+
 - First API failure → job fails → user sees error
 - No automatic recovery from transient issues
 - Manual job re-submission required
 
 **After Retry Implementation**:
+
 - First API failure → automatic retry after 1s
 - Second failure → retry after 2s
 - Third failure → retry after 4s
 - ~95% of transient failures recovered automatically
 
 **Latency Impact**:
+
 - Success on first attempt: No additional latency
 - Success on second attempt: +1s latency
 - Success on third attempt: +3s latency (1s + 2s)
@@ -205,6 +223,7 @@ try {
 ## Configuration
 
 ### Environment Variables
+
 No new environment variables required. Retry strategies are configured in code.
 
 ### Tuneable Parameters
@@ -213,14 +232,14 @@ To modify retry behavior, edit `apps/web/src/lib/retry.ts`:
 
 ```typescript
 export const RetryStrategies = {
-    openai: {
-        retries: 3,        // Number of retry attempts
-        minTimeout: 1000,  // Initial delay (ms)
-        maxTimeout: 4000,  // Maximum delay (ms)
-        factor: 2,         // Exponential multiplier
-        randomize: true    // Enable jitter (±20%)
-    },
-    // ... other strategies
+  openai: {
+    retries: 3, // Number of retry attempts
+    minTimeout: 1000, // Initial delay (ms)
+    maxTimeout: 4000, // Maximum delay (ms)
+    factor: 2, // Exponential multiplier
+    randomize: true, // Enable jitter (±20%)
+  },
+  // ... other strategies
 };
 ```
 
@@ -231,15 +250,16 @@ export const RetryStrategies = {
 Retry events are logged via structured logging:
 
 ```typescript
-logger.worker(jobId, 'retry-attempt', {
-    attempt: 2,
-    retriesLeft: 1,
-    context: 'openai-chat-123',
-    nextDelay: 2000
+logger.worker(jobId, "retry-attempt", {
+  attempt: 2,
+  retriesLeft: 1,
+  context: "openai-chat-123",
+  nextDelay: 2000,
 });
 ```
 
 **CloudWatch Log Insights Query**:
+
 ```
 fields @timestamp, context, attempt, retriesLeft
 | filter operation = "retry-attempt"
@@ -286,6 +306,7 @@ fields @timestamp, context, attempt, retriesLeft
 If retry logic causes issues:
 
 1. **Remove retry wrapper from processor.ts**:
+
    ```typescript
    // Revert line 262 to:
    response = await openai.chat.completions.create({ ... });

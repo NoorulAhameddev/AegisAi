@@ -214,6 +214,7 @@ Aegis-Ai/
 ## 🔄 Data Flow
 
 ### Chat Request Flow
+
 ```
 User Input (Web/Mobile)
         ↓
@@ -231,6 +232,7 @@ Stream to User
 ```
 
 ### Authentication Flow
+
 ```
 User Login/Register
         ↓
@@ -246,6 +248,7 @@ API Access
 ```
 
 ### Background Job Flow
+
 ```
 Job Queued (BullMQ)
         ↓
@@ -335,6 +338,7 @@ PostgreSQL
 ---
 
 For more details, see:
+
 - [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) - Detailed structure
 - [docs/IMPLEMENTATION_GUIDE.md](./docs/IMPLEMENTATION_GUIDE.md) - Implementation details
 - [CONTRIBUTING.md](./CONTRIBUTING.md) - Code standards

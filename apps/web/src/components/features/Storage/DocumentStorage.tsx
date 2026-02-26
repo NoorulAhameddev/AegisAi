@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { Save, Clock, Tag, Archive, Trash2, Copy } from 'lucide-react';
+import React, { useState } from "react";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Input } from "@/components/ui/Input";
+import { Save, Clock, Tag, Archive, Trash2, Copy } from "lucide-react";
 
 interface StoredDocument {
   id: string;
@@ -28,43 +28,47 @@ export function DocumentStorage({
   onSave,
   onDelete,
   documents,
-  currentContent = '',
+  currentContent = "",
 }: DocumentStorageProps) {
-  const [saveTitle, setSaveTitle] = useState('');
-  const [saveTags, setSaveTags] = useState('');
+  const [saveTitle, setSaveTitle] = useState("");
+  const [saveTags, setSaveTags] = useState("");
   const [saving, setSaving] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<StoredDocument | null>(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
   const handleSave = async () => {
     if (!saveTitle.trim()) {
-      alert('Please enter a title');
+      alert("Please enter a title");
       return;
     }
 
     try {
       setSaving(true);
       const tags = saveTags
-        .split(',')
+        .split(",")
         .map((t) => t.trim())
         .filter((t) => t.length > 0);
       await onSave(saveTitle, currentContent, tags);
-      setSaveTitle('');
-      setSaveTags('');
+      setSaveTitle("");
+      setSaveTags("");
       setShowSaveDialog(false);
     } catch (error) {
-      alert(`Failed to save: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(
+        `Failed to save: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (docId: string) => {
-    if (confirm('Are you sure you want to delete this document?')) {
+    if (confirm("Are you sure you want to delete this document?")) {
       try {
         await onDelete(docId);
       } catch (error) {
-        alert(`Failed to delete: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        alert(
+          `Failed to delete: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }
   };
@@ -123,7 +127,7 @@ export function DocumentStorage({
                 disabled={saving || !saveTitle.trim()}
                 className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-2 rounded-lg transition"
               >
-                {saving ? 'Saving...' : 'Save'}
+                {saving ? "Saving..." : "Save"}
               </button>
             </div>
           </div>
@@ -133,7 +137,9 @@ export function DocumentStorage({
       {/* Saved Documents */}
       {nonArchivedDocs.length > 0 && (
         <Card className="p-4">
-          <h3 className="font-semibold mb-3">Saved Documents ({nonArchivedDocs.length})</h3>
+          <h3 className="font-semibold mb-3">
+            Saved Documents ({nonArchivedDocs.length})
+          </h3>
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {nonArchivedDocs.map((doc) => (
               <div
@@ -142,7 +148,9 @@ export function DocumentStorage({
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <p className="font-medium text-sm text-gray-900">{doc.title}</p>
+                    <p className="font-medium text-sm text-gray-900">
+                      {doc.title}
+                    </p>
                     <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                       <Clock size={12} />
                       {new Date(doc.updatedAt).toLocaleDateString()}

@@ -168,7 +168,7 @@ describe("Worker Queue Processing", () => {
           chatId,
           role: "user",
           content: job.data.message,
-        }))
+        })),
       );
 
       const messages = await prisma.message.findMany({

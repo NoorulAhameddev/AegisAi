@@ -3,11 +3,11 @@
  * Tracks file changes and allows rollback to previous versions
  */
 
-import { prisma } from '@/lib/prisma';
-import { logger } from '@/lib/logger';
-import { encrypt, decrypt } from '@/lib/encryption';
-import fs from 'fs/promises';
-import path from 'path';
+import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
+import { encrypt, decrypt } from "@/lib/encryption";
+import fs from "fs/promises";
+import path from "path";
 
 export interface FileVersion {
   id: string;
@@ -23,7 +23,7 @@ export interface FileVersion {
   isCurrentVersion: boolean;
 }
 
-const VERSIONS_DIR = path.join(process.cwd(), 'uploads', 'versions');
+const VERSIONS_DIR = path.join(process.cwd(), "uploads", "versions");
 
 /**
  * Initialize versioning system
@@ -31,9 +31,9 @@ const VERSIONS_DIR = path.join(process.cwd(), 'uploads', 'versions');
 export async function initializeVersioning() {
   try {
     await fs.mkdir(VERSIONS_DIR, { recursive: true });
-    logger.worker('versioning', 'initialized', { dir: VERSIONS_DIR });
+    logger.worker("versioning", "initialized", { dir: VERSIONS_DIR });
   } catch (error) {
-    logger.error('Failed to initialize versioning', error as Error);
+    logger.error("Failed to initialize versioning", error as Error);
   }
 }
 
@@ -46,7 +46,7 @@ export async function createFileVersion(
   fileBuffer: Buffer,
   fileName: string,
   mimeType: string,
-  changeLog?: string
+  changeLog?: string,
 ): Promise<FileVersion> {
   try {
     // Get current file to find next version number
@@ -55,12 +55,12 @@ export async function createFileVersion(
     });
 
     if (!file) {
-      throw new Error('File not found');
+      throw new Error("File not found");
     }
 
     // Verify ownership
     if (file.userId !== userId) {
-      throw new Error('Access denied');
+      throw new Error("Access denied");
     }
 
     const versionNumber = (file.version || 0) + 1;
@@ -74,8 +74,8 @@ export async function createFileVersion(
     await fs.writeFile(versionPath, fileBuffer);
 
     // Calculate hash
-    const crypto = require('crypto');
-    const hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+    const crypto = require("crypto");
+    const hash = crypto.createHash("sha256").update(fileBuffer).digest("hex");
 
     // Create version record
     const encryptedPath = await encrypt(versionPath);
@@ -110,7 +110,7 @@ export async function createFileVersion(
       data: { version: versionNumber },
     });
 
-    logger.worker('versioning:create', 'success', {
+    logger.worker("versioning:create", "success", {
       fileId,
       versionNumber,
       size: fileBuffer.length,
@@ -130,7 +130,10 @@ export async function createFileVersion(
       isCurrentVersion: true,
     };
   } catch (error) {
-    logger.error('Failed to create file version', error as Error, { fileId, userId });
+    logger.error("Failed to create file version", error as Error, {
+      fileId,
+      userId,
+    });
     throw error;
   }
 }
@@ -141,7 +144,7 @@ export async function createFileVersion(
 export async function getFileVersions(
   fileId: string,
   userId: string,
-  limit: number = 50
+  limit: number = 50,
 ): Promise<FileVersion[]> {
   try {
     // Verify file ownership
@@ -150,12 +153,12 @@ export async function getFileVersions(
     });
 
     if (!file || file.userId !== userId) {
-      throw new Error('Access denied');
+      throw new Error("Access denied");
     }
 
     const versions = await prisma.fileVersion.findMany({
       where: { fileId },
-      orderBy: { versionNumber: 'desc' },
+      orderBy: { versionNumber: "desc" },
       take: limit,
     });
 
@@ -173,7 +176,7 @@ export async function getFileVersions(
       isCurrentVersion: v.isCurrentVersion,
     }));
   } catch (error) {
-    logger.error('Failed to get file versions', error as Error, { fileId });
+    logger.error("Failed to get file versions", error as Error, { fileId });
     return [];
   }
 }
@@ -184,7 +187,7 @@ export async function getFileVersions(
 export async function rollbackToVersion(
   fileId: string,
   versionId: string,
-  userId: string
+  userId: string,
 ): Promise<FileVersion> {
   try {
     // Verify file ownership
@@ -193,7 +196,7 @@ export async function rollbackToVersion(
     });
 
     if (!file || file.userId !== userId) {
-      throw new Error('Access denied');
+      throw new Error("Access denied");
     }
 
     // Get the version to rollback to
@@ -202,7 +205,7 @@ export async function rollbackToVersion(
     });
 
     if (!targetVersion || targetVersion.fileId !== fileId) {
-      throw new Error('Version not found');
+      throw new Error("Version not found");
     }
 
     // Read the old version file
@@ -216,10 +219,10 @@ export async function rollbackToVersion(
       fileBuffer,
       targetVersion.fileName,
       targetVersion.mimeType,
-      `Rollback from version ${targetVersion.versionNumber}`
+      `Rollback from version ${targetVersion.versionNumber}`,
     );
 
-    logger.worker('versioning:rollback', 'success', {
+    logger.worker("versioning:rollback", "success", {
       fileId,
       fromVersion: targetVersion.versionNumber,
       toVersion: newVersion.versionNumber,
@@ -227,7 +230,10 @@ export async function rollbackToVersion(
 
     return newVersion;
   } catch (error) {
-    logger.error('Failed to rollback version', error as Error, { fileId, versionId });
+    logger.error("Failed to rollback version", error as Error, {
+      fileId,
+      versionId,
+    });
     throw error;
   }
 }
@@ -238,7 +244,7 @@ export async function rollbackToVersion(
 export async function deleteFileVersion(
   fileId: string,
   versionId: string,
-  userId: string
+  userId: string,
 ) {
   try {
     // Verify file ownership
@@ -247,7 +253,7 @@ export async function deleteFileVersion(
     });
 
     if (!file || file.userId !== userId) {
-      throw new Error('Access denied');
+      throw new Error("Access denied");
     }
 
     // Get version
@@ -256,7 +262,7 @@ export async function deleteFileVersion(
     });
 
     if (!version) {
-      throw new Error('Version not found');
+      throw new Error("Version not found");
     }
 
     // Prevent deleting the only version
@@ -265,7 +271,7 @@ export async function deleteFileVersion(
     });
 
     if (versionCount <= 1) {
-      throw new Error('Cannot delete the only version of a file');
+      throw new Error("Cannot delete the only version of a file");
     }
 
     // Delete physical file
@@ -273,7 +279,7 @@ export async function deleteFileVersion(
       const decryptedPath = await decrypt(version.filePath);
       await fs.unlink(decryptedPath).catch(() => {});
     } catch (err) {
-      logger.error('Failed to delete version file', err as Error);
+      logger.error("Failed to delete version file", err as Error);
     }
 
     // Delete version record
@@ -281,12 +287,15 @@ export async function deleteFileVersion(
       where: { id: versionId },
     });
 
-    logger.worker('versioning:delete', 'success', {
+    logger.worker("versioning:delete", "success", {
       fileId,
       versionNumber: version.versionNumber,
     });
   } catch (error) {
-    logger.error('Failed to delete version', error as Error, { fileId, versionId });
+    logger.error("Failed to delete version", error as Error, {
+      fileId,
+      versionId,
+    });
     throw error;
   }
 }
@@ -294,11 +303,14 @@ export async function deleteFileVersion(
 /**
  * Clean up old versions (keep only last N versions)
  */
-export async function cleanupOldVersions(fileId: string, keepCount: number = 10) {
+export async function cleanupOldVersions(
+  fileId: string,
+  keepCount: number = 10,
+) {
   try {
     const versions = await prisma.fileVersion.findMany({
       where: { fileId },
-      orderBy: { versionNumber: 'desc' },
+      orderBy: { versionNumber: "desc" },
       skip: keepCount,
     });
 
@@ -311,18 +323,20 @@ export async function cleanupOldVersions(fileId: string, keepCount: number = 10)
           where: { id: version.id },
         });
       } catch (err) {
-        logger.error('Failed to cleanup version', err as Error, { versionId: version.id });
+        logger.error("Failed to cleanup version", err as Error, {
+          versionId: version.id,
+        });
       }
     }
 
-    logger.worker('versioning:cleanup', 'success', {
+    logger.worker("versioning:cleanup", "success", {
       fileId,
       versionsDeleted: versions.length,
     });
 
     return versions.length;
   } catch (error) {
-    logger.error('Version cleanup failed', error as Error, { fileId });
+    logger.error("Version cleanup failed", error as Error, { fileId });
     return 0;
   }
 }
@@ -334,7 +348,7 @@ export async function compareVersions(
   fileId: string,
   versionId1: string,
   versionId2: string,
-  userId: string
+  userId: string,
 ) {
   try {
     // Verify ownership
@@ -343,7 +357,7 @@ export async function compareVersions(
     });
 
     if (!file || file.userId !== userId) {
-      throw new Error('Access denied');
+      throw new Error("Access denied");
     }
 
     const v1 = await prisma.fileVersion.findUnique({
@@ -355,7 +369,7 @@ export async function compareVersions(
     });
 
     if (!v1 || !v2) {
-      throw new Error('One or both versions not found');
+      throw new Error("One or both versions not found");
     }
 
     return {
@@ -377,7 +391,7 @@ export async function compareVersions(
       changeLog2: v2.changeLog,
     };
   } catch (error) {
-    logger.error('Failed to compare versions', error as Error);
+    logger.error("Failed to compare versions", error as Error);
     throw error;
   }
 }

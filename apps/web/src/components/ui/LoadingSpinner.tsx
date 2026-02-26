@@ -7,16 +7,25 @@ interface LoadingSpinnerProps {
   text?: string;
 }
 
-export function LoadingSpinner({ size = "md", className, text }: LoadingSpinnerProps) {
+export function LoadingSpinner({
+  size = "md",
+  className,
+  text,
+}: LoadingSpinnerProps) {
   const sizes = {
     sm: "h-4 w-4",
     md: "h-6 w-6",
     lg: "h-8 w-8",
-    xl: "h-12 w-12"
+    xl: "h-12 w-12",
   };
 
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-3", className)}>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-3",
+        className,
+      )}
+    >
       <Loader2 className={cn("animate-spin text-purple-400", sizes[size])} />
       {text && <p className="text-sm text-zinc-400 animate-pulse">{text}</p>}
     </div>

@@ -27,6 +27,7 @@
 ## ✨ Key Features
 
 ### 🧠 **Intelligent AI Core**
+
 - **OpenRouter Integration** - Access to multiple AI models including GPT-4o through unified API
 - **Real-Time Streaming** - Zero-latency token streaming using Edge Runtime
 - **Autonomous Web Search** - AI can browse the web for real-time information
@@ -35,6 +36,7 @@
 - **Contextual Memory** - Remembers user facts and conversation history
 
 ### 🛡️ **Enterprise Security**
+
 - **Bank-Grade Authentication** - JWT with access + refresh tokens, HTTP-only cookies
 - **End-to-End Encryption** - AES-256-GCM for all sensitive data at rest
 - **Role-Based Access Control (RBAC)** - Fine-grained permission matrix
@@ -44,6 +46,7 @@
 - **Rate Limiting** - Redis-based distributed rate limiting
 
 ### ⚙️ **Infrastructure & Scalability**
+
 - **Asynchronous Architecture** - BullMQ job queue ensures 100% uptime
 - **Worker Isolation** - AI processing runs in separate process
 - **Database Optimization** - 13+ strategic indexes for performance
@@ -52,6 +55,7 @@
 - **Health Checks** - API endpoint for monitoring
 
 ### 📊 **Admin & Analytics**
+
 - **Admin Dashboard** - Comprehensive user and system management
 - **Usage Tracking** - Per-user token usage for billing/quotas
 - **Audit Logging** - Complete audit trail with metadata
@@ -62,42 +66,46 @@
 
 ## 🛠️ Technology Stack
 
-| Component | Technology | Description |
-|-----------|------------|-------------|
-| **Framework** | Next.js 16 (App Router) | React Server Components, Server Actions |
-| **Language** | TypeScript 5 | Strict type safety across the stack |
-| **Database** | PostgreSQL | Robust relational data storage |
-| **ORM** | Prisma 5.17 | Type-safe queries, auto-migrations |
-| **Styling** | Tailwind CSS 4 | Utility-first with modern design system |
-| **AI** | OpenAI GPT-4o-mini | Chat completions, tool calling |
-| **Vector Store** | LanceDB | RAG document storage |
-| **Job Queue** | BullMQ | Async task processing with Redis |
-| **Cache** | Redis (ioredis) | Rate limiting, caching |
-| **Search** | GoogleThis / Cheerio | Web scraping and search |
-| **Container** | Docker | Easy deployment |
+| Component        | Technology              | Description                             |
+| ---------------- | ----------------------- | --------------------------------------- |
+| **Framework**    | Next.js 16 (App Router) | React Server Components, Server Actions |
+| **Language**     | TypeScript 5            | Strict type safety across the stack     |
+| **Database**     | PostgreSQL              | Robust relational data storage          |
+| **ORM**          | Prisma 5.17             | Type-safe queries, auto-migrations      |
+| **Styling**      | Tailwind CSS 4          | Utility-first with modern design system |
+| **AI**           | OpenAI GPT-4o-mini      | Chat completions, tool calling          |
+| **Vector Store** | LanceDB                 | RAG document storage                    |
+| **Job Queue**    | BullMQ                  | Async task processing with Redis        |
+| **Cache**        | Redis (ioredis)         | Rate limiting, caching                  |
+| **Search**       | GoogleThis / Cheerio    | Web scraping and search                 |
+| **Container**    | Docker                  | Easy deployment                         |
 
 ---
 
 ## 🚦 Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - PostgreSQL 14+
 - Redis 6+
 - Docker (optional, for local services)
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/your-username/aegis-ai.git
 cd aegis-ai
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 3. Configure Environment
+
 Create a `.env` file in the root directory:
 
 ```bash
@@ -124,11 +132,13 @@ QUEUE_NAME="chat-queue"  # Default is fine
 ```
 
 ⚠️ **CRITICAL**: `ENCRYPTION_KEY` must be **exactly 32 characters**. Generate with:
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
 ```
 
 ### 4. Database Setup
+
 ```bash
 # Generate Prisma client
 npx prisma generate
@@ -143,11 +153,13 @@ npx prisma migrate dev --name init
 ### 5. Run the Application
 
 **Terminal 1: Next.js Server**
+
 ```bash
 npm run dev
 ```
 
 **Terminal 2: Background Worker**
+
 ```bash
 npm run worker
 ```
@@ -200,24 +212,28 @@ aegis-ai/
 ## 🔒 Security Features
 
 ### Authentication & Authorization
+
 - **JWT Tokens** - Separate access (10min) and refresh (7d) tokens
 - **HTTP-Only Cookies** - Prevents XSS attacks
 - **Token Versioning** - Instant session revocation ("nuclear option")
 - **RBAC** - Role-based access control with permission matrix
 
 ### Data Protection
+
 - **Encryption at Rest** - AES-256-GCM for all sensitive data
 - **Secure Password Storage** - Bcrypt with cost factor 12
 - **SQL Injection Prevention** - UUID validation, parameterized queries
 - **XSS Protection** - Input sanitization, CSP headers
 
 ### Request Security
+
 - **Rate Limiting** - Redis-based distributed rate limiting
 - **Input Validation** - Multi-layer (regex + AI sentinel)
 - **Output Validation** - Leak detection for secrets
 - **CORS** - Configurable origin restrictions
 
 ### Infrastructure Security
+
 - **Security Headers** - HSTS, CSP, X-Frame-Options, etc.
 - **Environment Validation** - Strict checks on startup
 - **Audit Logging** - Complete audit trail
@@ -228,6 +244,7 @@ aegis-ai/
 ## 📊 API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
 - `POST /api/auth/logout` - User logout
@@ -235,6 +252,7 @@ aegis-ai/
 - `GET /api/auth/me` - Get current user
 
 ### Chat
+
 - `POST /api/chat/create` - Create new chat
 - `POST /api/chat/stream` - Send message (queues AI job)
 - `GET /api/chat/history?chatId=...` - Get chat messages
@@ -242,12 +260,14 @@ aegis-ai/
 - `GET /api/chat/status?jobId=...` - Check job status
 
 ### Files
+
 - `POST /api/files/upload` - Upload file
 - `POST /api/files/ask` - Ask question about file
 - `GET /api/files/list` - List user's files
 - `DELETE /api/files/delete?id=...` - Delete file
 
 ### Admin (Requires ADMIN role)
+
 - `GET /api/admin/users` - List all users
 - `GET /api/admin/users/[id]` - Get user details
 - `PUT /api/admin/users/[id]/ban` - Ban/unban user
@@ -257,10 +277,12 @@ aegis-ai/
 - `GET /api/admin/settings` - System settings
 
 ### User
+
 - `GET /api/user/profile` - Get user profile
 - `PUT /api/user/password` - Change password
 
 ### System
+
 - `GET /api/health` - Health check
 - `GET /api/ping` - Simple ping
 
@@ -284,21 +306,25 @@ npm run docker:down
 ### Manual Deployment
 
 1. **Build for production**
+
 ```bash
 npm run build
 ```
 
 2. **Run migrations**
+
 ```bash
 npx prisma migrate deploy
 ```
 
 3. **Start server**
+
 ```bash
 npm start
 ```
 
 4. **Start worker** (separate process)
+
 ```bash
 npm run worker
 ```
@@ -306,6 +332,7 @@ npm run worker
 ### Environment Variables (Production)
 
 Ensure these are set in production:
+
 - `NODE_ENV="production"`
 - `DATABASE_URL` - Production PostgreSQL URL
 - `REDIS_URL` - Production Redis URL
@@ -371,6 +398,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ## 📞 Support
 
 For issues and questions:
+
 - 📧 Email: noorulahamed07@gmail.com
 - 🐛 Issues: [GitHub Issues](https://github.com/your-username/aegis-ai/issues)
 - 💬 Discussions: [GitHub Discussions](https://github.com/your-username/aegis-ai/discussions)

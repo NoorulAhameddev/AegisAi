@@ -2,7 +2,14 @@
 export { Badge } from "./Badge";
 export { Breadcrumb } from "./Breadcrumb";
 export { Button } from "./Button";
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./Card";
+export {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "./Card";
 export { Collapsible } from "./Collapsible";
 export { Dialog } from "./Dialog";
 export { Dropdown } from "./Dropdown";

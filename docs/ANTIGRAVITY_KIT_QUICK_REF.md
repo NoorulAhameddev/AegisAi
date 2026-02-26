@@ -2,23 +2,24 @@
 
 ## Slash Commands (GitHub Copilot Chat)
 
-| Command | Purpose | Example |
-|---------|---------|---------|
-| `/brainstorm` | Explore options | `/brainstorm authentication methods` |
-| `/plan` | Task breakdown | `/plan implement user dashboard` |
-| `/create` | Build features | `/create REST API endpoint` |
-| `/debug` | Fix issues | `/debug Worker queue stuck` |
-| `/test` | Generate tests | `/test authentication flow` |
-| `/enhance` | Improve code | `/enhance database queries` |
-| `/orchestrate` | Multi-agent task | `/orchestrate full-stack feature` |
-| `/deploy` | Deploy app | `/deploy to production` |
-| `/preview` | Preview locally | `/preview changes` |
-| `/status` | Check status | `/status` |
-| `/ui-ux-pro-max` | Professional UI | `/ui-ux-pro-max modern dashboard` |
+| Command          | Purpose          | Example                              |
+| ---------------- | ---------------- | ------------------------------------ |
+| `/brainstorm`    | Explore options  | `/brainstorm authentication methods` |
+| `/plan`          | Task breakdown   | `/plan implement user dashboard`     |
+| `/create`        | Build features   | `/create REST API endpoint`          |
+| `/debug`         | Fix issues       | `/debug Worker queue stuck`          |
+| `/test`          | Generate tests   | `/test authentication flow`          |
+| `/enhance`       | Improve code     | `/enhance database queries`          |
+| `/orchestrate`   | Multi-agent task | `/orchestrate full-stack feature`    |
+| `/deploy`        | Deploy app       | `/deploy to production`              |
+| `/preview`       | Preview locally  | `/preview changes`                   |
+| `/status`        | Check status     | `/status`                            |
+| `/ui-ux-pro-max` | Professional UI  | `/ui-ux-pro-max modern dashboard`    |
 
 ## 20 Specialist Agents
 
 ### 🔨 Development
+
 - `@frontend-specialist` - React, Next.js, UI/UX
 - `@backend-specialist` - APIs, Node.js, NestJS
 - `@database-architect` - Database design, Prisma
@@ -27,6 +28,7 @@
 - `@devops-engineer` - Docker, CI/CD, deployment
 
 ### ✅ Quality & Security
+
 - `@test-engineer` - Unit/integration testing
 - `@qa-automation-engineer` - Test automation
 - `@security-auditor` - Security review
@@ -34,12 +36,14 @@
 - `@performance-optimizer` - Performance tuning
 
 ### 📋 Management
+
 - `@project-planner` - Planning, architecture
 - `@product-manager` - Feature planning
 - `@product-owner` - Product strategy
 - `@documentation-writer` - Technical docs
 
 ### 🔧 Utility
+
 - `@debugger` - Systematic debugging
 - `@orchestrator` - Multi-agent coordination
 - `@explorer-agent` - Codebase exploration
@@ -49,7 +53,9 @@
 ## Usage Tips
 
 ### Automatic Selection
+
 Just describe your task - AI picks the right agent:
+
 ```
 "Add JWT authentication" → @security-auditor + @backend-specialist
 "Fix dark mode" → @frontend-specialist
@@ -57,16 +63,19 @@ Just describe your task - AI picks the right agent:
 ```
 
 ### Explicit Selection
+
 Mention agent directly:
+
 ```
 @security-auditor review this auth code
 @performance-optimizer analyze API routes
 ```
 
 ### Multi-Step Workflow
+
 ```
 /brainstorm payment integration
-/plan Stripe integration  
+/plan Stripe integration
 /create Stripe payment flow
 /test payment processing
 ```
@@ -74,27 +83,33 @@ Mention agent directly:
 ## 37 Domain Skills
 
 ### Frontend
+
 - `react-best-practices`, `nextjs-expert`, `tailwind-patterns`
 - `frontend-design`, `web-design-guidelines`
 
 ### Backend
+
 - `api-patterns`, `nodejs-best-practices`, `nestjs-expert`
 - `database-design`, `prisma-expert`
 
 ### DevOps
+
 - `docker-expert`, `deployment-procedures`, `ci-cd-pipelines`
 
 ### Quality
+
 - `testing-patterns`, `webapp-testing`, `tdd-workflow`
 - `performance-profiling`, `vulnerability-scanner`
 
 ### Specialized
+
 - `game-development`, `mobile-design`, `seo-fundamentals`
 - `i18n-localization`, `systematic-debugging`
 
 ## Common Patterns
 
 ### Starting a Feature
+
 ```
 /brainstorm [feature idea]
 /plan [feature implementation]
@@ -103,6 +118,7 @@ Mention agent directly:
 ```
 
 ### Debugging
+
 ```
 /debug [issue description]
 # AI analyzes systematically
@@ -111,6 +127,7 @@ Mention agent directly:
 ```
 
 ### Security Review
+
 ```
 @security-auditor review [code/file]
 # Gets security analysis
@@ -118,6 +135,7 @@ Mention agent directly:
 ```
 
 ### Performance Optimization
+
 ```
 @performance-optimizer analyze [component/route]
 # Gets optimization suggestions
@@ -128,6 +146,7 @@ Mention agent directly:
 ## Aegis AI Integration
 
 Agents understand:
+
 - ✅ BullMQ worker architecture
 - ✅ Next.js 16 App Router patterns
 - ✅ Prisma database schema
@@ -153,12 +172,14 @@ ag-kit init --force
 ## Troubleshooting
 
 ### Commands not appearing?
+
 1. Check `.agent` folder exists
 2. Reload VS Code window
 3. Clear Copilot cache
 4. Verify `.agent` not in `files.exclude`
 
 ### Agents not working?
+
 1. Restart VS Code
 2. Check `.git/info/exclude` has `.agent/`
 3. Run `ag-kit status`

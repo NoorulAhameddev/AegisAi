@@ -5,7 +5,7 @@
 
 export interface MockJobData {
   id: string;
-  state: 'active' | 'completed' | 'failed' | 'delayed' | 'waiting';
+  state: "active" | "completed" | "failed" | "delayed" | "waiting";
   data: any;
   progress?: number;
   returnvalue?: any;
@@ -18,9 +18,9 @@ export interface MockJobData {
  */
 export function createMockJob(options: Partial<MockJobData> = {}): any {
   const jobData: MockJobData = {
-    id: 'job-' + Math.random().toString(36).substr(2, 9),
-    state: 'waiting',
-    data: { chatId: 'chat-1', message: 'test' },
+    id: "job-" + Math.random().toString(36).substr(2, 9),
+    state: "waiting",
+    data: { chatId: "chat-1", message: "test" },
     progress: 0,
     ...options,
   };
@@ -49,16 +49,16 @@ export function createMockJob(options: Partial<MockJobData> = {}): any {
 /**
  * Create a mock BullMQ queue with common operations
  */
-export function createMockQueue(name: string = 'test-queue'): any {
+export function createMockQueue(name: string = "test-queue"): any {
   const jobs = new Map<string, any>();
 
   return {
     name,
     add: jest.fn(async (type: string, data: any, options?: any) => {
-      const job = createMockJob({ 
-        id: options?.jobId || 'job-' + Math.random().toString(36).substr(2, 9),
+      const job = createMockJob({
+        id: options?.jobId || "job-" + Math.random().toString(36).substr(2, 9),
         data,
-        state: 'waiting',
+        state: "waiting",
       });
       jobs.set(job.id, job);
       return job;
@@ -69,7 +69,7 @@ export function createMockQueue(name: string = 'test-queue'): any {
     }),
     getJobs: jest.fn(async (states?: string[]) => {
       if (!states) return Array.from(jobs.values());
-      return Array.from(jobs.values()).filter(j => states.includes(j.state));
+      return Array.from(jobs.values()).filter((j) => states.includes(j.state));
     }),
     getJobCounts: jest.fn(async () => ({
       waiting: 0,

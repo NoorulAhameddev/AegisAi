@@ -3,6 +3,7 @@
 This document summarizes the implementation as visible in the repository files only. It is intended for reviewers who do not have database access. If something is not implemented, it is labeled as **NOT IMPLEMENTED**.
 
 ## 1) Architecture & Structure
+
 - **Folder layout**: See root structure and documented overview in `MONOREPO_STRUCTURE.md`.
 - **API routes**: `apps/web/src/app/api/**/route.ts`.
 - **Workers**: `apps/web/src/workers/*.ts`.
@@ -15,6 +16,7 @@ This document summarizes the implementation as visible in the repository files o
 - **DI / service layer**: No DI container (**NOT IMPLEMENTED**). Service-layer separation exists under `apps/web/src/services`.
 
 ## 2) Authentication & Security
+
 - **JWT generation/verification**: `apps/web/src/services/auth/auth.ts`.
 - **Refresh token rotation**: Implemented. Rotation logic in `apps/web/src/app/api/auth/refresh/route.ts` and helpers in `apps/web/src/services/auth/session.ts`.
 - **Roles**: Defined in `prisma/schema.prisma` (`Role` enum). Permission matrix in `apps/web/src/services/auth/permissions.ts`.
@@ -26,6 +28,7 @@ This document summarizes the implementation as visible in the repository files o
 - **Security headers**: Configured in `apps/web/next.config.js`.
 
 ## 3) AI Pipeline
+
 - **OpenRouter client**: `apps/web/src/services/ai/openai.ts` (OpenAI SDK with OpenRouter base URL).
 - **Model selection**: Hard-coded (e.g., `openai/gpt-4o-mini`) in worker and services. Per-request model choice is **NOT IMPLEMENTED**.
 - **Streaming**: SSE in `apps/web/src/app/api/chat/stream-sse/route.ts`.
@@ -37,6 +40,7 @@ This document summarizes the implementation as visible in the repository files o
 - **System prompts**: Central prompt builder in `apps/web/src/services/ai/prompt.ts`, but SSE builds its own prompt inline (partial centralization).
 
 ## 4) RAG System
+
 - **LanceDB config**: `apps/web/src/lib/vector-store-server.ts` and provider in `apps/web/src/lib/vector-providers/lancedb-provider.ts`.
 - **Embeddings generation**: `apps/web/src/services/rag/embeddings.ts`.
 - **Embedding model**: Selected via `EMBEDDING_MODEL` in `apps/web/src/lib/env.ts`, mapped in `apps/web/src/services/rag/embeddings.ts`.
@@ -49,6 +53,7 @@ This document summarizes the implementation as visible in the repository files o
 - **Vector index persistence**: LanceDB uses `data/lancedb` directory; pgvector uses Postgres.
 
 ## 5) Workers & Queues
+
 - **Queues**: `chat-queue` (env `QUEUE_NAME`), `rag-queue`, `dlq-queue` in `apps/web/src/lib/queue.ts`.
 - **Workers instantiated**: `apps/web/src/workers/chat.worker.ts`, `rag.worker.ts`, `websocket.worker.ts`, `ai.worker.ts`.
 - **Concurrency**: Not configured explicitly (**NOT IMPLEMENTED**).
@@ -60,6 +65,7 @@ This document summarizes the implementation as visible in the repository files o
 - **Job timeout**: **NOT IMPLEMENTED**.
 
 ## 6) Database & Prisma
+
 - **Schema**: Full schema in `prisma/schema.prisma`.
 - **Soft delete models**: `Chat`, `File`, `Message`, `GeneratedImage`, `ImageFile` (have `deletedAt`).
 - **Indexes**: Extensive `@@index` usage across models.
@@ -72,6 +78,7 @@ This document summarizes the implementation as visible in the repository files o
 - **Connection pooling**: **NOT IMPLEMENTED** in Prisma client instantiation (relies on DB URL parameters).
 
 ## 7) Logging & Monitoring
+
 - **Structured logging**: JSON logs in `apps/web/src/lib/logger.ts`.
 - **Logging library**: Custom logger wrapper (no external library).
 - **Log categories**: `logger.auth`, `logger.security`, `logger.worker`, `logger.db`, etc.
@@ -83,6 +90,7 @@ This document summarizes the implementation as visible in the repository files o
 - **Unhandled rejections**: **NOT IMPLEMENTED** (no process handlers found).
 
 ## 8) Testing & Validation
+
 - **Unit tests**: `apps/web/src/__tests__/**`.
 - **Integration test**: `apps/web/src/__tests__/study-hub.integration.test.ts`.
 - **Input validation**: Zod via `apps/web/src/lib/request-validation.ts` and `apps/web/src/lib/validations.ts`.
@@ -93,6 +101,7 @@ This document summarizes the implementation as visible in the repository files o
 - **Error path tests**: **NOT IMPLEMENTED** (no explicit error-path test coverage found).
 
 ## 9) Deployment & DevOps
+
 - **Dockerfile**: Multi-stage build in `infra/docker/Dockerfile`.
 - **Docker Compose**: `infra/docker/docker-compose.yml` with Postgres, Redis, app, healthchecks.
 - **CI/CD**: GitHub Actions workflows in `.github/workflows/*.yml` (tests, lint, build, security, docker).
@@ -105,6 +114,7 @@ This document summarizes the implementation as visible in the repository files o
 - **Mobile EAS config**: `apps/mobile/eas.json`.
 
 ## 10) Code Quality & Maintainability
+
 - **Modularity**: Services and libs separated under `apps/web/src/services` and `apps/web/src/lib`.
 - **Duplication**: Model name strings are duplicated across services (no centralized model config).
 - **Business logic separation**: Partial; SSE route embeds AI pipeline logic instead of using worker pipeline.
@@ -115,6 +125,7 @@ This document summarizes the implementation as visible in the repository files o
 - **Documentation**: Present in code comments and docs, but not uniform.
 
 ## Top 5 Architectural Weaknesses (Evidence-Based)
+
 1. **Partial API/worker split**: `/api/chat/stream-sse` bypasses worker safety/budget logic.
 2. **No centralized model configuration**: Model IDs hard-coded across multiple files.
 3. **Similarity threshold defined but unused**: RAG retrieval does not enforce configured threshold.
@@ -122,57 +133,68 @@ This document summarizes the implementation as visible in the repository files o
 5. **Central error handler unused**: Error handler exists but is not applied to routes; no global rejection handlers.
 
 ---
+
 If you want this document tailored to a specific audience (e.g., external audit, customer-facing, or engineering onboarding), tell me the target audience and I will adjust the language and depth.
 
 ## Model Mapping Guidance
+
 This section records the requested model-to-task mapping for development workflows.
 
 ### Functional Layers
+
 - Thinking
 - Building
 - Fixing
 - Auditing
 
 ### System Thinking (Architecture / Refactor / Design)
+
 - Model: Claude Sonnet 4.5
 - Use for: new module design, SSE to worker unification planning, model routing logic design, security architecture, queue design changes, RAG threshold enforcement design, fallback strategy planning, tradeoff evaluation
 - Avoid: using Codex for high-level architecture planning
 
 ### Heavy Implementation (Multi-file Coding)
+
 - Model: GPT-5.1-Codex (primary)
 - Use for: writing new worker logic, rewriting API routes, implementing fallback logic, centralized model config, timeout and queue options, refactoring duplicated RAG logic, complex auth flow changes
 - Large context: GPT-5.2-Codex only when necessary
 
 ### Debugging (Async / Prisma / Redis / Streaming)
+
 - Model: GPT-4o
 - Use for: stack traces, Redis errors, Prisma relation issues, streaming SSE bugs, queue job failures, BullMQ misconfig
 
 ### Small Fixes / Quick Questions
+
 - Model: Claude Haiku 4.5
 - Use for: explaining a function, rewriting a small block, optimizing a small query, quick validation question, minor TypeScript fix
 
 ### Security Review / Crypto / JWT
+
 - Model: Claude Sonnet 4.5
 - Use for: JWT flow validation, refresh token logic, RBAC audit, encryption validation, input validation review, attack surface analysis
 
 ### Performance Optimization
+
 - Strategy: Claude Sonnet 4.5
 - Code changes: GPT-5.1-Codex
 - Example: Codex to optimize Prisma query; Sonnet to redesign caching architecture
 
 ### Test Writing
+
 - Model: GPT-5.1-Codex
 - Use for: unit tests, integration tests, edge case coverage
 
 ### Decision Table
-| Task | Model |
-| --- | --- |
-| Architecture planning | Claude Sonnet 4.5 |
-| Major refactor | GPT-5.1-Codex |
-| Complex implementation | GPT-5.1-Codex |
-| Debugging | GPT-4o |
-| Small fixes | Claude Haiku 4.5 |
-| Security audit | Claude Sonnet 4.5 |
-| Performance strategy | Claude Sonnet 4.5 |
-| Performance code change | GPT-5.1-Codex |
-| Writing tests | GPT-5.1-Codex |
+
+| Task                    | Model             |
+| ----------------------- | ----------------- |
+| Architecture planning   | Claude Sonnet 4.5 |
+| Major refactor          | GPT-5.1-Codex     |
+| Complex implementation  | GPT-5.1-Codex     |
+| Debugging               | GPT-4o            |
+| Small fixes             | Claude Haiku 4.5  |
+| Security audit          | Claude Sonnet 4.5 |
+| Performance strategy    | Claude Sonnet 4.5 |
+| Performance code change | GPT-5.1-Codex     |
+| Writing tests           | GPT-5.1-Codex     |

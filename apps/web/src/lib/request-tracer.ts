@@ -1,13 +1,13 @@
 /**
  * Request Tracing Infrastructure
- * 
+ *
  * Provides end-to-end visibility into API request processing:
  * - Automatic request ID propagation
  * - Performance tracking at each stage
  * - Database query performance monitoring
  * - AI API latency tracking
  * - Error correlation with request context
- * 
+ *
  * Usage:
  *   const tracer = new RequestTracer(requestId)
  *   tracer.startStage('rag-retrieval')
@@ -65,7 +65,7 @@ export class RequestTracer {
     const stage: TraceStage = {
       name: stageName,
       startTime: performance.now(),
-      metadata
+      metadata,
     };
 
     this.stages.set(stageName, stage);
@@ -73,7 +73,7 @@ export class RequestTracer {
 
     return {
       stageName,
-      startTime: stage.startTime
+      startTime: stage.startTime,
     };
   }
 
@@ -95,7 +95,7 @@ export class RequestTracer {
     return {
       stageName,
       duration: stage.duration,
-      metadata: stage.metadata
+      metadata: stage.metadata,
     };
   }
 
@@ -120,20 +120,23 @@ export class RequestTracer {
     const endTime = performance.now();
     const totalDuration = endTime - this.startTime;
 
-    const stagesArray = Array.from(this.stages.values()).map(stage => ({
+    const stagesArray = Array.from(this.stages.values()).map((stage) => ({
       name: stage.name,
       duration: stage.duration || 0,
       metadata: stage.metadata,
-      error: stage.error?.message
+      error: stage.error?.message,
     }));
 
     // Find fastest and slowest stages
-    const sortedByDuration = [...stagesArray].sort((a, b) => a.duration - b.duration);
-    const fastest = sortedByDuration[0]?.name || 'unknown';
-    const slowest = sortedByDuration[sortedByDuration.length - 1]?.name || 'unknown';
+    const sortedByDuration = [...stagesArray].sort(
+      (a, b) => a.duration - b.duration,
+    );
+    const fastest = sortedByDuration[0]?.name || "unknown";
+    const slowest =
+      sortedByDuration[sortedByDuration.length - 1]?.name || "unknown";
 
     // Flag as critical if any stage > 3000ms
-    const critical = stagesArray.some(s => s.duration > 3000);
+    const critical = stagesArray.some((s) => s.duration > 3000);
 
     return {
       requestId: this.requestId,
@@ -145,8 +148,8 @@ export class RequestTracer {
         fastest,
         slowest,
         totalTime: Math.round(totalDuration),
-        critical
-      }
+        critical,
+      },
     };
   }
 
@@ -156,31 +159,31 @@ export class RequestTracer {
   logReport(logger: any) {
     const report = this.getReport();
 
-    logger.info('Request trace report', {
+    logger.info("Request trace report", {
       requestId: report.requestId,
       totalDuration: report.summary.totalTime,
-      stages: report.stages.map(s => ({
+      stages: report.stages.map((s) => ({
         name: s.name,
         duration: Math.round(s.duration),
-        error: s.error
+        error: s.error,
       })),
-      critical: report.summary.critical
+      critical: report.summary.critical,
     });
 
     // Log detailed stage breakdown
-    report.stages.forEach(stage => {
+    report.stages.forEach((stage) => {
       if (stage.error) {
         logger.warn(`Stage failed: ${stage.name}`, {
           requestId: report.requestId,
           duration: Math.round(stage.duration),
-          error: stage.error
+          error: stage.error,
         });
       }
 
       if (stage.duration > 1000) {
         logger.warn(`Stage slow: ${stage.name}`, {
           requestId: report.requestId,
-          duration: Math.round(stage.duration)
+          duration: Math.round(stage.duration),
         });
       }
     });
@@ -223,9 +226,7 @@ export class TraceCollector {
 
     // Filter by stage if specified
     if (stageName) {
-      traces = traces.filter(t =>
-        t.stages.some(s => s.name === stageName)
-      );
+      traces = traces.filter((t) => t.stages.some((s) => s.name === stageName));
     }
 
     if (traces.length === 0) {
@@ -237,21 +238,22 @@ export class TraceCollector {
         p50: 0,
         p95: 0,
         p99: 0,
-        errors: 0
+        errors: 0,
       };
     }
 
     const durations = traces
-      .flatMap(t => stageName
-        ? t.stages.filter(s => s.name === stageName).map(s => s.duration)
-        : [t.totalDuration]
+      .flatMap((t) =>
+        stageName
+          ? t.stages.filter((s) => s.name === stageName).map((s) => s.duration)
+          : [t.totalDuration],
       )
       .sort((a, b) => a - b);
 
-    const errors = traces.filter(t =>
+    const errors = traces.filter((t) =>
       stageName
-        ? t.stages.some(s => s.name === stageName && s.error)
-        : t.stages.some(s => s.error)
+        ? t.stages.some((s) => s.name === stageName && s.error)
+        : t.stages.some((s) => s.error),
     ).length;
 
     const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
@@ -267,7 +269,7 @@ export class TraceCollector {
       p50: Math.round(p50),
       p95: Math.round(p95),
       p99: Math.round(p99),
-      errors
+      errors,
     };
   }
 
@@ -276,16 +278,14 @@ export class TraceCollector {
    */
   getSummary() {
     const stages = new Set<string>();
-    this.traces.forEach(t =>
-      t.stages.forEach(s => stages.add(s.name))
-    );
+    this.traces.forEach((t) => t.stages.forEach((s) => stages.add(s.name)));
 
     return {
       totalTraces: this.traces.length,
-      stages: Array.from(stages).map(stage => ({
+      stages: Array.from(stages).map((stage) => ({
         name: stage,
-        stats: this.getStats(stage)
-      }))
+        stats: this.getStats(stage),
+      })),
     };
   }
 

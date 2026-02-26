@@ -1,5 +1,5 @@
-import RAGManagement from '@/components/rag/RAGManagement';
+import RAGManagement from "@/components/rag/RAGManagement";
 
 export default function KnowledgeBasePage() {
-    return <RAGManagement />;
+  return <RAGManagement />;
 }

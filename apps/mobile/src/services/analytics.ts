@@ -3,50 +3,50 @@
  * Track user interactions and app performance
  */
 
-import { ENV } from '../config/env';
-import { logger } from '../utils/logger';
+import { ENV } from "../config/env";
+import { logger } from "../utils/logger";
 
 export enum AnalyticsEvent {
   // Authentication
-  LOGIN_ATTEMPT = 'login_attempt',
-  LOGIN_SUCCESS = 'login_success',
-  LOGIN_FAILURE = 'login_failure',
-  LOGOUT = 'logout',
-  SIGNUP_ATTEMPT = 'signup_attempt',
-  SIGNUP_SUCCESS = 'signup_success',
-  SIGNUP_FAILURE = 'signup_failure',
+  LOGIN_ATTEMPT = "login_attempt",
+  LOGIN_SUCCESS = "login_success",
+  LOGIN_FAILURE = "login_failure",
+  LOGOUT = "logout",
+  SIGNUP_ATTEMPT = "signup_attempt",
+  SIGNUP_SUCCESS = "signup_success",
+  SIGNUP_FAILURE = "signup_failure",
 
   // Navigation
-  SCREEN_VIEW = 'screen_view',
-  TAB_CHANGE = 'tab_change',
+  SCREEN_VIEW = "screen_view",
+  TAB_CHANGE = "tab_change",
 
   // Chat
-  MESSAGE_SENT = 'message_sent',
-  MESSAGE_RECEIVED = 'message_received',
-  CONVERSATION_STARTED = 'conversation_started',
-  CONVERSATION_DELETED = 'conversation_deleted',
+  MESSAGE_SENT = "message_sent",
+  MESSAGE_RECEIVED = "message_received",
+  CONVERSATION_STARTED = "conversation_started",
+  CONVERSATION_DELETED = "conversation_deleted",
 
   // Files
-  FILE_UPLOADED = 'file_uploaded',
-  FILE_DOWNLOADED = 'file_downloaded',
-  FILE_DELETED = 'file_deleted',
+  FILE_UPLOADED = "file_uploaded",
+  FILE_DOWNLOADED = "file_downloaded",
+  FILE_DELETED = "file_deleted",
 
   // Errors
-  ERROR_OCCURRED = 'error_occurred',
-  API_ERROR = 'api_error',
-  NETWORK_ERROR = 'network_error',
+  ERROR_OCCURRED = "error_occurred",
+  API_ERROR = "api_error",
+  NETWORK_ERROR = "network_error",
 
   // Performance
-  APP_STARTED = 'app_started',
-  APP_BACKGROUNDED = 'app_backgrounded',
-  APP_FOREGROUNDED = 'app_foregrounded',
-  SLOW_OPERATION = 'slow_operation',
+  APP_STARTED = "app_started",
+  APP_BACKGROUNDED = "app_backgrounded",
+  APP_FOREGROUNDED = "app_foregrounded",
+  SLOW_OPERATION = "slow_operation",
 
   // Settings
-  SETTINGS_CHANGED = 'settings_changed',
-  THEME_CHANGED = 'theme_changed',
-  BIOMETRIC_ENABLED = 'biometric_enabled',
-  BIOMETRIC_DISABLED = 'biometric_disabled',
+  SETTINGS_CHANGED = "settings_changed",
+  THEME_CHANGED = "theme_changed",
+  BIOMETRIC_ENABLED = "biometric_enabled",
+  BIOMETRIC_DISABLED = "biometric_disabled",
 }
 
 interface AnalyticsProperties {
@@ -57,15 +57,18 @@ class AnalyticsService {
   private enabled: boolean;
   private userId: string | null = null;
   private sessionId: string;
-  private eventQueue: Array<{ event: string; properties: AnalyticsProperties; timestamp: number }> =
-    [];
+  private eventQueue: Array<{
+    event: string;
+    properties: AnalyticsProperties;
+    timestamp: number;
+  }> = [];
 
   constructor() {
     this.enabled = ENV.ENABLE_ANALYTICS;
     this.sessionId = this.generateSessionId();
-    
+
     if (this.enabled) {
-      logger.info('Analytics initialized', { sessionId: this.sessionId });
+      logger.info("Analytics initialized", { sessionId: this.sessionId });
     }
   }
 
@@ -79,7 +82,7 @@ class AnalyticsService {
   setUserId(userId: string | null) {
     this.userId = userId;
     if (this.enabled) {
-      logger.debug('Analytics user ID set', { userId });
+      logger.debug("Analytics user ID set", { userId });
     }
   }
 
@@ -94,7 +97,7 @@ class AnalyticsService {
       userId: this.userId,
       sessionId: this.sessionId,
       timestamp: Date.now(),
-      platform: 'mobile',
+      platform: "mobile",
     };
 
     // Add to queue
@@ -104,7 +107,10 @@ class AnalyticsService {
       timestamp: Date.now(),
     });
 
-    logger.debug('Analytics event tracked', { event, properties: enrichedProperties });
+    logger.debug("Analytics event tracked", {
+      event,
+      properties: enrichedProperties,
+    });
 
     // TODO: Send to analytics service (e.g., Mixpanel, Amplitude, Firebase Analytics)
     // this.sendToRemote(event, enrichedProperties);
@@ -128,7 +134,11 @@ class AnalyticsService {
   /**
    * Track error
    */
-  trackError(error: Error, context?: string, properties: AnalyticsProperties = {}) {
+  trackError(
+    error: Error,
+    context?: string,
+    properties: AnalyticsProperties = {},
+  ) {
     this.track(AnalyticsEvent.ERROR_OCCURRED, {
       error_message: error.message,
       error_name: error.name,
@@ -141,7 +151,12 @@ class AnalyticsService {
   /**
    * Track timing/performance
    */
-  trackTiming(category: string, variable: string, timeMs: number, label?: string) {
+  trackTiming(
+    category: string,
+    variable: string,
+    timeMs: number,
+    label?: string,
+  ) {
     this.track(AnalyticsEvent.SLOW_OPERATION, {
       category,
       variable,
@@ -156,7 +171,7 @@ class AnalyticsService {
   private async flush() {
     if (this.eventQueue.length === 0) return;
 
-    logger.debug('Flushing analytics queue', { count: this.eventQueue.length });
+    logger.debug("Flushing analytics queue", { count: this.eventQueue.length });
 
     // TODO: Batch send events to analytics service
     // await this.sendBatchToRemote(this.eventQueue);
@@ -176,7 +191,7 @@ class AnalyticsService {
    */
   clearQueue() {
     this.eventQueue = [];
-    logger.debug('Analytics queue cleared');
+    logger.debug("Analytics queue cleared");
   }
 
   /**
@@ -184,7 +199,7 @@ class AnalyticsService {
    */
   setEnabled(enabled: boolean) {
     this.enabled = enabled;
-    logger.info('Analytics enabled status changed', { enabled });
+    logger.info("Analytics enabled status changed", { enabled });
   }
 
   /**

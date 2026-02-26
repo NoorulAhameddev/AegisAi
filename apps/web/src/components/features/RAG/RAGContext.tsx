@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { Search, BookOpen, Filter, Clock } from 'lucide-react';
+import React, { useState } from "react";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Input } from "@/components/ui/Input";
+import { Search, BookOpen, Filter, Clock } from "lucide-react";
 
 interface RAGDocument {
   id: string;
@@ -31,8 +31,10 @@ export function RAGContext({
   searchResults = [],
   loading = false,
 }: RAGContextProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDocs, setSelectedDocs] = useState<string[]>(documents.map((d) => d.id));
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDocs, setSelectedDocs] = useState<string[]>(
+    documents.map((d) => d.id),
+  );
   const [showFilters, setShowFilters] = useState(false);
 
   const handleSelectDocument = (docId: string) => {
@@ -59,12 +61,15 @@ export function RAGContext({
       <div className="relative">
         <div className="flex gap-2">
           <div className="flex-1 relative">
-            <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
+            <Search
+              size={18}
+              className="absolute left-3 top-2.5 text-gray-400"
+            />
             <Input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              onKeyPress={(e) => e.key === "Enter" && handleSearch()}
               placeholder="Search across selected documents..."
               className="pl-10"
             />
@@ -74,7 +79,7 @@ export function RAGContext({
             disabled={loading || !searchQuery.trim()}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-6 rounded-lg transition"
           >
-            {loading ? 'Searching...' : 'Search'}
+            {loading ? "Searching..." : "Search"}
           </button>
         </div>
       </div>
@@ -85,7 +90,8 @@ export function RAGContext({
           <div>
             <p className="text-sm font-semibold text-blue-900">RAG Context</p>
             <p className="text-xs text-blue-700 mt-1">
-              {selectedDocs.length} documents • {totalTokens.toLocaleString()} tokens
+              {selectedDocs.length} documents • {totalTokens.toLocaleString()}{" "}
+              tokens
             </p>
           </div>
           <button
@@ -105,8 +111,8 @@ export function RAGContext({
             key={doc.id}
             className={`p-3 cursor-pointer transition ${
               selectedDocs.includes(doc.id)
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 hover:border-gray-300'
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-gray-300"
             }`}
           >
             <label className="flex items-start gap-3 cursor-pointer">
@@ -117,7 +123,9 @@ export function RAGContext({
                 className="mt-1 w-4 h-4"
               />
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm text-gray-900 truncate">{doc.name}</p>
+                <p className="font-medium text-sm text-gray-900 truncate">
+                  {doc.name}
+                </p>
                 <div className="flex gap-2 mt-2 flex-wrap">
                   <Badge variant="secondary" className="text-xs">
                     {doc.chunks} chunks

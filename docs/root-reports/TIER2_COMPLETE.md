@@ -11,16 +11,19 @@
 ## ✅ What Was Built
 
 ### Tier 1.8: RAG Trust Scoring Integration ✅
+
 **Time**: 2-3 hours  
 **Impact**: Intelligent document filtering, prevents prompt injection
 
 **Components**:
+
 - Enhanced `rag-retrieval.ts` to call trust scoring on retrieved documents
 - Added injection risk detection and logging to processor
 - Trust scores included in formatted context (visual indicators)
 - Soft filtering: low-trust docs still included but flagged
 
 **Code Changes**:
+
 - `src/services/rag/rag-retrieval.ts`: Added scoring integration (50 lines)
 - `src/workers/processor.ts`: Added trust score logging and injection risk detection (30 lines)
 - `src/lib/rag-trust-scoring.ts`: Already created (300 lines)
@@ -30,6 +33,7 @@
 ---
 
 ### Tier 2.5: Complete Monetization System ✅
+
 **Time**: 8-10 hours  
 **Impact**: $100K+/year revenue potential
 
@@ -42,13 +46,14 @@ Tiers: FREE (10K tokens) → PRO ($9.99/mo, 500K tokens) → ENTERPRISE (10M tok
 
 Features by Tier:
 - FREE: Basic chat, streaming only
-- PRO: RAG, file upload, image gen, export, email support  
+- PRO: RAG, file upload, image gen, export, email support
 - ENTERPRISE: All + API, collaborative chats, custom models
 ```
 
 #### 2. Database Schema Updates ✅
 
 **Changes to `prisma/schema.prisma`**:
+
 ```prisma
 ✅ Added PricingTier enum (FREE, PRO, ENTERPRISE)
 ✅ Added plan field to User (default: FREE)
@@ -57,6 +62,7 @@ Features by Tier:
 ```
 
 **Migration Command**:
+
 ```bash
 npx prisma migrate dev --name add-monetization-schema
 ```
@@ -67,11 +73,13 @@ npx prisma migrate dev --name add-monetization-schema
 
 Before: Fixed limits for all users (10K/day max)  
 After: Dynamic limits per tier
+
 - FREE: 10K tokens/month (~5K words)
 - PRO: 500K tokens/month (~250K words)
 - ENTERPRISE: 10M tokens/month
 
 **New Methods**:
+
 ```typescript
 getUserLimits(userId) → TierConfig-based limits
 checkBudget(userId, tokens) → Tier-aware enforcement
@@ -93,6 +101,7 @@ resetMonthlyUsage(userId) → Called on renewal
 ```
 
 **Stripe Features Integrated**:
+
 - Automated recurring billing (monthly/annual)
 - Promo code support
 - Self-service billing portal
@@ -101,25 +110,36 @@ resetMonthlyUsage(userId) → Called on renewal
 
 #### 5. API Endpoints (7 New) ✅
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/billing/checkout` | POST | Start checkout |
-| `/api/billing/checkout/:sessionId` | GET | Check status |
-| `/api/billing/subscription` | GET | Current subscription |
-| `/api/billing/subscription` | DELETE | Cancel subscription |
-| `/api/billing/usage` | GET | Token usage stats |
-| `/api/billing/pricing` | GET | All tier info |
-| `/api/billing/portal` | GET | Billing portal URL |
-| `/api/billing/webhooks` | POST | Stripe webhooks |
+| Endpoint                           | Method | Purpose              |
+| ---------------------------------- | ------ | -------------------- |
+| `/api/billing/checkout`            | POST   | Start checkout       |
+| `/api/billing/checkout/:sessionId` | GET    | Check status         |
+| `/api/billing/subscription`        | GET    | Current subscription |
+| `/api/billing/subscription`        | DELETE | Cancel subscription  |
+| `/api/billing/usage`               | GET    | Token usage stats    |
+| `/api/billing/pricing`             | GET    | All tier info        |
+| `/api/billing/portal`              | GET    | Billing portal URL   |
+| `/api/billing/webhooks`            | POST   | Stripe webhooks      |
 
 **Example Response** - GET `/api/billing/usage`:
+
 ```json
 {
   "tier": "PRO",
   "subscriptionEndsAt": "2026-03-10T12:34:56Z",
   "tokenBudget": {
-    "monthly": { "limit": 500000, "used": 125000, "remaining": 375000, "percentage": 25 },
-    "daily": { "limit": 16666, "used": 4200, "remaining": 12466, "percentage": 25 },
+    "monthly": {
+      "limit": 500000,
+      "used": 125000,
+      "remaining": 375000,
+      "percentage": 25
+    },
+    "daily": {
+      "limit": 16666,
+      "used": 4200,
+      "remaining": 12466,
+      "percentage": 25
+    },
     "hourly": { "limit": 2083, "used": 520, "remaining": 1563 }
   },
   "resetDate": "2026-03-01T00:00:00Z"
@@ -131,6 +151,7 @@ resetMonthlyUsage(userId) → Called on renewal
 **File**: `src/app/api/billing/webhooks/route.ts`
 
 Handles:
+
 - `checkout.session.completed` → Activate subscription
 - `customer.subscription.updated` → Renewal
 - `customer.subscription.deleted` → Cancellation
@@ -155,6 +176,7 @@ Handles:
 ## 📊 Implementation Summary
 
 ### Files Created (11 new)
+
 ```
 src/lib/pricing.ts                           (350 lines) - Tier definitions
 src/services/billing/stripe.ts               (350 lines) - Stripe API
@@ -169,12 +191,14 @@ docs/MONETIZATION_GUIDE.md                   (450 lines) - Complete guide
 ```
 
 ### Files Modified (2)
+
 ```
 src/services/billing/token-budget.ts         (ENHANCED - 190 → 220 lines)
 prisma/schema.prisma                         (UPDATED - Added monetization models)
 ```
 
 ### Total New Code
+
 - **Core Logic**: 1200+ lines
 - **API Endpoints**: 300+ lines
 - **Configuration**: 350+ lines
@@ -186,6 +210,7 @@ prisma/schema.prisma                         (UPDATED - Added monetization model
 ## 🎯 Revenue Model
 
 ### Pricing Structure
+
 - **FREE**: $0/month, 10K tokens - Freemium baseline
 - **PRO**: $9.99/month, 500K tokens - Main revenue driver (~50% margin)
 - **ENTERPRISE**: Custom pricing - High-value accounts
@@ -193,21 +218,25 @@ prisma/schema.prisma                         (UPDATED - Added monetization model
 ### Revenue Projections
 
 #### Conservative (Year 1)
+
 - 500 Pro users × $9.99 = $59,880
 - 5 Enterprise users × $250/mo = $15,000
 - **Year 1 Total**: ~$75K
 
 #### Optimistic (Year 1)
+
 - 1500 Pro users × $9.99 = $179,640
 - 20 Enterprise users × $250/mo = $60,000
 - **Year 1 Total**: ~$240K
 
 #### Path to $1M/year
+
 - 5000 Pro users = $599K
 - 50 Enterprise users @ $400/mo = $240K
 - **+$160K from overage charges**
 
 ### Unit Economics
+
 - **Stripe Fee**: 2.9% + $0.30 per transaction (~$0.26 per Pro sub)
 - **Gross Margin**: ~47% per Pro subscription
 - **Customer Acquisition Cost**: <$5 (organic growth via free tier)
@@ -267,16 +296,19 @@ prisma/schema.prisma                         (UPDATED - Added monetization model
 ## 🚀 How to Deploy
 
 ### 1. Database Migration (Required)
+
 ```bash
 npx prisma migrate dev --name add-monetization-schema
 ```
 
 ### 2. Install Stripe Dependency
+
 ```bash
 npm install stripe
 ```
 
 ### 3. Configure Environment Variables
+
 ```env
 STRIPE_SECRET_KEY=sk_live_... (or sk_test_...)
 STRIPE_PUBLISHABLE_KEY=pk_live_... (or pk_test_...)
@@ -285,6 +317,7 @@ NEXT_PUBLIC_APP_URL=https://yourdomain.com
 ```
 
 ### 4. Set Up Stripe Webhook
+
 - Go to https://dashboard.stripe.com/webhooks
 - Add endpoint: `https://yourdomain.com/api/billing/webhooks`
 - Subscribe to:
@@ -296,6 +329,7 @@ NEXT_PUBLIC_APP_URL=https://yourdomain.com
 - Copy signing secret to `STRIPE_WEBHOOK_SECRET`
 
 ### 5. Test Checkout Flow
+
 ```bash
 # 1. Create test user
 # 2. Call POST /api/billing/checkout with tier: "PRO"
@@ -312,6 +346,7 @@ NEXT_PUBLIC_APP_URL=https://yourdomain.com
 **Value**: Major competitive advantage (think: Figma for AI)
 
 ### Features Coming
+
 - Real-time shared chats (WebSocket)
 - Live cursor presence
 - Operational transform for conflict resolution
@@ -334,6 +369,7 @@ You now have:
 **Production Readiness: 9.0/10** ⬆️ (was 8.5/10)
 
 **What's Missing for 10.0**:
+
 - Real-time collaboration (Tier 2.1)
 - Mobile app monetization
 - Usage overage billing
@@ -344,16 +380,16 @@ You now have:
 
 ## 📊 Stats
 
-| Metric | Value |
-|--------|-------|
+| Metric                        | Value                   |
+| ----------------------------- | ----------------------- |
 | **Total Implementation Time** | 45 hours (Tier 1 + 2.5) |
-| **New Files Created** | 11 |
-| **Files Modified** | 2 |
-| **Lines of Code** | 2300+ |
-| **Database Models** | 3 new |
-| **API Endpoints** | 7 new |
-| **Revenue Potential** | $100K+/year |
-| **Product Completeness** | 9.0/10 |
+| **New Files Created**         | 11                      |
+| **Files Modified**            | 2                       |
+| **Lines of Code**             | 2300+                   |
+| **Database Models**           | 3 new                   |
+| **API Endpoints**             | 7 new                   |
+| **Revenue Potential**         | $100K+/year             |
+| **Product Completeness**      | 9.0/10                  |
 
 ---
 

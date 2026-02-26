@@ -29,6 +29,8 @@ import {
 const StudyHub = () => {
   const [activeTab, setActiveTab] = useState<string>("ai-operations");
   const [selectedTool, setSelectedTool] = useState<string>("quick-summary");
+  const [selectedStudyMaterial, setSelectedStudyMaterial] =
+    useState<string>("flashcards");
   const [selectedDifficulty, setSelectedDifficulty] =
     useState<string>("medium");
   const [selectedInputMethod, setSelectedInputMethod] =
@@ -76,7 +78,7 @@ const StudyHub = () => {
             operationMap[selectedTool as keyof typeof operationMap] ||
             selectedTool,
           text: inputContent.slice(0, 12000),
-          projectId: selectedDocument,
+          projectId: selectedDocument || undefined,
           style: selectedDifficulty,
         }),
       });
@@ -151,7 +153,7 @@ const StudyHub = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           url: url.trim(),
-          projectId: selectedDocument,
+          projectId: selectedDocument || undefined,
         }),
       });
 
@@ -186,7 +188,7 @@ const StudyHub = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           url: url.trim(),
-          projectId: selectedDocument,
+          projectId: selectedDocument || undefined,
         }),
       });
 
@@ -243,6 +245,57 @@ const StudyHub = () => {
     }
   };
 
+  const handleGenerateStudyTool = async (): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      if (!inputContent || inputContent.trim().length === 0) {
+        throw new Error(
+          "Please enter some content to generate study materials",
+        );
+      }
+
+      const operationMap: Record<string, string> = {
+        flashcards: "flashcards",
+        quiz: "quiz",
+        "question-bank": "questions",
+      };
+
+      const operation = operationMap[selectedStudyMaterial] || "flashcards";
+
+      const response = await fetch("/api/ai/operate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          operation,
+          text: inputContent.slice(0, 12000),
+          projectId: selectedDocument || undefined,
+          style: selectedDifficulty,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || `Failed to generate ${selectedStudyMaterial}`,
+        );
+      }
+
+      const data = await response.json();
+      setGeneratedContent(data.content || data);
+      setSuccess(
+        `${selectedStudyMaterial === "flashcards" ? "Flashcards" : selectedStudyMaterial === "quiz" ? "Quiz" : "Question Bank"} generated successfully!`,
+      );
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleProcessAction = async (): Promise<void> => {
     if (selectedInputMethod === "text") {
       return handleProcessContent();
@@ -269,6 +322,11 @@ const StudyHub = () => {
     }
 
     setError("Unsupported input method");
+  };
+
+  const handleSaveSettings = (): void => {
+    setSuccess("Settings saved successfully!");
+    setTimeout(() => setSuccess(null), 3000);
   };
 
   const handleExportContent = async () => {
@@ -399,6 +457,12 @@ const StudyHub = () => {
     { id: "rewrite", label: "Rewrite Content" },
   ];
 
+  const studyMaterials = [
+    { id: "flashcards", label: "Flashcards" },
+    { id: "quiz", label: "Quiz" },
+    { id: "question-bank", label: "Question Bank" },
+  ];
+
   const inputMethods = [
     {
       id: "text",
@@ -522,10 +586,23 @@ const StudyHub = () => {
                 Select a tool and configure your preferences
               </p>
 
+              {/* Content Input */}
+              <div className="mb-8">
+                <label className="block text-sm font-medium mb-3">
+                  Enter your study content
+                </label>
+                <textarea
+                  value={inputContent}
+                  onChange={(e) => setInputContent(e.target.value)}
+                  placeholder="Paste your notes, textbook content, or any material you want to study..."
+                  className="w-full h-40 rounded-xl bg-black/30 border border-white/10 p-4 text-white placeholder-zinc-500 focus:border-blue-500 outline-none"
+                />
+              </div>
+
               {/* Document Selection */}
               <div className="mb-8">
                 <label className="block text-sm font-medium mb-3">
-                  Select Document
+                  Select Document (Optional)
                 </label>
                 <button
                   onClick={() =>
@@ -546,20 +623,20 @@ const StudyHub = () => {
               {/* Tool Options */}
               <div className="mb-8">
                 <label className="block text-sm font-medium mb-3">
-                  Study Tool
+                  Study Material Type
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {studyTools.map((tool) => (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {studyMaterials.map((material) => (
                     <button
-                      key={tool.id}
-                      onClick={() => setSelectedTool(tool.id)}
+                      key={material.id}
+                      onClick={() => setSelectedStudyMaterial(material.id)}
                       className={`p-4 rounded-xl border-2 transition-all font-medium text-left ${
-                        selectedTool === tool.id
+                        selectedStudyMaterial === material.id
                           ? "border-blue-500 bg-blue-500/20 text-blue-300"
                           : "border-white/10 bg-white/5 text-white hover:border-white/30"
                       }`}
                     >
-                      {tool.label}
+                      {material.label}
                     </button>
                   ))}
                 </div>
@@ -589,21 +666,64 @@ const StudyHub = () => {
 
               {/* Generate Button */}
               <button
-                disabled={!selectedDocument}
+                onClick={handleGenerateStudyTool}
+                disabled={!inputContent || loading}
                 className={`w-full py-4 rounded-xl font-bold transition-all ${
-                  selectedDocument
+                  inputContent && !loading
                     ? "bg-linear-to-r from-blue-600 to-blue-500 text-white hover:shadow-xl hover:shadow-blue-500/50"
                     : "bg-zinc-700 text-zinc-400 cursor-not-allowed"
                 }`}
               >
-                Generate{" "}
-                {selectedTool === "flashcards"
-                  ? "Flashcards"
-                  : selectedTool === "quiz"
-                    ? "Quiz"
-                    : "Question Bank"}
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader size={18} className="animate-spin" />
+                    Generating...
+                  </span>
+                ) : (
+                  <>
+                    Generate{" "}
+                    {selectedStudyMaterial === "flashcards"
+                      ? "Flashcards"
+                      : selectedStudyMaterial === "quiz"
+                        ? "Quiz"
+                        : "Question Bank"}
+                  </>
+                )}
               </button>
             </div>
+
+            {/* Generated Study Tool Output */}
+            {generatedContent && (
+              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold">
+                    Generated{" "}
+                    {selectedStudyMaterial === "flashcards"
+                      ? "Flashcards"
+                      : selectedStudyMaterial === "quiz"
+                        ? "Quiz"
+                        : "Question Bank"}
+                  </h3>
+                  <button
+                    onClick={() => setGeneratedContent(null)}
+                    className="px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30 transition-all text-sm"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="rounded-xl bg-black/30 border border-white/10 p-6">
+                  {typeof generatedContent === "string" ? (
+                    <pre className="whitespace-pre-wrap text-zinc-300 font-mono text-sm">
+                      {generatedContent}
+                    </pre>
+                  ) : (
+                    <pre className="whitespace-pre-wrap text-zinc-300 font-mono text-sm">
+                      {JSON.stringify(generatedContent, null, 2)}
+                    </pre>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -866,6 +986,61 @@ const StudyHub = () => {
                 </button>
               </div>
             </div>
+
+            {/* Generated Content Display */}
+            {generatedContent && (
+              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold">Generated Output</h2>
+                  <button
+                    onClick={() => setGeneratedContent(null)}
+                    className="px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30 transition-all text-sm"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="rounded-xl bg-black/30 border border-white/10 p-6">
+                  <div className="prose prose-invert max-w-none">
+                    {typeof generatedContent === "string" ? (
+                      <pre className="whitespace-pre-wrap text-sm text-zinc-200 font-sans">
+                        {generatedContent}
+                      </pre>
+                    ) : generatedContent.content ? (
+                      <pre className="whitespace-pre-wrap text-sm text-zinc-200 font-sans">
+                        {generatedContent.content}
+                      </pre>
+                    ) : generatedContent.searchResults ? (
+                      <div className="space-y-4">
+                        <p className="text-zinc-400">
+                          Found {generatedContent.count} results
+                        </p>
+                        {generatedContent.searchResults.map(
+                          (result: any, idx: number) => (
+                            <div
+                              key={idx}
+                              className="border border-white/10 rounded-lg p-4 bg-white/5"
+                            >
+                              <p className="text-sm text-zinc-300">
+                                {result.content || result.text}
+                              </p>
+                              {result.score && (
+                                <p className="text-xs text-zinc-500 mt-2">
+                                  Relevance: {(result.score * 100).toFixed(1)}%
+                                </p>
+                              )}
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    ) : (
+                      <pre className="whitespace-pre-wrap text-sm text-zinc-200 font-sans">
+                        {JSON.stringify(generatedContent, null, 2)}
+                      </pre>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -939,6 +1114,43 @@ const StudyHub = () => {
                 </div>
               </div>
             </div>
+
+            {/* RAG Search Results Display */}
+            {generatedContent?.searchResults && (
+              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold">Search Results</h2>
+                  <button
+                    onClick={() => setGeneratedContent(null)}
+                    className="px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30 transition-all text-sm"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <p className="text-zinc-400">
+                    Found {generatedContent.count} results
+                  </p>
+                  {generatedContent.searchResults.map(
+                    (result: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="border border-white/10 rounded-xl p-5 bg-black/30 hover:bg-black/40 transition-all"
+                      >
+                        <p className="text-sm text-zinc-200 leading-relaxed">
+                          {result.content || result.text}
+                        </p>
+                        {result.score && (
+                          <p className="text-xs text-zinc-500 mt-3">
+                            Relevance: {(result.score * 100).toFixed(1)}%
+                          </p>
+                        )}
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1130,7 +1342,10 @@ const StudyHub = () => {
                   </select>
                 </div>
 
-                <button className="w-full py-3 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all">
+                <button
+                  onClick={handleSaveSettings}
+                  className="w-full py-3 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all"
+                >
                   Save Settings
                 </button>
               </div>

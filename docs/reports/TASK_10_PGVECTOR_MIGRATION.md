@@ -11,6 +11,7 @@
 Replaced filesystem-based LanceDB with production-grade PostgreSQL pgvector for scalable, ACID-compliant vector storage. Created complete migration infrastructure with safety checks, dry-run capability, and automated verification.
 
 ### Key Achievements
+
 - ✅ **Schema Updated**: Enabled vector columns with proper dimensions (1536, 3072, 1536)
 - ✅ **HNSW Indexes**: Production-grade indexes for order-of-magnitude faster searches
 - ✅ **Migration Tool**: 260-line TypeScript tool with check/dry-run/migrate/verify commands
@@ -25,6 +26,7 @@ Replaced filesystem-based LanceDB with production-grade PostgreSQL pgvector for 
 ### Vector Storage Strategy
 
 **Before (LanceDB)**:
+
 ```
 LanceDB Files (data/lancedb/)
   ↓
@@ -36,6 +38,7 @@ No transaction support
 ```
 
 **After (pgvector)**:
+
 ```
 PostgreSQL Database
   ↓
@@ -50,15 +53,16 @@ Read replica support
 
 ### Vector Dimensions
 
-| Vector Type | Dimension | Model | Use Case |
-|-------------|----------|-------|----------|
-| `vector` | 1536 | text-embedding-3-small | Primary text embeddings (fast, efficient) |
-| `textEmbedding` | 3072 | text-embedding-3-large | High-quality text embeddings (accuracy-critical) |
-| `imageEmbedding` | 1536 | CLIP | Multimodal image + text search |
+| Vector Type      | Dimension | Model                  | Use Case                                         |
+| ---------------- | --------- | ---------------------- | ------------------------------------------------ |
+| `vector`         | 1536      | text-embedding-3-small | Primary text embeddings (fast, efficient)        |
+| `textEmbedding`  | 3072      | text-embedding-3-large | High-quality text embeddings (accuracy-critical) |
+| `imageEmbedding` | 1536      | CLIP                   | Multimodal image + text search                   |
 
 ### Index Configuration
 
 **HNSW (Hierarchical Navigable Small World)**:
+
 - **m=16**: Number of bi-directional links per node (higher = better recall, more memory)
 - **ef_construction=64**: Number of candidates during index building (higher = better quality, slower build)
 - **Performance**: O(log n) search vs O(n) brute force
@@ -80,15 +84,15 @@ Read replica support
 CREATE EXTENSION IF NOT EXISTS vector;
 
 -- HNSW indexes for fast similarity search
-CREATE INDEX IF NOT EXISTS idx_document_vector_hnsw 
+CREATE INDEX IF NOT EXISTS idx_document_vector_hnsw
   ON "Document" USING hnsw (vector vector_cosine_ops)
   WITH (m = 16, ef_construction = 64);
 
-CREATE INDEX IF NOT EXISTS idx_document_text_embedding_hnsw 
+CREATE INDEX IF NOT EXISTS idx_document_text_embedding_hnsw
   ON "Document" USING hnsw ("textEmbedding" vector_cosine_ops)
   WITH (m = 16, ef_construction = 64);
 
-CREATE INDEX IF NOT EXISTS idx_document_image_embedding_hnsw 
+CREATE INDEX IF NOT EXISTS idx_document_image_embedding_hnsw
   ON "Document" USING hnsw ("imageEmbedding" vector_cosine_ops)
   WITH (m = 16, ef_construction = 64);
 ```
@@ -110,6 +114,7 @@ CREATE INDEX IF NOT EXISTS idx_document_image_embedding_hnsw
    - Uses: System health checks and ingestion tracking
 
 **Connection**:
+
 - Automatically loaded by migration tool's `check` command
 - Can be run manually: `psql $DATABASE_URL -f infra/scripts/pgvector-setup.sql`
 - Idempotent: Safe to run multiple times (uses `IF NOT EXISTS`)
@@ -150,34 +155,40 @@ npm run tsx -- infra/scripts/migrate-lancedb-to-pgvector.ts verify
 async function migrateDocuments() {
   // 1. Query all documents from LanceDB (via filesystem)
   const documents = await prisma.document.findMany({
-    select: { id: true, vector: true, textEmbedding: true, imageEmbedding: true }
+    select: {
+      id: true,
+      vector: true,
+      textEmbedding: true,
+      imageEmbedding: true,
+    },
   });
 
   // 2. Bulk update in PostgreSQL (100 docs per batch)
   for (const batch of batches) {
     await prisma.$transaction(
-      batch.map(doc => 
+      batch.map((doc) =>
         prisma.document.update({
           where: { id: doc.id },
           data: {
             vector: doc.vector,
             textEmbedding: doc.textEmbedding,
-            imageEmbedding: doc.imageEmbedding
-          }
-        })
-      )
+            imageEmbedding: doc.imageEmbedding,
+          },
+        }),
+      ),
     );
   }
 
   // 3. Verify counts match
   const migratedCount = await prisma.document.count({
-    where: { vector: { not: null } }
+    where: { vector: { not: null } },
   });
   assert(migratedCount === documents.length);
 }
 ```
 
 **Connection**:
+
 - Uses Prisma client for database access
 - Reads LanceDB data via filesystem (`data/lancedb/`)
 - Transactional updates ensure data consistency
@@ -188,6 +199,7 @@ async function migrateDocuments() {
 **Modified**: Document model vector columns
 
 **Before**:
+
 ```prisma
 model Document {
   // vector          Unsupported("vector(1536)")?
@@ -197,6 +209,7 @@ model Document {
 ```
 
 **After**:
+
 ```prisma
 model Document {
   id               String    @id @default(uuid())
@@ -209,7 +222,7 @@ model Document {
   sourceId         String?   // File/URL source ID
   chunkIndex       Int?      // Chunk position in source
   createdAt        DateTime  @default(now())
-  
+
   @@index([userId])
   @@index([userId, sourceId])
   @@index([createdAt])
@@ -218,12 +231,14 @@ model Document {
 ```
 
 **Key Changes**:
+
 - Uncommented 3 vector columns with proper dimensions
 - `Unsupported()` type tells Prisma to pass-through PostgreSQL vector type
 - Preserved existing indexes (userId, userId+sourceId, createdAt)
 - HNSW indexes created separately via SQL (not in schema)
 
 **Validation**:
+
 - ✅ Prisma schema compiles without errors
 - ⚠️ One non-blocking warning: `datasource url` deprecated in Prisma 7 (future migration notice)
 - ✅ FallbackQueue model quote escaping fixed (was blocking, now resolved)
@@ -233,6 +248,7 @@ model Document {
 **Modified**: `searchSimilar()` function
 
 **Before**:
+
 ```typescript
 // Returned distance (lower = more similar)
 const distance = await prisma.$queryRaw`
@@ -245,6 +261,7 @@ const distance = await prisma.$queryRaw`
 ```
 
 **After**:
+
 ```typescript
 // Returns similarity score (higher = more similar)
 const results = await prisma.$queryRaw<SearchResult[]>`
@@ -262,6 +279,7 @@ const results = await prisma.$queryRaw<SearchResult[]>`
 ```
 
 **Key Improvements**:
+
 - **Similarity Threshold**: Filters results with similarity < 0.7 (reduces irrelevant results)
 - **Similarity Score**: Returns `1 - distance` for intuitive scoring (0.0-1.0 scale)
 - **Null Safety**: Filters `vector IS NOT NULL` to avoid errors on un-embedded documents
@@ -269,6 +287,7 @@ const results = await prisma.$queryRaw<SearchResult[]>`
 - **Cleaner Response**: Removed `vector` from response (only needed internally)
 
 **Performance Impact**:
+
 - Before: O(n) table scan (100ms for 10K documents)
 - After: O(log n) HNSW search (5ms for 10K documents) - **20x faster**
 - Threshold filter reduces payload size by ~40% (only relevant results)
@@ -284,10 +303,11 @@ const results = await prisma.$queryRaw<SearchResult[]>`
    - Verify: `psql $DATABASE_URL -c "CREATE EXTENSION IF NOT EXISTS vector;"`
 
 2. **Database Backup** (recommended before migration)
+
    ```bash
    # Backup current database
    pg_dump $DATABASE_URL > backup_pre_pgvector_$(date +%Y%m%d).sql
-   
+
    # Backup LanceDB files (optional, for rollback)
    tar -czf lancedb_backup_$(date +%Y%m%d).tar.gz data/lancedb/
    ```
@@ -306,6 +326,7 @@ npm run tsx -- infra/scripts/migrate-lancedb-to-pgvector.ts check
 ```
 
 **Expected Output**:
+
 ```
 ✓ pgvector extension is installed
 ✓ HNSW index exists: idx_document_vector_hnsw
@@ -315,6 +336,7 @@ Environment validation complete!
 ```
 
 **If Checks Fail**:
+
 ```bash
 # Install pgvector extension and create indexes
 psql $DATABASE_URL -f infra/scripts/pgvector-setup.sql
@@ -331,6 +353,7 @@ npm run tsx -- infra/scripts/migrate-lancedb-to-pgvector.ts dry-run
 ```
 
 **Expected Output**:
+
 ```
 Dry-run mode: No changes will be made to the database
 
@@ -348,6 +371,7 @@ Dry-run complete. No changes made.
 ```
 
 **Review Output**:
+
 - Verify document counts match expectations
 - Check estimated time (plan downtime if needed)
 - Ensure no errors reported
@@ -360,6 +384,7 @@ CONFIRM_MIGRATION=yes npm run tsx -- infra/scripts/migrate-lancedb-to-pgvector.t
 ```
 
 **Expected Output**:
+
 ```
 ⚠️  WARNING: This will migrate all LanceDB vectors to PostgreSQL pgvector
 ⚠️  Ensure you have a database backup before proceeding
@@ -379,11 +404,13 @@ Progress: 2,341/2,341 (100%)
 ```
 
 **During Migration**:
+
 - Progress updates every 100 documents
 - API should remain operational (migration happens in background)
 - New embeddings continue writing to database (migration-safe)
 
 **If Migration Fails**:
+
 ```bash
 # Check error logs
 tail -n 100 logs/app.log
@@ -403,6 +430,7 @@ npm run tsx -- infra/scripts/migrate-lancedb-to-pgvector.ts verify
 ```
 
 **Expected Output**:
+
 ```
 Verifying migration...
 
@@ -421,6 +449,7 @@ Running test similarity search...
 ```
 
 **Verify Search Quality**:
+
 ```bash
 # Test actual RAG query via API
 curl -X POST http://localhost:3000/api/rag/search \
@@ -467,33 +496,33 @@ npm uninstall vectordb @lancedb/lancedb apache-arrow
 
 ### Search Latency
 
-| Corpus Size | LanceDB (Brute Force) | pgvector (HNSW) | Improvement |
-|-------------|------------------------|------------------|-------------|
-| 1K docs | 10ms | 2ms | **5x faster** |
-| 10K docs | 100ms | 5ms | **20x faster** |
-| 100K docs | 1,000ms | 8ms | **125x faster** |
-| 1M docs | 10,000ms | 12ms | **833x faster** |
+| Corpus Size | LanceDB (Brute Force) | pgvector (HNSW) | Improvement     |
+| ----------- | --------------------- | --------------- | --------------- |
+| 1K docs     | 10ms                  | 2ms             | **5x faster**   |
+| 10K docs    | 100ms                 | 5ms             | **20x faster**  |
+| 100K docs   | 1,000ms               | 8ms             | **125x faster** |
+| 1M docs     | 10,000ms              | 12ms            | **833x faster** |
 
 ### Storage Efficiency
 
-| Component | LanceDB | pgvector | Notes |
-|-----------|---------|----------|-------|
-| Vector data | 24MB (10K × 1536 × 4 bytes) | 24MB | Same raw data size |
-| Indexes | 0MB (no indexes) | 16MB | HNSW index overhead |
-| Metadata | 8MB (separate files) | Included | Unified storage |
-| **Total** | **32MB** | **40MB** (+25%) | Worth it for 20x performance |
+| Component   | LanceDB                     | pgvector        | Notes                        |
+| ----------- | --------------------------- | --------------- | ---------------------------- |
+| Vector data | 24MB (10K × 1536 × 4 bytes) | 24MB            | Same raw data size           |
+| Indexes     | 0MB (no indexes)            | 16MB            | HNSW index overhead          |
+| Metadata    | 8MB (separate files)        | Included        | Unified storage              |
+| **Total**   | **32MB**                    | **40MB** (+25%) | Worth it for 20x performance |
 
 ### Operational Benefits
 
-| Feature | LanceDB | pgvector |
-|---------|---------|----------|
-| ACID Compliance | ❌ No | ✅ Yes |
-| Transactions | ❌ No | ✅ Yes |
-| Multi-AZ Replication | ❌ No | ✅ Yes |
-| Read Replicas | ❌ No | ✅ Yes (Task 11) |
-| Automated Backups | ❌ Manual | ✅ RDS auto-backups |
-| Point-in-Time Recovery | ❌ No | ✅ Yes (35-day retention) |
-| Monitoring | ❌ Limited | ✅ CloudWatch integration |
+| Feature                | LanceDB    | pgvector                  |
+| ---------------------- | ---------- | ------------------------- |
+| ACID Compliance        | ❌ No      | ✅ Yes                    |
+| Transactions           | ❌ No      | ✅ Yes                    |
+| Multi-AZ Replication   | ❌ No      | ✅ Yes                    |
+| Read Replicas          | ❌ No      | ✅ Yes (Task 11)          |
+| Automated Backups      | ❌ Manual  | ✅ RDS auto-backups       |
+| Point-in-Time Recovery | ❌ No      | ✅ Yes (35-day retention) |
+| Monitoring             | ❌ Limited | ✅ CloudWatch integration |
 
 ---
 
@@ -502,11 +531,13 @@ npm uninstall vectordb @lancedb/lancedb apache-arrow
 ### 1. RAG Service (`apps/web/src/services/rag/`)
 
 **Files Using Vector Search**:
+
 - `retrieval.ts`: `retrieveContext()` calls `vectorProvider.searchSimilar()`
 - `ingest.ts`: `ingestFile()` stores vectors via `vectorProvider.addDocument()`
 - `query.ts`: `queryRAG()` orchestrates retrieval + prompt injection
 
 **No Code Changes Required**:
+
 - `pgvector-provider.ts` implements same interface as `lancedb-provider.ts`
 - Environment variable `VECTOR_PROVIDER=pgvector` selects provider at runtime
 - All existing RAG endpoints work unchanged
@@ -514,18 +545,20 @@ npm uninstall vectordb @lancedb/lancedb apache-arrow
 ### 2. Embeddings Service (`apps/web/src/services/rag/embeddings.ts`)
 
 **Vector Generation**:
+
 ```typescript
 async function generateEmbedding(text: string) {
   // Calls OpenAI text-embedding-3-small (1536-dim)
   const response = await openai.embeddings.create({
-    model: 'text-embedding-3-small',
-    input: text
+    model: "text-embedding-3-small",
+    input: text,
   });
-  return response.data[0].embedding;  // Float32Array[1536]
+  return response.data[0].embedding; // Float32Array[1536]
 }
 ```
 
 **Connection to pgvector**:
+
 - Generated vectors stored in `Document.vector` column
 - HNSW index automatically updates on INSERT
 - No code changes needed (storage layer abstracted)
@@ -533,19 +566,20 @@ async function generateEmbedding(text: string) {
 ### 3. Worker Processing (`apps/web/src/workers/rag.worker.ts`)
 
 **RAG Queue Jobs**:
+
 ```typescript
 async function processRAGJob(job: Job) {
   const { fileId, userId } = job.data;
-  
+
   // 1. Extract text from file
   const text = await extractText(fileId);
-  
+
   // 2. Chunk text (500 tokens per chunk)
   const chunks = await chunkText(text, { maxTokens: 500 });
-  
+
   // 3. Generate embeddings for each chunk
   const embeddings = await generateEmbeddingsBatch(chunks);
-  
+
   // 4. Store in pgvector (via provider)
   await vectorProvider.addDocuments(
     chunks.map((chunk, i) => ({
@@ -553,13 +587,14 @@ async function processRAGJob(job: Job) {
       vector: embeddings[i],
       userId,
       sourceId: fileId,
-      chunkIndex: i
-    }))
+      chunkIndex: i,
+    })),
   );
 }
 ```
 
 **Connection to pgvector**:
+
 - `addDocuments()` performs bulk INSERT with vector data
 - HNSW indexes build incrementally (no blocking)
 - Idempotent: Re-ingesting same file updates existing chunks
@@ -567,6 +602,7 @@ async function processRAGJob(job: Job) {
 ### 4. API Endpoints
 
 **Search Endpoint** (`/api/rag/search`):
+
 ```typescript
 POST /api/rag/search
 {
@@ -592,6 +628,7 @@ POST /api/rag/search
 ```
 
 **No Code Changes**:
+
 - Endpoint calls `retrieveContext(userId, query, topK)`
 - `retrieveContext()` uses configured vector provider (pgvector)
 - Response format unchanged
@@ -603,16 +640,18 @@ POST /api/rag/search
 ### CloudWatch Metrics (Already Configured)
 
 **Vector Search Metrics**:
+
 ```typescript
 // In pgvector-provider.ts (already instrumented)
-logger.emitMetric('VectorSearch', 1, 'Count', {
+logger.emitMetric("VectorSearch", 1, "Count", {
   userId,
   resultCount: results.length,
-  latencyMs: Date.now() - startTime
+  latencyMs: Date.now() - startTime,
 });
 ```
 
 **Metrics to Watch**:
+
 - `VectorSearch.Latency.p99`: Should be <10ms (alarm at >50ms)
 - `VectorSearch.ResultCount`: Average ~8-12 results (alarm if <3 or >20)
 - `VectorSearch.ErrorRate`: Should be <0.1% (alarm at >1%)
@@ -620,9 +659,10 @@ logger.emitMetric('VectorSearch', 1, 'Count', {
 ### PostgreSQL Monitoring
 
 **Index Usage Stats**:
+
 ```sql
 -- Check HNSW index scan counts
-SELECT 
+SELECT
   indexname,
   idx_scan AS scans,
   idx_tup_read AS tuples_read,
@@ -635,6 +675,7 @@ ORDER BY idx_scan DESC;
 ```
 
 **Vector Coverage Stats**:
+
 ```sql
 -- Use helper function from pgvector-setup.sql
 SELECT * FROM get_vector_stats();
@@ -645,9 +686,10 @@ SELECT * FROM get_vector_stats();
 ```
 
 **Index Bloat Check**:
+
 ```sql
 -- Monitor HNSW index size growth
-SELECT 
+SELECT
   schemaname,
   tablename,
   indexname,
@@ -661,16 +703,17 @@ WHERE indexname LIKE 'idx_document_%_hnsw';
 ### Health Check Integration
 
 **Already Implemented** (`/api/health`):
+
 ```typescript
 // Health check includes vector provider status
 const health = {
-  status: 'ok',
+  status: "ok",
   components: {
-    database: 'ok',
-    redis: 'ok',
-    vectorStore: await checkVectorStore(),  // Pings pgvector
+    database: "ok",
+    redis: "ok",
+    vectorStore: await checkVectorStore(), // Pings pgvector
     // ...
-  }
+  },
 };
 ```
 
@@ -716,14 +759,14 @@ psql $DATABASE_URL -c "DROP INDEX idx_document_vector_hnsw;"
 
 # 2. Rebuild with different parameters (lower m, lower ef_construction)
 psql $DATABASE_URL -c "
-  CREATE INDEX idx_document_vector_hnsw 
+  CREATE INDEX idx_document_vector_hnsw
   ON \"Document\" USING hnsw (vector vector_cosine_ops)
   WITH (m = 8, ef_construction = 32);  -- Smaller, faster to build
 "
 
 # 3. If still issues, switch to IVFFlat (less accurate, faster build)
 psql $DATABASE_URL -c "
-  CREATE INDEX idx_document_vector_ivfflat 
+  CREATE INDEX idx_document_vector_ivfflat
   ON \"Document\" USING ivfflat (vector vector_cosine_ops)
   WITH (lists = 100);  -- 100 clusters for 10K docs
 "
@@ -736,6 +779,7 @@ psql $DATABASE_URL -c "
 ### 1. Prisma Schema Warning (Non-Blocking)
 
 **Issue**: Line 7 of `schema.prisma` shows deprecation warning:
+
 ```
 The datasource property `url` is no longer supported in schema files.
 Move connection URLs to `prisma.config.ts` (Prisma 7 migration notice)
@@ -748,7 +792,8 @@ Move connection URLs to `prisma.config.ts` (Prisma 7 migration notice)
 
 **Issue**: HNSW indexes take time to build (1-2 minutes per 100K documents)  
 **Impact**: Migration may take longer for large corpora (>1M documents)  
-**Mitigation**: 
+**Mitigation**:
+
 - Run migration during low-traffic period
 - Use async index creation: `CREATE INDEX CONCURRENTLY` (doesn't block reads/writes)
 - Monitor with: `SELECT * FROM pg_stat_progress_create_index;`
@@ -757,7 +802,8 @@ Move connection URLs to `prisma.config.ts` (Prisma 7 migration notice)
 
 **Issue**: Changing embedding models requires re-ingestion (e.g., 1536 → 768 dimensions)  
 **Impact**: Can't mix vectors of different dimensions in same column  
-**Solution**: 
+**Solution**:
+
 - Add new column: `vector_v2 Unsupported("vector(768)")`
 - Create new HNSW index
 - Re-ingest documents incrementally
@@ -780,18 +826,19 @@ Move connection URLs to `prisma.config.ts` (Prisma 7 migration notice)
 **Use Case**: Want to change embedding model, chunk size, or re-process with updated extraction logic
 
 **Steps**:
+
 1. Drop all existing vectors: `UPDATE "Document" SET vector = NULL, textEmbedding = NULL, imageEmbedding = NULL;`
 2. Trigger re-ingestion for all files: Queue all `fileId` records to `ragQueue`
 3. Wait for workers to process: Monitor queue depth until `waiting = 0`
 
 **Time Estimate**:
 
-| Corpus Size | Files | Chunks | Embeddings API Time | Worker Processing | Total Time |
-|-------------|-------|--------|---------------------|-------------------|------------|
-| 100 docs | 100 | 500 | 50 req × 0.5s = 25s | 500 chunks × 2s = 16m | **~17 minutes** |
-| 1K docs | 1K | 5K | 500 req × 0.5s = 4m | 5K chunks × 2s = 166m | **~3 hours** |
-| 10K docs | 10K | 50K | 5K req × 0.5s = 42m | 50K chunks × 2s = 1,666m | **~29 hours** |
-| 100K docs | 100K | 500K | 50K req × 0.5s = 417m | 500K chunks × 2s = 16,666m | **~12 days** |
+| Corpus Size | Files | Chunks | Embeddings API Time   | Worker Processing          | Total Time      |
+| ----------- | ----- | ------ | --------------------- | -------------------------- | --------------- |
+| 100 docs    | 100   | 500    | 50 req × 0.5s = 25s   | 500 chunks × 2s = 16m      | **~17 minutes** |
+| 1K docs     | 1K    | 5K     | 500 req × 0.5s = 4m   | 5K chunks × 2s = 166m      | **~3 hours**    |
+| 10K docs    | 10K   | 50K    | 5K req × 0.5s = 42m   | 50K chunks × 2s = 1,666m   | **~29 hours**   |
+| 100K docs   | 100K  | 500K   | 50K req × 0.5s = 417m | 500K chunks × 2s = 16,666m | **~12 days**    |
 
 **Optimization Strategies**:
 
@@ -802,12 +849,12 @@ Move connection URLs to `prisma.config.ts` (Prisma 7 migration notice)
 
 **Cost Estimate** (OpenAI Embeddings):
 
-| Corpus Size | Tokens | API Cost (text-embedding-3-small) |
-|-------------|--------|-----------------------------------|
-| 1K docs | ~500K tokens | $0.01 |
-| 10K docs | ~5M tokens | $0.10 |
-| 100K docs | ~50M tokens | $1.00 |
-| 1M docs | ~500M tokens | $10.00 |
+| Corpus Size | Tokens       | API Cost (text-embedding-3-small) |
+| ----------- | ------------ | --------------------------------- |
+| 1K docs     | ~500K tokens | $0.01                             |
+| 10K docs    | ~5M tokens   | $0.10                             |
+| 100K docs   | ~50M tokens  | $1.00                             |
+| 1M docs     | ~500M tokens | $10.00                            |
 
 ---
 

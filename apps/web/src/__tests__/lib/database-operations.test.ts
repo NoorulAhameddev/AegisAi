@@ -193,8 +193,18 @@ describe("Database Operations (Prisma Mocks)", () => {
 
     it("retrieves chat messages in order", async () => {
       prisma.message.findMany.mockResolvedValue([
-        { id: "msg-1", role: "user", content: "Hi", createdAt: new Date(Date.now() - 1000) },
-        { id: "msg-2", role: "assistant", content: "Hello", createdAt: new Date() },
+        {
+          id: "msg-1",
+          role: "user",
+          content: "Hi",
+          createdAt: new Date(Date.now() - 1000),
+        },
+        {
+          id: "msg-2",
+          role: "assistant",
+          content: "Hello",
+          createdAt: new Date(),
+        },
       ]);
 
       const messages = await prisma.message.findMany({

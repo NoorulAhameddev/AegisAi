@@ -28,6 +28,7 @@ Whether you're building an internal knowledge base chatbot, customer support sys
 ## 🌟 Key Features
 
 ### 🧠 Advanced AI Capabilities
+
 - **Multi-Model Support** - Powered by OpenRouter with access to GPT-4o, Claude, and more
 - **RAG System** - Retrieve contextual information from uploaded documents and web content
 - **Function Calling** - AI can execute tools like calculator, web search, image generation
@@ -36,6 +37,7 @@ Whether you're building an internal knowledge base chatbot, customer support sys
 - **Model Configuration** - Switch models, adjust temperature, and control token limits
 
 ### 🔒 Enterprise-Grade Security
+
 - **AES-256-GCM Encryption** - All sensitive data encrypted at rest with key versioning
 - **JWT Authentication** - Secure token-based auth with refresh token rotation
 - **Rate Limiting** - Redis-backed distributed rate limiting to prevent abuse
@@ -45,6 +47,7 @@ Whether you're building an internal knowledge base chatbot, customer support sys
 - **Security Headers** - HSTS, CSP, X-Frame-Options, and more
 
 ### ⚡ High Performance
+
 - **Async Job Queue** - BullMQ-based background processing (chat doesn't block on AI)
 - **Dual Database Indexing** - 13+ database indexes for query optimization
 - **Redis Caching** - Rate limiting, sessions, and distributed cache
@@ -52,6 +55,7 @@ Whether you're building an internal knowledge base chatbot, customer support sys
 - **Optimized Pagination** - Cursor-based pagination for large datasets
 
 ### 👨‍💼 Admin Dashboard
+
 - **User Management** - Create, edit, ban, and monitor users
 - **Usage Analytics** - Track AI requests, token usage, and response times
 - **System Settings** - Configure model defaults, rate limits, and security policies
@@ -59,6 +63,7 @@ Whether you're building an internal knowledge base chatbot, customer support sys
 - **Database Management** - Prisma Studio integration for schema updates
 
 ### 🎨 Modern User Interface
+
 - **Dark Theme** - Eye-friendly interface with glassmorphism design
 - **Real-Time Chat** - Streaming responses with typing indicators
 - **File Upload & RAG** - Upload documents and images for context retrieval
@@ -67,6 +72,7 @@ Whether you're building an internal knowledge base chatbot, customer support sys
 - **Export Conversations** - Save chats as PDF or Markdown
 
 ### 📱 Mobile Support
+
 - **React Native App** - Expo-based mobile app with same features as web
 - **Offline Support** - Messages cache locally while offline
 - **Push Notifications** - Real-time notifications for important events
@@ -76,23 +82,24 @@ Whether you're building an internal knowledge base chatbot, customer support sys
 
 ## 🛠️ Technology Stack
 
-| Layer | Technologies |
-|-------|--------------|
-| **Frontend** | Next.js 16 (App Router), React 19, TypeScript 5, Tailwind CSS 4 |
-| **Backend** | Node.js, Express (via Next.js API routes), TypeScript |
-| **Database** | PostgreSQL 16 with Prisma ORM, LanceDB for vectors |
-| **AI/ML** | OpenRouter API, OpenAI Embeddings, LLMs (GPT-4o, Claude, etc) |
-| **Message Queue** | BullMQ + Redis 7 for async job processing |
-| **Caching** | Redis for rate limiting, sessions, cache |
-| **Containerization** | Docker & Docker Compose |
-| **Testing** | Jest, React Testing Library, Playwright |
-| **Deployment** | Vercel (Web), EAS (Mobile), Docker (Self-hosted) |
+| Layer                | Technologies                                                    |
+| -------------------- | --------------------------------------------------------------- |
+| **Frontend**         | Next.js 16 (App Router), React 19, TypeScript 5, Tailwind CSS 4 |
+| **Backend**          | Node.js, Express (via Next.js API routes), TypeScript           |
+| **Database**         | PostgreSQL 16 with Prisma ORM, LanceDB for vectors              |
+| **AI/ML**            | OpenRouter API, OpenAI Embeddings, LLMs (GPT-4o, Claude, etc)   |
+| **Message Queue**    | BullMQ + Redis 7 for async job processing                       |
+| **Caching**          | Redis for rate limiting, sessions, cache                        |
+| **Containerization** | Docker & Docker Compose                                         |
+| **Testing**          | Jest, React Testing Library, Playwright                         |
+| **Deployment**       | Vercel (Web), EAS (Mobile), Docker (Self-hosted)                |
 
 ---
 
 ## 🚀 Quick Start
 
 ### 📋 Prerequisites
+
 - **Node.js** 18+ (verify with `node --version`)
 - **PostgreSQL** 14+ (local or managed database)
 - **Redis** 6+ (local or cloud Redis)
@@ -152,12 +159,15 @@ npm run studio
 ### 4️⃣ Start Development Servers
 
 **Terminal 1 - Next.js Dev Server:**
+
 ```bash
 npm run dev
 ```
+
 Open http://localhost:3000
 
 **Terminal 2 - AI Worker (Required for chat to work):**
+
 ```bash
 npm run worker
 ```
@@ -188,12 +198,14 @@ docker-compose exec app npm run migrate
 ```
 
 ### Services Included
+
 - **PostgreSQL 16** - Database
 - **Redis 7** - Cache & Queue
 - **Aegis AI App** - Web application
 - **AI Worker** - Background processor
 
 ### View Logs
+
 ```bash
 docker-compose logs -f app
 docker-compose logs -f worker
@@ -201,6 +213,7 @@ docker-compose logs -f postgres
 ```
 
 ### Stop Services
+
 ```bash
 npm run docker:down
 ```
@@ -211,14 +224,14 @@ npm run docker:down
 
 Comprehensive documentation for every aspect of the project:
 
-| Document | Purpose |
-|----------|---------|
-| [**QUICKSTART.md**](./docs/QUICKSTART.md) | 5-minute setup guide (local & Docker) |
-| [**IMPLEMENTATION_GUIDE.md**](./docs/IMPLEMENTATION_GUIDE.md) | Architecture, patterns, and API conventions |
-| [**RAG_IMPLEMENTATION.md**](./docs/RAG_IMPLEMENTATION.md) | RAG system, embeddings, and retrieval |
-| [**SECURITY.md**](./docs/SECURITY.md) | Security audit, encryption, and best practices |
-| [**DEPLOYMENT_GUIDE.md**](./docs/DEPLOYMENT_GUIDE.md) | Production deployment (Vercel, Docker, VPS) |
-| [**CONTRIBUTING.md**](./CONTRIBUTING.md) | How to contribute to the project |
+| Document                                                      | Purpose                                        |
+| ------------------------------------------------------------- | ---------------------------------------------- |
+| [**QUICKSTART.md**](./docs/QUICKSTART.md)                     | 5-minute setup guide (local & Docker)          |
+| [**IMPLEMENTATION_GUIDE.md**](./docs/IMPLEMENTATION_GUIDE.md) | Architecture, patterns, and API conventions    |
+| [**RAG_IMPLEMENTATION.md**](./docs/RAG_IMPLEMENTATION.md)     | RAG system, embeddings, and retrieval          |
+| [**SECURITY.md**](./docs/SECURITY.md)                         | Security audit, encryption, and best practices |
+| [**DEPLOYMENT_GUIDE.md**](./docs/DEPLOYMENT_GUIDE.md)         | Production deployment (Vercel, Docker, VPS)    |
+| [**CONTRIBUTING.md**](./CONTRIBUTING.md)                      | How to contribute to the project               |
 
 ---
 
@@ -324,6 +337,7 @@ Upload documents, images, or web content. The AI retrieves relevant context befo
 ```
 
 **How it works:**
+
 1. File uploaded → LanceDB vector store
 2. Text extracted and chunked
 3. OpenAI embeddings generated
@@ -357,6 +371,7 @@ POST /api/chat/stream-sse
 ### Encryption
 
 All sensitive data encrypted with **AES-256-GCM**:
+
 - User messages
 - API keys
 - File content
@@ -388,6 +403,7 @@ npm run test:edge
 ```
 
 Tests are in `src/__tests__/` with 150+ test cases covering:
+
 - Authentication & authorization
 - RAG retrieval
 - Encryption/decryption
@@ -402,18 +418,18 @@ Tests are in `src/__tests__/` with 150+ test cases covering:
 4. If AI processing needed, enqueue to BullMQ
 
 ```typescript
-import { successResponse, errorResponse } from '@/lib/response';
-import { verifyAuth } from '@/services/auth/auth';
+import { successResponse, errorResponse } from "@/lib/response";
+import { verifyAuth } from "@/services/auth/auth";
 
 export async function POST(req: NextRequest) {
   try {
     const user = await verifyAuth(req);
     if (!user) return unauthorizedResponse();
-    
+
     // Your logic here
     return successResponse({ data: result });
   } catch (error) {
-    return errorResponse('Error message', { status: 500 });
+    return errorResponse("Error message", { status: 500 });
   }
 }
 ```
@@ -428,18 +444,18 @@ export async function POST(req: NextRequest) {
 ```typescript
 // src/tools/my-tool.ts
 export const myTool = {
-  type: 'function',
+  type: "function",
   function: {
-    name: 'my_tool',
-    description: 'Does something useful',
+    name: "my_tool",
+    description: "Does something useful",
     parameters: {
-      type: 'object',
+      type: "object",
       properties: {
-        input: { type: 'string', description: 'Tool input' }
+        input: { type: "string", description: "Tool input" },
       },
-      required: ['input']
-    }
-  }
+      required: ["input"],
+    },
+  },
 };
 ```
 
@@ -463,6 +479,7 @@ Always update `prisma/schema.prisma` first, then run migrate.
 ## 🔒 Security
 
 ### Implemented Features
+
 ✅ **Encryption**: AES-256-GCM with key versioning  
 ✅ **Authentication**: JWT with refresh tokens  
 ✅ **Rate Limiting**: Redis-backed, distributed safe  
@@ -470,7 +487,7 @@ Always update `prisma/schema.prisma` first, then run migrate.
 ✅ **Input Validation**: Multi-layer validation  
 ✅ **Audit Logging**: All actions logged  
 ✅ **Security Headers**: HSTS, CSP, X-Frame-Options  
-✅ **Session Management**: Device tracking, token rotation  
+✅ **Session Management**: Device tracking, token rotation
 
 ### Best Practices
 
@@ -480,18 +497,18 @@ const user = await verifyAuth(req);
 if (!user) return unauthorizedResponse();
 
 // ✅ Use role-based checks
-import { hasPermission, requirePermission } from '@/lib/rbac';
-if (!hasPermission(user.role, 'user:ban')) {
+import { hasPermission, requirePermission } from "@/lib/rbac";
+if (!hasPermission(user.role, "user:ban")) {
   return forbiddenResponse();
 }
 
 // ✅ Encrypt sensitive data
-import { encrypt, decrypt } from '@/lib/encryption';
+import { encrypt, decrypt } from "@/lib/encryption";
 const encrypted = encrypt(sensitiveData);
 const plaintext = decrypt(encrypted);
 
 // ✅ Use standardized error responses
-return errorResponse('Error message', { status: 400 });
+return errorResponse("Error message", { status: 400 });
 ```
 
 For detailed security information, see [SECURITY.md](./docs/SECURITY.md)
@@ -501,24 +518,28 @@ For detailed security information, see [SECURITY.md](./docs/SECURITY.md)
 ## 🌐 Deployment
 
 ### Vercel (Recommended for Web)
+
 ```bash
 npm run build
 npm run start
 ```
 
 See [DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md) for:
+
 - Environment variables setup
 - Database connection
 - Worker deployment on Vercel Functions
 - Domain configuration
 
 ### Docker (Self-Hosted)
+
 ```bash
 npm run docker:build
 npm run docker:up
 ```
 
 ### Prerequisites for Production
+
 - PostgreSQL managed database (AWS RDS, Google Cloud SQL)
 - Redis (AWS ElastiCache, Upstash)
 - OpenRouter API key
@@ -541,6 +562,7 @@ src/__tests__/
 ```
 
 Run all tests:
+
 ```bash
 npm test
 
@@ -564,6 +586,7 @@ We welcome contributions! Please:
 5. Submit pull request
 
 ### Development Setup
+
 ```bash
 git clone https://github.com/noorulahamed/aegis-ai.git
 cd aegis-ai
@@ -598,16 +621,19 @@ Access the admin dashboard at `/admin` (admin role required):
 ### Common Issues
 
 **Chat not working?**
+
 - Ensure worker is running: `npm run worker`
 - Check Redis: `redis-cli ping`
 - Verify OpenRouter API key
 
 **Database errors?**
+
 - Run migrations: `npm run migrate`
 - Check `DATABASE_URL` in `.env.local`
 - View logs: `npm run studio`
 
 **Build fails?**
+
 - Clear cache: `npm run clean`
 - Reinstall: `rm -rf node_modules && npm install`
 - Check Node version: `node --version` (should be 18+)

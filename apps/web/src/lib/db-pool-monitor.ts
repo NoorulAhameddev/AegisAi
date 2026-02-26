@@ -1,21 +1,21 @@
 /**
  * Database Connection Pool Monitoring
- * 
+ *
  * Tracks Prisma connection pool usage and publishes to CloudWatch.
  * Prevents "too many clients" errors by monitoring pool saturation.
- * 
+ *
  * WARNING: Pool exhaustion at 90%+ leads to request queueing and timeouts.
- * 
+ *
  * Formula: Pool Size = (num_workers × concurrent_jobs) + (api_instances × concurrent_requests) + buffer
  * Production: 40 connections minimum
- * 
+ *
  * Environment Variables:
  * - DB_POOL_SIZE: Maximum connections (default: 10, production: 40+)
  * - DB_POOL_TIMEOUT: Connection acquisition timeout in seconds (default: 30)
  */
 
-import { publishDBPoolUsageMetric } from './cloudwatch-metrics';
-import { logger } from './logger';
+import { publishDBPoolUsageMetric } from "./cloudwatch-metrics";
+import { logger } from "./logger";
 
 interface PoolStats {
   active: number;
@@ -33,23 +33,23 @@ class DBPoolMonitor {
     waiting: 0,
     timestamp: Date.now(),
   };
-  
+
   private monitoringInterval: NodeJS.Timeout | null = null;
   private readonly interval = 60000; // 1 minute
-  private readonly maxPoolSize = parseInt(process.env.DB_POOL_SIZE || '10', 10);
+  private readonly maxPoolSize = parseInt(process.env.DB_POOL_SIZE || "10", 10);
 
   /**
    * Start monitoring connection pool
    */
   start(): void {
     if (this.monitoringInterval) {
-      logger.warn('DB pool monitor already started');
+      logger.warn("DB pool monitor already started");
       return;
     }
 
-    logger.info('Starting DB pool monitor', { 
+    logger.info("Starting DB pool monitor", {
       maxPoolSize: this.maxPoolSize,
-      interval: this.interval 
+      interval: this.interval,
     });
 
     this.monitoringInterval = setInterval(() => {
@@ -67,7 +67,7 @@ class DBPoolMonitor {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
-      logger.info('Stopped DB pool monitor');
+      logger.info("Stopped DB pool monitor");
     }
   }
 
@@ -77,7 +77,10 @@ class DBPoolMonitor {
   recordAcquisition(): void {
     this.stats.active++;
     this.stats.idle = Math.max(0, this.stats.idle - 1);
-    this.stats.total = Math.min(this.maxPoolSize, this.stats.active + this.stats.idle);
+    this.stats.total = Math.min(
+      this.maxPoolSize,
+      this.stats.active + this.stats.idle,
+    );
   }
 
   /**
@@ -133,7 +136,7 @@ class DBPoolMonitor {
 
     // Log warning if pool is saturated
     if (this.isSaturated()) {
-      logger.warn('Database connection pool saturation detected', {
+      logger.warn("Database connection pool saturation detected", {
         active: this.stats.active,
         idle: this.stats.idle,
         total: this.maxPoolSize,
@@ -146,16 +149,21 @@ class DBPoolMonitor {
     try {
       await publishDBPoolUsageMetric(usagePercent);
     } catch (error) {
-      logger.error('Failed to publish DB pool metrics', error as Error);
+      logger.error("Failed to publish DB pool metrics", error as Error);
     }
 
     // Log current status
-    logger.db('Connection pool status', 'pool_monitor', Date.now() - this.stats.timestamp, {
-      active: this.stats.active,
-      idle: this.stats.idle,
-      waiting: this.stats.waiting,
-      usagePercent: usagePercent.toFixed(2),
-    });
+    logger.db(
+      "Connection pool status",
+      "pool_monitor",
+      Date.now() - this.stats.timestamp,
+      {
+        active: this.stats.active,
+        idle: this.stats.idle,
+        waiting: this.stats.waiting,
+        usagePercent: usagePercent.toFixed(2),
+      },
+    );
   }
 }
 

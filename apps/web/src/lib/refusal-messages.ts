@@ -4,7 +4,7 @@
  */
 
 export interface RefusalContext {
-  intent: 'JAILBREAK' | 'UNSAFE' | 'PII_LEAK' | 'UNKNOWN';
+  intent: "JAILBREAK" | "UNSAFE" | "PII_LEAK" | "UNKNOWN";
   reason?: string;
   confidence?: number;
 }
@@ -12,7 +12,10 @@ export interface RefusalContext {
 /**
  * Generate appropriate refusal message based on intent
  */
-export function generateRefusalMessage(context: RefusalContext, topic?: string): string {
+export function generateRefusalMessage(
+  context: RefusalContext,
+  topic?: string,
+): string {
   const baseMessages: Record<string, string> = {
     JAILBREAK: `I appreciate you testing my boundaries, but I can't help with that request as it appears to be asking me to bypass my safety guidelines.
 
@@ -51,7 +54,7 @@ If you believe this is a mistake, please:
 2. Provide more context about what you're trying to accomplish
 3. Break complex requests into simpler pieces
 
-I'm here to help—let me know how I can assist in a different way.`
+I'm here to help—let me know how I can assist in a different way.`,
   };
 
   const baseMessage = baseMessages[context.intent] || baseMessages.UNKNOWN;
@@ -69,29 +72,32 @@ I'm here to help—let me know how I can assist in a different way.`
 /**
  * Intelligent fallback: suggest alternatives when blocking
  */
-export function suggestAlternatives(originalRequest: string, blockReason: string): string {
+export function suggestAlternatives(
+  originalRequest: string,
+  blockReason: string,
+): string {
   // Simple heuristic-based suggestions
   const suggestions: Record<string, string[]> = {
     JAILBREAK: [
-      'Ask about the legitimate use case for what you\'re trying to accomplish',
-      'Explain why you need the information (research, education, security testing)',
-      'Ask for educational/theoretical explanations instead of practical instructions'
+      "Ask about the legitimate use case for what you're trying to accomplish",
+      "Explain why you need the information (research, education, security testing)",
+      "Ask for educational/theoretical explanations instead of practical instructions",
     ],
     UNSAFE: [
-      'Rephrase to ask for educational or theoretical information',
-      'Ask about legal/legitimate alternatives to your goal',
-      'Request information about safeguards and protections instead'
+      "Rephrase to ask for educational or theoretical information",
+      "Ask about legal/legitimate alternatives to your goal",
+      "Request information about safeguards and protections instead",
     ],
     PII_LEAK: [
-      'Describe what you\'re trying to do without mentioning specific personal data',
+      "Describe what you're trying to do without mentioning specific personal data",
       'Use placeholder values (like "XXX-XX-XXXX" for SSN)',
-      'Ask about the information you need in general terms'
-    ]
+      "Ask about the information you need in general terms",
+    ],
   };
 
   const altList = suggestions[blockReason] || suggestions.UNSAFE;
-  
-  return `\n\nTry instead:\n${altList.map((alt, i) => `${i + 1}. ${alt}`).join('\n')}`;
+
+  return `\n\nTry instead:\n${altList.map((alt, i) => `${i + 1}. ${alt}`).join("\n")}`;
 }
 
 /**
@@ -99,7 +105,7 @@ export function suggestAlternatives(originalRequest: string, blockReason: string
  */
 export function getAuditMessage(context: RefusalContext): string {
   const timestamp = new Date().toISOString();
-  return `[${timestamp}] BLOCKED: ${context.intent}${context.reason ? ` - ${context.reason}` : ''}`;
+  return `[${timestamp}] BLOCKED: ${context.intent}${context.reason ? ` - ${context.reason}` : ""}`;
 }
 
 /**
@@ -108,18 +114,18 @@ export function getAuditMessage(context: RefusalContext): string {
  */
 export function getRefusalMessageByTone(
   context: RefusalContext,
-  tone: 'formal' | 'friendly' | 'technical' = 'friendly'
+  tone: "formal" | "friendly" | "technical" = "friendly",
 ): string {
   const baseMessage = generateRefusalMessage(context);
 
-  if (tone === 'formal') {
+  if (tone === "formal") {
     return baseMessage
-      .replace('I appreciate you', 'Thank you for')
-      .replace('I\'m happy', 'I am happy')
-      .replace('let me know', 'please inform me');
+      .replace("I appreciate you", "Thank you for")
+      .replace("I'm happy", "I am happy")
+      .replace("let me know", "please inform me");
   }
 
-  if (tone === 'technical') {
+  if (tone === "technical") {
     return `⚠️ Request rejected due to security policy [${context.intent}].\n\n${baseMessage}`;
   }
 

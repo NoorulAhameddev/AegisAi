@@ -12,12 +12,12 @@ Your MCP (Model Context Protocol) servers are now **ready to use**!
 
 ## 📦 Installed Servers
 
-| Server | Status | Purpose |
-| --- | --- | --- |
-| **Filesystem** | ✅ Ready | File operations in `./uploads` |
-| **GitHub** | ✅ Ready | Repository operations |
-| **Browser (Edge)** | ✅ Ready | Microsoft Edge automation |
-| **n8n** | ✅ Ready | Workflow automation (400+ integrations) |
+| Server             | Status   | Purpose                                 |
+| ------------------ | -------- | --------------------------------------- |
+| **Filesystem**     | ✅ Ready | File operations in `./uploads`          |
+| **GitHub**         | ✅ Ready | Repository operations                   |
+| **Browser (Edge)** | ✅ Ready | Microsoft Edge automation               |
+| **n8n**            | ✅ Ready | Workflow automation (400+ integrations) |
 
 ## 🔧 Complete Setup (2 minutes)
 
@@ -73,26 +73,26 @@ curl http://localhost:3000/api/mcp/status
 ### Import the MCP Client
 
 ```typescript
-import { mcpClient } from '@/lib/mcp-client';
+import { mcpClient } from "@/lib/mcp-client";
 ```
 
 ### Check Status
 
 ```typescript
 const status = mcpClient.getStatus();
-console.log('Available servers:', status.availableServers);
+console.log("Available servers:", status.availableServers);
 ```
 
 ### Use Filesystem
 
 ```typescript
-const content = await mcpClient.readFile('path/to/file.txt');
+const content = await mcpClient.readFile("path/to/file.txt");
 ```
 
 ### Use GitHub
 
 ```typescript
-const repo = await mcpClient.getRepository('owner', 'repo-name');
+const repo = await mcpClient.getRepository("owner", "repo-name");
 ```
 
 ## 📚 Learn More
@@ -113,33 +113,33 @@ Add to your AI tool pipeline:
 
 ```typescript
 // In your AI agent configuration
-import { mcpClient } from '@/lib/mcp-client';
+import { mcpClient } from "@/lib/mcp-client";
 
 const tools = [
   // Your existing tools...
-  
+
   // Add MCP capabilities
   {
-    name: 'filesystem',
-    description: 'Read and manage files',
+    name: "filesystem",
+    description: "Read and manage files",
     execute: async (path: string) => {
       return await mcpClient.readFile(path);
-    }
+    },
   },
   {
-    name: 'github',
-    description: 'Access GitHub repositories',
+    name: "github",
+    description: "Access GitHub repositories",
     execute: async (owner: string, repo: string) => {
       return await mcpClient.getRepository(owner, repo);
-    }
+    },
   },
   {
-    name: 'search',
-    description: 'Search the internet',
+    name: "search",
+    description: "Search the internet",
     execute: async (query: string) => {
       return await mcpClient.search(query);
-    }
-  }
+    },
+  },
 ];
 ```
 

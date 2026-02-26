@@ -2,7 +2,7 @@
 // Responsibility: Parse requests, call services, return responses
 // Should NOT contain business logic
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 export class ChatController {
   // TODO: Implement controller methods

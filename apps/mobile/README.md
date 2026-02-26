@@ -93,7 +93,6 @@ Before you begin, ensure you have:
    ```
 
    **Finding your IP address:**
-
    - **Windows**: `ipconfig` (look for IPv4 Address)
    - **Mac/Linux**: `ifconfig` or `ip addr`
 

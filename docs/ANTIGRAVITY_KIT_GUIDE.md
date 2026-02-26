@@ -8,15 +8,16 @@
 
 The `.agent` folder contains:
 
-| Component | Count | Description |
-|-----------|-------|-------------|
-| **Agents** | 20 | Specialist AI personas (frontend, backend, security, PM, QA, etc.) |
-| **Skills** | 37 | Domain-specific knowledge modules |
-| **Workflows** | 11 | Slash command procedures |
+| Component     | Count | Description                                                        |
+| ------------- | ----- | ------------------------------------------------------------------ |
+| **Agents**    | 20    | Specialist AI personas (frontend, backend, security, PM, QA, etc.) |
+| **Skills**    | 37    | Domain-specific knowledge modules                                  |
+| **Workflows** | 11    | Slash command procedures                                           |
 
 ## 🎯 Available Agents
 
 ### Development Specialists
+
 - **frontend-specialist** - React, Next.js, UI/UX development
 - **backend-specialist** - API development, Node.js, NestJS
 - **database-architect** - Database design, Prisma, schema optimization
@@ -25,6 +26,7 @@ The `.agent` folder contains:
 - **devops-engineer** - Deployment, Docker, CI/CD
 
 ### Quality & Security
+
 - **test-engineer** - Unit testing, integration testing, TDD
 - **qa-automation-engineer** - Automated testing strategies
 - **security-auditor** - Security analysis and best practices
@@ -32,12 +34,14 @@ The `.agent` folder contains:
 - **performance-optimizer** - Performance analysis and optimization
 
 ### Project Management
+
 - **project-planner** - Task breakdown, planning, architecture
 - **product-manager** - Feature planning and prioritization
 - **product-owner** - Product strategy and requirements
 - **documentation-writer** - Technical documentation
 
 ### Utility Agents
+
 - **debugger** - Systematic debugging strategies
 - **orchestrator** - Multi-agent task coordination
 - **explorer-agent** - Codebase exploration and analysis
@@ -48,19 +52,19 @@ The `.agent` folder contains:
 
 Use these slash commands in GitHub Copilot Chat:
 
-| Command | Description | Example |
-|---------|-------------|---------|
-| `/brainstorm` | Explore options before implementation | `/brainstorm authentication system` |
-| `/create` | Create new features or apps | `/create landing page with hero section` |
-| `/debug` | Systematic debugging | `/debug why login fails` |
-| `/deploy` | Deploy application | `/deploy to production` |
-| `/enhance` | Improve existing code | `/enhance performance of API routes` |
-| `/orchestrate` | Multi-agent coordination | `/orchestrate full-stack feature` |
-| `/plan` | Create task breakdown | `/plan new dashboard feature` |
-| `/preview` | Preview changes locally | `/preview current branch` |
-| `/status` | Check project status | `/status` |
-| `/test` | Generate and run tests | `/test authentication flow` |
-| `/ui-ux-pro-max` | Design with 50 styles | `/ui-ux-pro-max create modern dashboard` |
+| Command          | Description                           | Example                                  |
+| ---------------- | ------------------------------------- | ---------------------------------------- |
+| `/brainstorm`    | Explore options before implementation | `/brainstorm authentication system`      |
+| `/create`        | Create new features or apps           | `/create landing page with hero section` |
+| `/debug`         | Systematic debugging                  | `/debug why login fails`                 |
+| `/deploy`        | Deploy application                    | `/deploy to production`                  |
+| `/enhance`       | Improve existing code                 | `/enhance performance of API routes`     |
+| `/orchestrate`   | Multi-agent coordination              | `/orchestrate full-stack feature`        |
+| `/plan`          | Create task breakdown                 | `/plan new dashboard feature`            |
+| `/preview`       | Preview changes locally               | `/preview current branch`                |
+| `/status`        | Check project status                  | `/status`                                |
+| `/test`          | Generate and run tests                | `/test authentication flow`              |
+| `/ui-ux-pro-max` | Design with 50 styles                 | `/ui-ux-pro-max create modern dashboard` |
 
 ## 🎨 How to Use in VS Code
 
@@ -72,7 +76,7 @@ The AI automatically detects and applies the right specialist based on your requ
 You: "Add JWT authentication"
 AI: 🤖 Applying knowledge from @security-auditor + @backend-specialist...
 
-You: "Fix the dark mode button"  
+You: "Fix the dark mode button"
 AI: 🤖 Using @frontend-specialist...
 
 You: "Login returns 500 error"
@@ -80,6 +84,7 @@ AI: 🤖 Using @debugger for systematic analysis...
 ```
 
 **No need to mention agents explicitly!** The system:
+
 - ✅ Analyzes your request silently
 - ✅ Detects domain(s) automatically (frontend, backend, security, etc.)
 - ✅ Selects the best specialist(s)
@@ -99,6 +104,7 @@ AI: 🤖 Using @debugger for systematic analysis...
 ### Example Workflows
 
 #### Planning a Feature
+
 ```
 You: /plan Implement real-time chat feature
 
@@ -123,6 +129,7 @@ AI: 🤖 Applying @project-planner...
 ```
 
 #### Building a Feature
+
 ```
 You: /create User authentication with JWT
 
@@ -136,6 +143,7 @@ Creating:
 ```
 
 #### Debugging Issues
+
 ```
 You: /debug API returns 500 error on login
 
@@ -156,6 +164,7 @@ AI: 🤖 Applying @debugger...
 Skills are automatically loaded based on task context. Some key skills include:
 
 ### Frontend Skills
+
 - `react-best-practices` - React patterns and conventions
 - `nextjs-expert` - Next.js 16 App Router expertise
 - `tailwind-patterns` - Tailwind CSS best practices
@@ -163,6 +172,7 @@ Skills are automatically loaded based on task context. Some key skills include:
 - `web-design-guidelines` - Web accessibility and standards
 
 ### Backend Skills
+
 - `api-patterns` - REST/GraphQL API design
 - `nodejs-best-practices` - Node.js development
 - `nestjs-expert` - NestJS framework
@@ -170,11 +180,13 @@ Skills are automatically loaded based on task context. Some key skills include:
 - `prisma-expert` - Prisma ORM patterns
 
 ### DevOps Skills
+
 - `docker-expert` - Container orchestration
 - `deployment-procedures` - Deployment strategies
 - `ci-cd-pipelines` - Continuous integration/deployment
 
 ### Quality Skills
+
 - `testing-patterns` - Testing strategies
 - `webapp-testing` - E2E testing with Playwright
 - `tdd-workflow` - Test-driven development
@@ -182,6 +194,7 @@ Skills are automatically loaded based on task context. Some key skills include:
 - `vulnerability-scanner` - Security scanning
 
 ### Specialized Skills
+
 - `game-development` - Game dev patterns
 - `mobile-design` - Mobile UX patterns
 - `seo-fundamentals` - SEO best practices
@@ -191,13 +204,17 @@ Skills are automatically loaded based on task context. Some key skills include:
 ## 📁 Configuration
 
 ### VS Code Settings
+
 The `.vscode/settings.json` has been updated to:
+
 - Keep `.agent` folder visible for AI indexing
 - Enable GitHub Copilot for `.agent` files
 - Ensure AI can read agent templates
 
 ### Git Configuration
+
 The `.agent` folder is added to `.git/info/exclude` (not `.gitignore`) to:
+
 - Keep it local to your machine
 - Allow VS Code and AI to index it
 - Prevent it from being committed to Git
@@ -231,7 +248,7 @@ AI: 🤖 Orchestrating multiple agents...
 
 Sequence:
 1. @database-architect - Design product schema
-2. @backend-specialist - Create API endpoints  
+2. @backend-specialist - Create API endpoints
 3. @frontend-specialist - Build UI components
 4. @test-engineer - Write test suite
 5. @security-auditor - Security review
@@ -355,15 +372,15 @@ The Antigravity Kit agents are now aware of the Aegis AI project structure:
 
 ### Most Useful Commands for Aegis AI
 
-| Task | Command | Example |
-|------|---------|---------|
-| Add new feature | `/create` | `/create API endpoint for chat export` |
-| Fix bugs | `/debug` | `/debug Worker not processing jobs` |
-| Plan feature | `/plan` | `/plan RAG improvements` |
-| Review security | `@security-auditor` | `Review authentication middleware` |
-| Optimize code | `@performance-optimizer` | `Optimize database queries` |
-| Write tests | `/test` | `/test chat streaming functionality` |
-| Multi-step task | `/orchestrate` | `/orchestrate new admin feature` |
+| Task            | Command                  | Example                                |
+| --------------- | ------------------------ | -------------------------------------- |
+| Add new feature | `/create`                | `/create API endpoint for chat export` |
+| Fix bugs        | `/debug`                 | `/debug Worker not processing jobs`    |
+| Plan feature    | `/plan`                  | `/plan RAG improvements`               |
+| Review security | `@security-auditor`      | `Review authentication middleware`     |
+| Optimize code   | `@performance-optimizer` | `Optimize database queries`            |
+| Write tests     | `/test`                  | `/test chat streaming functionality`   |
+| Multi-step task | `/orchestrate`           | `/orchestrate new admin feature`       |
 
 ## ✅ Verification
 

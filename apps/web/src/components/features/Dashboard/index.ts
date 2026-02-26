@@ -1,1 +1,1 @@
-export { FeaturesDashboard } from './FeaturesDashboard';
+export { FeaturesDashboard } from "./FeaturesDashboard";

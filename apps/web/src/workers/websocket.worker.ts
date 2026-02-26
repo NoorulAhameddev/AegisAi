@@ -1,11 +1,11 @@
-import { createServer } from 'http';
-import { initializeWebSocketServer, cleanupWebSocket } from '@/lib/websocket';
-import { logger } from '@/lib/logger';
-import { env } from '@/lib/env';
-import { setupGlobalErrorHandlers } from '@/lib/global-error-handlers';
+import { createServer } from "http";
+import { initializeWebSocketServer, cleanupWebSocket } from "@/lib/websocket";
+import { logger } from "@/lib/logger";
+import { env } from "@/lib/env";
+import { setupGlobalErrorHandlers } from "@/lib/global-error-handlers";
 
 // Setup global error handlers
-setupGlobalErrorHandlers('websocket-worker');
+setupGlobalErrorHandlers("websocket-worker");
 
 const PORT = env.WEBSOCKET_PORT || 3001;
 
@@ -24,27 +24,27 @@ async function startWebSocketWorker() {
 
     // Start listening
     httpServer.listen(PORT, () => {
-      logger.worker('websocket-worker', 'started', { 
+      logger.worker("websocket-worker", "started", {
         port: PORT,
-        transport: 'websocket,polling',
-        cors: env.FRONTEND_URL || 'http://localhost:3000'
+        transport: "websocket,polling",
+        cors: env.FRONTEND_URL || "http://localhost:3000",
       });
     });
 
     // Graceful shutdown
-    process.on('SIGTERM', shutdown);
-    process.on('SIGINT', shutdown);
+    process.on("SIGTERM", shutdown);
+    process.on("SIGINT", shutdown);
 
     function shutdown() {
-      logger.worker('websocket-worker', 'shutting_down', {});
+      logger.worker("websocket-worker", "shutting_down", {});
       cleanupWebSocket();
       httpServer.close(() => {
-        logger.worker('websocket-worker', 'stopped', {});
+        logger.worker("websocket-worker", "stopped", {});
         process.exit(0);
       });
     }
   } catch (error) {
-    logger.error('WebSocket worker failed to start', error as Error);
+    logger.error("WebSocket worker failed to start", error as Error);
     process.exit(1);
   }
 }

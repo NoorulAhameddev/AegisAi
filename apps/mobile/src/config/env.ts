@@ -2,7 +2,7 @@
  * Environment Configuration
  * Centralized environment variable management with type safety and validation
  */
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
 
 const getEnvVar = (key: string, defaultValue?: string): string => {
   const value = process.env[key] || defaultValue;
@@ -15,7 +15,7 @@ const getEnvVar = (key: string, defaultValue?: string): string => {
 const getEnvBool = (key: string, defaultValue: boolean = false): boolean => {
   const value = process.env[key];
   if (value === undefined) return defaultValue;
-  return value === 'true' || value === '1';
+  return value === "true" || value === "1";
 };
 
 const getEnvNumber = (key: string, defaultValue: number): number => {
@@ -32,49 +32,63 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
 // Dynamically determine the dev API URL based on the packager host
 // This solves the "Network request failed" issue on Android Emulators/Physical devices
 const getDevApiUrl = () => {
-  const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
-  if (!debuggerHost) return 'http://localhost:3000/api';
+  const debuggerHost = Constants.expoConfig?.hostUri?.split(":")[0];
+  if (!debuggerHost) return "http://localhost:3000/api";
   return `http://${debuggerHost}:3000/api`;
 };
 
 export const ENV = {
   // Environment
-  NODE_ENV: getEnvVar('NODE_ENV', 'development'),
-  IS_DEV: getEnvVar('NODE_ENV', 'development') === 'development',
-  IS_PROD: getEnvVar('NODE_ENV', 'development') === 'production',
+  NODE_ENV: getEnvVar("NODE_ENV", "development"),
+  IS_DEV: getEnvVar("NODE_ENV", "development") === "development",
+  IS_PROD: getEnvVar("NODE_ENV", "development") === "production",
 
   // API Configuration
   // Priority: 1. Explicit Env Var, 2. Auto-detected Dev IP, 3. Hardcoded Fallback
-  API_URL: process.env.EXPO_PUBLIC_API_URL || (getEnvVar('NODE_ENV', 'development') === 'development' ? getDevApiUrl() : 'https://api.aegisai.com/api'),
-  API_TIMEOUT: getEnvNumber('EXPO_PUBLIC_API_TIMEOUT', 30000),
-  MAX_RETRIES: getEnvNumber('EXPO_PUBLIC_MAX_RETRIES', 3),
+  API_URL:
+    process.env.EXPO_PUBLIC_API_URL ||
+    (getEnvVar("NODE_ENV", "development") === "development"
+      ? getDevApiUrl()
+      : "https://api.aegisai.com/api"),
+  API_TIMEOUT: getEnvNumber("EXPO_PUBLIC_API_TIMEOUT", 30000),
+  MAX_RETRIES: getEnvNumber("EXPO_PUBLIC_MAX_RETRIES", 3),
 
   // Security
-  ENABLE_SSL_PINNING: getEnvBool('EXPO_PUBLIC_ENABLE_SSL_PINNING', false),
-  REQUIRE_BIOMETRIC: getEnvBool('EXPO_PUBLIC_REQUIRE_BIOMETRIC', false),
+  ENABLE_SSL_PINNING: getEnvBool("EXPO_PUBLIC_ENABLE_SSL_PINNING", false),
+  REQUIRE_BIOMETRIC: getEnvBool("EXPO_PUBLIC_REQUIRE_BIOMETRIC", false),
 
   // Features
-  ENABLE_ANALYTICS: getEnvBool('EXPO_PUBLIC_ENABLE_ANALYTICS', false),
-  ENABLE_CRASH_REPORTING: getEnvBool('EXPO_PUBLIC_ENABLE_CRASH_REPORTING', false),
-  OFFLINE_MODE: getEnvBool('EXPO_PUBLIC_OFFLINE_MODE', true),
+  ENABLE_ANALYTICS: getEnvBool("EXPO_PUBLIC_ENABLE_ANALYTICS", false),
+  ENABLE_CRASH_REPORTING: getEnvBool(
+    "EXPO_PUBLIC_ENABLE_CRASH_REPORTING",
+    false,
+  ),
+  OFFLINE_MODE: getEnvBool("EXPO_PUBLIC_OFFLINE_MODE", true),
 
   // Performance
-  IMAGE_CACHE_SIZE: getEnvNumber('EXPO_PUBLIC_IMAGE_CACHE_SIZE', 100),
-  MAX_CONCURRENT_REQUESTS: getEnvNumber('EXPO_PUBLIC_MAX_CONCURRENT_REQUESTS', 5),
+  IMAGE_CACHE_SIZE: getEnvNumber("EXPO_PUBLIC_IMAGE_CACHE_SIZE", 100),
+  MAX_CONCURRENT_REQUESTS: getEnvNumber(
+    "EXPO_PUBLIC_MAX_CONCURRENT_REQUESTS",
+    5,
+  ),
 
   // Debug
-  ENABLE_DEBUG_LOGS: getEnvBool('EXPO_PUBLIC_ENABLE_DEBUG_LOGS', true),
-  LOG_LEVEL: getEnvVar('EXPO_PUBLIC_LOG_LEVEL', 'debug') as 'debug' | 'info' | 'warn' | 'error',
+  ENABLE_DEBUG_LOGS: getEnvBool("EXPO_PUBLIC_ENABLE_DEBUG_LOGS", true),
+  LOG_LEVEL: getEnvVar("EXPO_PUBLIC_LOG_LEVEL", "debug") as
+    | "debug"
+    | "info"
+    | "warn"
+    | "error",
 } as const;
 
 // Validate critical configuration on startup
 if (ENV.IS_PROD) {
-  if (!ENV.API_URL.startsWith('https://')) {
-    console.error('⚠️ Production mode requires HTTPS API URL');
+  if (!ENV.API_URL.startsWith("https://")) {
+    console.error("⚠️ Production mode requires HTTPS API URL");
   }
 }
 
 // Log configuration in development to verify the IP
 if (ENV.IS_DEV) {
-  console.log('📱 API URL Auto-Detected:', ENV.API_URL);
+  console.log("📱 API URL Auto-Detected:", ENV.API_URL);
 }

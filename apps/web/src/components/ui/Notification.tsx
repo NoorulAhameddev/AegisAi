@@ -1,10 +1,22 @@
 "use client";
 
-import { X, AlertCircle, CheckCircle, Info, AlertTriangle, Loader2 } from "lucide-react";
+import {
+  X,
+  AlertCircle,
+  CheckCircle,
+  Info,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
-export type NotificationType = "success" | "error" | "info" | "warning" | "loading";
+export type NotificationType =
+  | "success"
+  | "error"
+  | "info"
+  | "warning"
+  | "loading";
 
 interface NotificationProps {
   title?: string;
@@ -16,7 +28,16 @@ interface NotificationProps {
   closeButton?: boolean;
 }
 
-const typeConfig: Record<NotificationType, { icon: React.ReactNode; bg: string; border: string; textColor: string; iconColor: string }> = {
+const typeConfig: Record<
+  NotificationType,
+  {
+    icon: React.ReactNode;
+    bg: string;
+    border: string;
+    textColor: string;
+    iconColor: string;
+  }
+> = {
   success: {
     icon: <CheckCircle className="h-5 w-5" />,
     bg: "bg-emerald-500/10",
@@ -79,33 +100,29 @@ export function Notification({
   if (!isVisible) return null;
 
   return (
-    <div className={cn(
-      "flex items-start gap-4 p-4 rounded-xl backdrop-blur-xl border",
-      "animate-slide-down transition-all duration-300",
-      config.bg,
-      config.border,
-      "shadow-lg shadow-black/50"
-    )}>
+    <div
+      className={cn(
+        "flex items-start gap-4 p-4 rounded-xl backdrop-blur-xl border",
+        "animate-slide-down transition-all duration-300",
+        config.bg,
+        config.border,
+        "shadow-lg shadow-black/50",
+      )}
+    >
       <div className={cn("shrink-0 mt-0.5", config.iconColor)}>
         {config.icon}
       </div>
-      
+
       <div className="flex-1 min-w-0">
-        <p className={cn("font-semibold text-sm", config.textColor)}>
-          {title}
-        </p>
-        {message && (
-          <p className="text-xs text-zinc-400 mt-1">
-            {message}
-          </p>
-        )}
+        <p className={cn("font-semibold text-sm", config.textColor)}>{title}</p>
+        {message && <p className="text-xs text-zinc-400 mt-1">{message}</p>}
         {action && (
           <button
             onClick={action.onClick}
             className={cn(
               "text-xs font-medium mt-2 px-3 py-1.5 rounded-lg",
               "hover:bg-white/10 transition-colors",
-              config.textColor
+              config.textColor,
             )}
           >
             {action.label}
@@ -135,15 +152,15 @@ interface ToastContainerProps {
   onRemove: (index: number) => void;
 }
 
-export function NotificationContainer({ notifications, onRemove }: ToastContainerProps) {
+export function NotificationContainer({
+  notifications,
+  onRemove,
+}: ToastContainerProps) {
   return (
     <div className="fixed top-6 right-6 z-50 space-y-3 pointer-events-none">
       {notifications.map((notif, idx) => (
         <div key={idx} className="pointer-events-auto">
-          <Notification
-            {...notif}
-            onClose={() => onRemove(idx)}
-          />
+          <Notification {...notif} onClose={() => onRemove(idx)} />
         </div>
       ))}
     </div>

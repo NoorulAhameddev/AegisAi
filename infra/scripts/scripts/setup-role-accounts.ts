@@ -66,31 +66,31 @@ async function setupRoleAccounts() {
 
       console.log(
         `✅ Created ${account.role.padEnd(12)} | ${account.email.padEnd(
-          25
-        )} | Password: ${account.password}`
+          25,
+        )} | Password: ${account.password}`,
       );
     }
 
     console.log("\n🎉 All role-based accounts created successfully!\n");
     console.log("📋 Account Summary:");
     console.log(
-      "═══════════════════════════════════════════════════════════════════"
+      "═══════════════════════════════════════════════════════════════════",
     );
     console.log("Role          | Email                     | Password");
     console.log(
-      "───────────────────────────────────────────────────────────────────"
+      "───────────────────────────────────────────────────────────────────",
     );
 
     roleAccounts.forEach((account) => {
       console.log(
         `${account.role.padEnd(12)} | ${account.email.padEnd(25)} | ${
           account.password
-        }`
+        }`,
       );
     });
 
     console.log(
-      "═══════════════════════════════════════════════════════════════════"
+      "═══════════════════════════════════════════════════════════════════",
     );
     console.log("\n💡 You can now login with any of these accounts!");
   } catch (error) {

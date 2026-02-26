@@ -3,14 +3,17 @@
  * Request deduplication, caching, and performance monitoring
  */
 
-import { logger } from './logger';
-import { ENV } from '../config/env';
+import { logger } from "./logger";
+import { ENV } from "../config/env";
 
 /**
  * Request Cache Manager
  */
 class CacheManager {
-  private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+  private cache = new Map<
+    string,
+    { data: any; timestamp: number; ttl: number }
+  >();
   private maxSize: number;
 
   constructor(maxSize: number = 100) {
@@ -56,7 +59,7 @@ class CacheManager {
 
   clear(): void {
     this.cache.clear();
-    logger.info('Cache cleared');
+    logger.info("Cache cleared");
   }
 
   remove(key: string): void {
@@ -138,7 +141,7 @@ class RequestQueue {
         task();
       } else {
         this.queue.push(task);
-        logger.debug('Request queued', { queueSize: this.queue.length });
+        logger.debug("Request queued", { queueSize: this.queue.length });
       }
     });
   }
@@ -176,7 +179,7 @@ class PerformanceMonitor {
 
   startTimer(name: string): () => void {
     const startTime = Date.now();
-    
+
     return () => {
       const duration = Date.now() - startTime;
       this.recordMetric(name, duration);
@@ -213,7 +216,7 @@ class PerformanceMonitor {
   getAverageTime(name: string): number {
     const filtered = this.metrics.filter((m) => m.name === name);
     if (filtered.length === 0) return 0;
-    
+
     const sum = filtered.reduce((acc, m) => acc + m.duration, 0);
     return sum / filtered.length;
   }
@@ -230,7 +233,7 @@ export const performanceMonitor = new PerformanceMonitor();
  */
 export function debounce<T extends (...args: any[]) => any>(
   fn: T,
-  delay: number
+  delay: number,
 ): (...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
@@ -245,7 +248,7 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export function throttle<T extends (...args: any[]) => any>(
   fn: T,
-  limit: number
+  limit: number,
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean;
 

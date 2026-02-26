@@ -88,7 +88,9 @@ describe("User Journey Integration Tests", () => {
       });
 
       // Simulate registration
-      const registerCheck = await prisma.user.findUnique({ where: { email: userEmail } });
+      const registerCheck = await prisma.user.findUnique({
+        where: { email: userEmail },
+      });
       expect(registerCheck).toBeNull();
 
       const hashedPwd = await bcrypt.hash("SecurePassword123!", 14);
@@ -170,7 +172,10 @@ describe("User Journey Integration Tests", () => {
     });
 
     it("should handle failed authentication recovery", async () => {
-      const { rotateTokens, revokeAllSessions } = require("@/services/auth/auth");
+      const {
+        rotateTokens,
+        revokeAllSessions,
+      } = require("@/services/auth/auth");
 
       // Simulate failed token
       rotateTokens.mockResolvedValue(null);
@@ -229,7 +234,8 @@ describe("User Journey Integration Tests", () => {
         categoryScores: {},
       });
 
-      const message = "What are the best practices for building AI applications?";
+      const message =
+        "What are the best practices for building AI applications?";
       const modResult = await checkModeration(message);
 
       expect(modResult.flagged).toBe(false);

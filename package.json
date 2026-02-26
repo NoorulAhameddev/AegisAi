@@ -18,6 +18,7 @@
     "worker:websocket": "tsx apps/web/src/workers/websocket.worker.ts",
     "worker:video-summary": "tsx apps/web/src/workers/video-summary.worker.ts",
     "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
     "clean": "node -e \"const fs=require('fs'); const rm=p=>fs.rmSync(p,{recursive:true,force:true}); ['apps/web/.next','out','dist','build','coverage','logs','data/lancedb','.turbo'].forEach(rm); if(fs.existsSync('uploads')){for(const f of fs.readdirSync('uploads')){if(f!=='.gitkeep')rm('uploads/'+f);}}\"",
     "test": "npm run test --workspaces --if-present",
     "test:watch": "npm run test:watch --workspace=apps/web",
@@ -32,7 +33,9 @@
     "docker:build": "cd infra/docker && docker build -t aegis-ai .",
     "docker:up": "cd infra/docker && docker-compose up -d",
     "docker:down": "cd infra/docker && docker-compose down",
-    "mcp:start": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\start-mcp.ps1"
+    "mcp:start": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\start-mcp.ps1",
+    "setup": "scripts\\setup-local.ps1",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.983.0",
@@ -122,6 +125,14 @@
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "husky": "^8.0.0",
+    "lint-staged": "^14.0.0",
+    "prettier": "^3.0.0"
+  },
+  "lint-staged": {
+    "**/*.{js,jsx,ts,tsx,json,css,md}": [
+      "prettier --write"
+    ]
   }
 }

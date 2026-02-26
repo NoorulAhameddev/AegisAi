@@ -16,16 +16,19 @@ This directory contains Terraform configurations for deploying Aegis AI to AWS w
 ## Prerequisites
 
 1. **AWS CLI** installed and configured:
+
    ```bash
    aws configure
    ```
 
 2. **Terraform** >= 1.6.0 installed:
+
    ```bash
    terraform version
    ```
 
 3. **Docker** for building images:
+
    ```bash
    docker --version
    ```
@@ -47,6 +50,7 @@ cp terraform.tfvars.example terraform.tfvars
 ```
 
 Edit `terraform.tfvars` with your values:
+
 - **alarm_email**: Email for CloudWatch alarm notifications
 - **aws_region**: AWS region for deployment
 - Resource sizes based on expected load
@@ -72,6 +76,7 @@ terraform apply tfplan
 ```
 
 This will create:
+
 - VPC with networking (5-10 minutes)
 - RDS PostgreSQL with replicas (10-15 minutes)
 - ElastiCache Redis cluster (10-15 minutes)
@@ -87,6 +92,7 @@ This will create:
 ### 1. Enable pgvector Extension
 
 Connect to RDS and run:
+
 ```sql
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
@@ -95,6 +101,7 @@ CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 ### 2. Update ACM Certificate in ALB
 
 After ACM certificate is validated:
+
 ```bash
 terraform apply -var="acm_certificate_arn=arn:aws:acm:region:account:certificate/ID"
 ```
@@ -102,11 +109,13 @@ terraform apply -var="acm_certificate_arn=arn:aws:acm:region:account:certificate
 ### 3. Push Docker Image to ECR
 
 Get ECR login:
+
 ```bash
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ECR_URL
 ```
 
 Build and push:
+
 ```bash
 docker build -t aegis-ai .
 docker tag aegis-ai:latest ECR_URL/aegis-ai-production-app:latest
@@ -114,6 +123,7 @@ docker push ECR_URL/aegis-ai-production-app:latest
 ```
 
 Get ECR URL from Terraform outputs:
+
 ```bash
 terraform output ecr_repository_url
 ```
@@ -121,6 +131,7 @@ terraform output ecr_repository_url
 ### 4. Run Database Migrations
 
 From ECS task or bastion host:
+
 ```bash
 npx prisma migrate deploy
 ```
@@ -128,6 +139,7 @@ npx prisma migrate deploy
 ### 5. Update Application Secrets
 
 Manually set API keys in Secrets Manager:
+
 ```bash
 aws secretsmanager update-secret \
   --secret-id aegis-ai-production-app-secrets \
@@ -137,6 +149,7 @@ aws secretsmanager update-secret \
 ### 6. Configure DNS
 
 Point your domain to ALB:
+
 ```bash
 terraform output alb_dns_name
 ```
@@ -158,6 +171,7 @@ Or visit: https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashbo
 ### Application Logs
 
 View logs in CloudWatch Logs Insights:
+
 ```bash
 aws logs tail /ecs/aegis-ai-production --follow
 ```
@@ -165,6 +179,7 @@ aws logs tail /ecs/aegis-ai-production --follow
 ### Database Connection
 
 Get connection string from Secrets Manager:
+
 ```bash
 aws secretsmanager get-secret-value \
   --secret-id aegis-ai-production-db-password \
@@ -173,6 +188,7 @@ aws secretsmanager get-secret-value \
 ```
 
 Connect via psql:
+
 ```bash
 psql "postgresql://aegis_admin:PASSWORD@ENDPOINT:5432/aegisai"
 ```
@@ -180,6 +196,7 @@ psql "postgresql://aegis_admin:PASSWORD@ENDPOINT:5432/aegisai"
 ### Redis Connection
 
 Get auth token:
+
 ```bash
 aws secretsmanager get-secret-value \
   --secret-id aegis-ai-production-redis-auth-token \
@@ -188,6 +205,7 @@ aws secretsmanager get-secret-value \
 ```
 
 Connect via redis-cli:
+
 ```bash
 redis-cli -h ENDPOINT --tls --askpass
 ```
@@ -203,6 +221,7 @@ aws cloudwatch describe-alarms --state-value ALARM
 ### Test Alarm Notifications
 
 Trigger test alarm:
+
 ```bash
 aws cloudwatch set-alarm-state \
   --alarm-name aegis-ai-production-chat-queue-high-depth \
@@ -213,6 +232,7 @@ aws cloudwatch set-alarm-state \
 ### Query Logs
 
 Error logs (last hour):
+
 ```bash
 aws logs filter-log-events \
   --log-group-name /ecs/aegis-ai-production \
@@ -225,6 +245,7 @@ aws logs filter-log-events \
 ### Manual Scaling
 
 Scale API tasks:
+
 ```bash
 aws ecs update-service \
   --cluster aegis-ai-production-cluster \
@@ -233,6 +254,7 @@ aws ecs update-service \
 ```
 
 Scale chat workers:
+
 ```bash
 aws ecs update-service \
   --cluster aegis-ai-production-cluster \
@@ -244,6 +266,7 @@ aws ecs update-service \
 
 Workers auto-scale based on queue depth (CloudWatch metric).
 Configure thresholds in `variables.tf`:
+
 - `autoscaling_target_queue_depth`: Target queue depth (default: 50)
 - `autoscaling_max_capacity`: Maximum worker tasks (default: 10)
 
@@ -253,6 +276,7 @@ Configure thresholds in `variables.tf`:
 
 Automated daily backups (7-day retention).
 Manual snapshot:
+
 ```bash
 aws rds create-db-snapshot \
   --db-instance-identifier aegis-ai-production-postgres \
@@ -262,11 +286,13 @@ aws rds create-db-snapshot \
 ### S3 Backups
 
 Automated lifecycle:
+
 - Day 0-30: Standard storage
 - Day 30-90: Glacier storage
 - Day 90+: Deleted
 
 List backups:
+
 ```bash
 aws s3 ls s3://aegis-ai-production-backups/
 ```
@@ -274,6 +300,7 @@ aws s3 ls s3://aegis-ai-production-backups/
 ### Restore Database
 
 From snapshot:
+
 ```bash
 aws rds restore-db-instance-from-db-snapshot \
   --db-instance-identifier aegis-ai-restored \
@@ -297,16 +324,19 @@ aws rds restore-db-instance-from-db-snapshot \
 ### Cost Reduction Strategies
 
 1. **Use Fargate Spot** for workers (70% savings):
+
    ```hcl
    capacity_provider = "FARGATE_SPOT"
    ```
 
 2. **Reduce RDS replica count** (dev/staging):
+
    ```hcl
    # Comment out read replicas in rds.tf
    ```
 
 3. **Use smaller instance sizes** (staging):
+
    ```hcl
    db_instance_class = "db.t4g.micro"
    redis_node_type = "cache.t4g.micro"
@@ -322,6 +352,7 @@ aws rds restore-db-instance-from-db-snapshot \
 ### ECS Task Won't Start
 
 Check logs:
+
 ```bash
 aws ecs describe-tasks \
   --cluster aegis-ai-production-cluster \
@@ -329,6 +360,7 @@ aws ecs describe-tasks \
 ```
 
 Common issues:
+
 - Secrets Manager permissions
 - ECR image not found
 - Database connection failed
@@ -336,11 +368,13 @@ Common issues:
 ### Database Connection Pool Exhausted
 
 Increase pool size:
+
 ```env
 DB_POOL_SIZE=60  # In task definition
 ```
 
 Or scale read replicas:
+
 ```bash
 terraform apply -var="enable_read_replicas=true"
 ```
@@ -348,6 +382,7 @@ terraform apply -var="enable_read_replicas=true"
 ### Redis Memory Pressure
 
 Check evictions:
+
 ```bash
 aws cloudwatch get-metric-statistics \
   --namespace AWS/ElastiCache \
@@ -364,6 +399,7 @@ Upgrade node type if needed.
 ### High ALB Latency
 
 Check target health:
+
 ```bash
 aws elbv2 describe-target-health \
   --target-group-arn TARGET_GROUP_ARN
@@ -383,6 +419,7 @@ Scale API tasks if unhealthy targets exist.
 See [../../docs/DISASTER_RECOVERY.md](../../docs/DISASTER_RECOVERY.md) for detailed procedures.
 
 Quick recovery:
+
 1. Restore RDS from latest automated snapshot (~30 minutes)
 2. Restore Redis from S3 backup RDB (~10 minutes)
 3. Re-ingest vectors from S3 backup (~1-4 hours)
@@ -409,6 +446,7 @@ terraform destroy
 ```
 
 Confirm deletion of:
+
 - All ECS tasks and services
 - RDS instances (including replicas)
 - ElastiCache cluster
@@ -429,6 +467,7 @@ Confirm deletion of:
 ## Support
 
 For issues or questions:
+
 - **Infrastructure**: Review Terraform documentation
 - **Application**: See main [README.md](../../../README.md)
 - **AWS Support**: https://console.aws.amazon.com/support/

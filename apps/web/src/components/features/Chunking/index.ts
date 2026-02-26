@@ -1,2 +1,2 @@
-export { ChunkingConfig } from './ChunkingConfig';
-export { ChunkPreview } from './ChunkPreview';
+export { ChunkingConfig } from "./ChunkingConfig";
+export { ChunkPreview } from "./ChunkPreview";

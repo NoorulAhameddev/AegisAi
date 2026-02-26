@@ -193,7 +193,6 @@ As a **SUPER_ADMIN**, you have access to all 33 permissions:
 The backend is ready! To create a full governance dashboard:
 
 1. **Create `/admin/governance` page** with:
-
    - Real-time audit log viewer
    - Permission matrix display
    - Role assignment interface

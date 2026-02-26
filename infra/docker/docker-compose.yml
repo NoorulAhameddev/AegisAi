@@ -1,7 +1,7 @@
 services:
   # PostgreSQL Database
   postgres:
-    image: postgres:16-alpine
+    image: ankane/pgvector:latest
     container_name: aegis-postgres
     env_file:
       - .env
@@ -168,6 +168,37 @@ services:
     restart: unless-stopped
     networks:
       - aegis-network
+
+  # Automated Database Backup Service
+  postgres-backup:
+    image: postgres:16-alpine
+    container_name: aegis-postgres-backup
+    env_file:
+      - .env
+    environment:
+      PGPASSWORD: ${DB_PASSWORD:-postgres}
+      PGHOST: postgres
+      PGUSER: ${DB_USER:-postgres}
+      PGDATABASE: ${DB_NAME:-aegis_ai}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../../backups:/backups
+    command: >
+      sh -c 'while true; do
+        echo "[$(date)] Starting backup...";
+        pg_dump -h postgres -U $${PGUSER} $${PGDATABASE} | gzip > /backups/db-$(date +\%Y\%m\%d-\%H\%M\%S).sql.gz;
+        echo "[$(date)] Backup complete: $(ls -lh /backups | tail -1)";
+        find /backups -name "db-*.sql.gz" -mtime +30 -delete;
+        echo "[$(date)] Cleaned old backups (30+ days)";
+        sleep 86400;
+      done'
+    restart: unless-stopped
+    networks:
+      - aegis-network
+    profiles:
+      - production
 
   # Optional: pgAdmin for Database Management
   pgadmin:

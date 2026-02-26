@@ -15,7 +15,7 @@ export function SkeletonLoader({ className, count = 1 }: SkeletonProps) {
           key={i}
           className={cn(
             "rounded-lg bg-zinc-800/50 animate-pulse",
-            className || "h-4 w-full"
+            className || "h-4 w-full",
           )}
         />
       ))}

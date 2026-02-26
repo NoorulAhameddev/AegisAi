@@ -1,4 +1,5 @@
 # PRODUCTION ARCHITECTURE AUDIT
+
 ## Aegis AI Platform - Code Organization & Cleanup Report
 
 **Date:** January 21, 2026  
@@ -12,6 +13,7 @@
 **Assessment:** Production-ready **backend** with **bloated documentation**. Frontend needs **moderate refactoring**.
 
 **Critical Findings:**
+
 - ✅ Backend architecture: **Sound**
 - ⚠️ Documentation layer: **Excessive (20+ MD files)**
 - ⚠️ Folder structure: **Partially applied, inconsistent enforcement**
@@ -188,30 +190,30 @@ src/
 
 ## 🗑️ FILE CLEANUP AUDIT TABLE
 
-| File / Folder | Action | Reason | Risk |
-|---|---|---|---|
-| `src/app/maintenance/` | **DELETE** | Duplicate structure; use `/knowledge` instead | 🟢 SAFE |
-| `RAG_FEATURE_SUMMARY.md` | **MERGE** | Redundant with docs/RAG_QUICKSTART.md | 🟢 SAFE |
-| `RAG_TESTING_CHECKLIST.md` | **DELETE** | Testing docs belong in docs/testing/ | 🟢 SAFE |
-| `_GITHUB_READY_SUMMARY.md` | **MERGE** | Duplicate of GITHUB_READY.md | 🟢 SAFE |
-| `GITHUB_READY.md` | **MERGE** | Consolidate into GITHUB_SETUP_COMPLETE.md | 🟢 SAFE |
-| `GITHUB_SETUP_COMPLETE.md` | **MERGE** | Consolidate with GITHUB_READY_QUICK_START.md | 🟢 SAFE |
-| `GITHUB_READY_QUICK_START.md` | **KEEP** | Main GitHub onboarding (rename to `GITHUB.md`) | 🟢 SAFE |
-| `README_ORGANIZATION.md` | **DELETE** | Duplicate of ORGANIZATION.md | 🟢 SAFE |
-| `COMPLETE_REPORT.md` | **ARCHIVE** | Historical org report; move to docs/archive/ | 🟢 SAFE |
-| `START_HERE.md` | **MERGE** | Consolidate into GETTING_STARTED.md | 🟢 SAFE |
-| `ORGANIZATION.md` | **KEEP** | Primary org doc | 🟢 SAFE |
-| `GETTING_STARTED.md` | **KEEP** | Main entry point | 🟢 SAFE |
-| `PROJECT_STRUCTURE.md` | **REFACTOR** | Move to docs/ARCHITECTURE_DETAILS.md; reference only | 🟡 REVIEW |
-| `ARCHITECTURE.md` | **KEEP** | System design (high-level) | 🟢 SAFE |
-| `CONTRIBUTING.md` | **KEEP** | Code standards | 🟢 SAFE |
-| `QUICK_REFERENCE.md` | **KEEP** | Quick lookup | 🟢 SAFE |
-| `SETUP.md` | **KEEP** | Dev setup | 🟢 SAFE |
-| `INDEX.md` | **KEEP** | Documentation hub | 🟢 SAFE |
-| `SECURITY.md` | **KEEP** | Security policy | 🟢 SAFE |
-| `CODE_OF_CONDUCT.md` | **KEEP** | Community standards | 🟢 SAFE |
-| **Root Config Files** | **MOVE** | `.gitignore`, `next.config.js`, `tsconfig.json`, `jest.config.ts`, `eslint.config.mjs`, `postcss.config.mjs` → `config/` | 🟡 REVIEW |
-| `docs/archive/FOLDER_STRUCTURE.md` | **DELETE** | Superseded by PROJECT_STRUCTURE.md | 🟢 SAFE |
+| File / Folder                      | Action       | Reason                                                                                                                   | Risk      |
+| ---------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------ | --------- |
+| `src/app/maintenance/`             | **DELETE**   | Duplicate structure; use `/knowledge` instead                                                                            | 🟢 SAFE   |
+| `RAG_FEATURE_SUMMARY.md`           | **MERGE**    | Redundant with docs/RAG_QUICKSTART.md                                                                                    | 🟢 SAFE   |
+| `RAG_TESTING_CHECKLIST.md`         | **DELETE**   | Testing docs belong in docs/testing/                                                                                     | 🟢 SAFE   |
+| `_GITHUB_READY_SUMMARY.md`         | **MERGE**    | Duplicate of GITHUB_READY.md                                                                                             | 🟢 SAFE   |
+| `GITHUB_READY.md`                  | **MERGE**    | Consolidate into GITHUB_SETUP_COMPLETE.md                                                                                | 🟢 SAFE   |
+| `GITHUB_SETUP_COMPLETE.md`         | **MERGE**    | Consolidate with GITHUB_READY_QUICK_START.md                                                                             | 🟢 SAFE   |
+| `GITHUB_READY_QUICK_START.md`      | **KEEP**     | Main GitHub onboarding (rename to `GITHUB.md`)                                                                           | 🟢 SAFE   |
+| `README_ORGANIZATION.md`           | **DELETE**   | Duplicate of ORGANIZATION.md                                                                                             | 🟢 SAFE   |
+| `COMPLETE_REPORT.md`               | **ARCHIVE**  | Historical org report; move to docs/archive/                                                                             | 🟢 SAFE   |
+| `START_HERE.md`                    | **MERGE**    | Consolidate into GETTING_STARTED.md                                                                                      | 🟢 SAFE   |
+| `ORGANIZATION.md`                  | **KEEP**     | Primary org doc                                                                                                          | 🟢 SAFE   |
+| `GETTING_STARTED.md`               | **KEEP**     | Main entry point                                                                                                         | 🟢 SAFE   |
+| `PROJECT_STRUCTURE.md`             | **REFACTOR** | Move to docs/ARCHITECTURE_DETAILS.md; reference only                                                                     | 🟡 REVIEW |
+| `ARCHITECTURE.md`                  | **KEEP**     | System design (high-level)                                                                                               | 🟢 SAFE   |
+| `CONTRIBUTING.md`                  | **KEEP**     | Code standards                                                                                                           | 🟢 SAFE   |
+| `QUICK_REFERENCE.md`               | **KEEP**     | Quick lookup                                                                                                             | 🟢 SAFE   |
+| `SETUP.md`                         | **KEEP**     | Dev setup                                                                                                                | 🟢 SAFE   |
+| `INDEX.md`                         | **KEEP**     | Documentation hub                                                                                                        | 🟢 SAFE   |
+| `SECURITY.md`                      | **KEEP**     | Security policy                                                                                                          | 🟢 SAFE   |
+| `CODE_OF_CONDUCT.md`               | **KEEP**     | Community standards                                                                                                      | 🟢 SAFE   |
+| **Root Config Files**              | **MOVE**     | `.gitignore`, `next.config.js`, `tsconfig.json`, `jest.config.ts`, `eslint.config.mjs`, `postcss.config.mjs` → `config/` | 🟡 REVIEW |
+| `docs/archive/FOLDER_STRUCTURE.md` | **DELETE**   | Superseded by PROJECT_STRUCTURE.md                                                                                       | 🟢 SAFE   |
 
 ---
 
@@ -221,13 +223,14 @@ src/
 
 **Action: Reduce documentation bloat**
 
-| File | Current | Target | Consolidation |
-|------|---------|--------|---|
-| Root `.md` files | 20 files | **7 files** | -65% |
-| GitHub setup guides | 4 files | **1 file** | -75% |
-| RAG documentation | 5 files | **2 files** | -60% |
+| File                | Current  | Target      | Consolidation |
+| ------------------- | -------- | ----------- | ------------- |
+| Root `.md` files    | 20 files | **7 files** | -65%          |
+| GitHub setup guides | 4 files  | **1 file**  | -75%          |
+| RAG documentation   | 5 files  | **2 files** | -60%          |
 
 **Target Root Documentation (Final):**
+
 ```
 Root/
 ├── README.md                ← Project overview (KEEP)
@@ -242,6 +245,7 @@ Root/
 ```
 
 **To Archive:**
+
 ```
 docs/archive/
 ├── COMPLETE_REPORT.md
@@ -257,26 +261,27 @@ docs/archive/
 
 **Action: Enforce API route → controller → service separation**
 
-| Current Pattern | Problem | Solution |
-|---|---|---|
-| `src/app/api/[route]/route.ts` | Business logic mixed in routes | Extract → `src/controllers/` |
-| No `.controller.ts` files | Request handling logic scattered | Create controller layer |
-| Services in `src/lib/` | Mixing utilities with business logic | Move to `src/services/` |
+| Current Pattern                | Problem                              | Solution                     |
+| ------------------------------ | ------------------------------------ | ---------------------------- |
+| `src/app/api/[route]/route.ts` | Business logic mixed in routes       | Extract → `src/controllers/` |
+| No `.controller.ts` files      | Request handling logic scattered     | Create controller layer      |
+| Services in `src/lib/`         | Mixing utilities with business logic | Move to `src/services/`      |
 
 **Example Refactor:**
+
 ```typescript
 // ❌ CURRENT (Anti-pattern)
 // src/app/api/chat/route.ts
 export async function POST(req) {
   const data = await req.json();
-  
+
   // Business logic mixed with HTTP handling
   const message = new Message();
   message.content = data.content;
-  
+
   // AI logic in route
   const response = await openai.chat.completions.create({...});
-  
+
   await db.message.create({...});
   return Response.json(response);
 }
@@ -310,13 +315,14 @@ export async function processMessage(data: ChatInput) {
 
 **Pattern: Business Logic in Frontend**
 
-| Location | Issue | Fix |
-|---|---|---|
-| `src/components/chat/` | Fetch calls in components | Move to hooks → services |
-| `src/app/files/page.tsx` (line 27) | Direct API calls + state management | Use `useChat` hook |
-| Admin pages | Inline permission checks | Create permission service |
+| Location                           | Issue                               | Fix                       |
+| ---------------------------------- | ----------------------------------- | ------------------------- |
+| `src/components/chat/`             | Fetch calls in components           | Move to hooks → services  |
+| `src/app/files/page.tsx` (line 27) | Direct API calls + state management | Use `useChat` hook        |
+| Admin pages                        | Inline permission checks            | Create permission service |
 
 **Example Fix:**
+
 ```typescript
 // ❌ BEFORE (Component handling business logic)
 const [files, setFiles] = useState([]);
@@ -332,12 +338,12 @@ const handleDelete = async (id) => {
 // src/hooks/useFiles.ts
 export function useFiles() {
   const [files, setFiles] = useState([]);
-  
+
   const deleteFile = async (id) => {
     await fileService.deleteFile(id);
     setFiles(prev => prev.filter(f => f.id !== id));
   };
-  
+
   return { files, deleteFile };
 }
 
@@ -366,6 +372,7 @@ src/workers/ai.worker.ts     ← Background processing
 ### 2. **POTENTIAL DEAD CODE (NEEDS CONFIRMATION)**
 
 Search for these before deleting:
+
 ```
 src/app/maintenance/         ← Duplicate to /knowledge?
 src/lib/memoryDetector.ts    ← Used by whom?
@@ -374,6 +381,7 @@ src/lib/security-agent.ts    ← vs. security.ts?
 ```
 
 **Verification Script:**
+
 ```bash
 # Check file usage
 grep -r "memoryDetector" src/ --include="*.ts" --include="*.tsx"
@@ -383,12 +391,12 @@ grep -r "security-agent" src/ --include="*.ts" --include="*.tsx"
 
 ### 3. **CONFLICTING IMPLEMENTATIONS**
 
-| Pair | Status | Recommendation |
-|---|---|---|
-| `src/lib/security.ts` vs `src/lib/security-agent.ts` | BOTH EXIST | Audit → merge or clarify |
-| `src/lib/langchain-*.ts` (5 files) | Scattered | Consolidate → `src/ai/langchain/` |
-| `src/lib/rag-*.ts` (2 files) | Scattered | Move → `src/ai/rag/` |
-| `src/lib/embeddings.ts` | Part of what? | Clarify ownership |
+| Pair                                                 | Status        | Recommendation                    |
+| ---------------------------------------------------- | ------------- | --------------------------------- |
+| `src/lib/security.ts` vs `src/lib/security-agent.ts` | BOTH EXIST    | Audit → merge or clarify          |
+| `src/lib/langchain-*.ts` (5 files)                   | Scattered     | Consolidate → `src/ai/langchain/` |
+| `src/lib/rag-*.ts` (2 files)                         | Scattered     | Move → `src/ai/rag/`              |
+| `src/lib/embeddings.ts`                              | Part of what? | Clarify ownership                 |
 
 ---
 
@@ -429,6 +437,7 @@ cd mobile && npm run build
 ## 📝 IMPLEMENTATION ROADMAP
 
 ### Phase 1: Documentation Cleanup (1 day)
+
 ```
 1. Archive old docs to docs/archive/
 2. Consolidate GitHub guides into single GITHUB.md
@@ -437,6 +446,7 @@ cd mobile && npm run build
 ```
 
 ### Phase 2: Folder Structure Enforcement (2-3 days)
+
 ```
 1. Create src/controllers/ directory
 2. Extract route handlers into controllers
@@ -447,6 +457,7 @@ cd mobile && npm run build
 ```
 
 ### Phase 3: Code Cleanup (3-5 days)
+
 ```
 1. Move business logic from components → hooks → services
 2. Verify and consolidate duplicate implementations
@@ -457,6 +468,7 @@ cd mobile && npm run build
 ```
 
 ### Phase 4: Config Reorganization (1 day)
+
 ```
 1. Move root configs to config/
 2. Update .gitignore and build scripts
@@ -468,6 +480,7 @@ cd mobile && npm run build
 ## 🔐 SAFETY GUARDRAILS
 
 **NEVER DELETE WITHOUT CONFIRMATION:**
+
 - ❌ `.env.example` (template needed)
 - ❌ `prisma/migrations/` (database history)
 - ❌ `src/lib/auth.ts` (authentication critical)
@@ -476,11 +489,13 @@ cd mobile && npm run build
 - ❌ Production AI prompts
 
 **ALWAYS VERIFY BEFORE MOVING:**
+
 - `src/lib/*.ts` files (check all references)
 - `src/services/*.ts` files (check imports)
 - `src/app/api/**/route.ts` files (check dependencies)
 
 **GIT IS YOUR FRIEND:**
+
 - Commit before each major deletion
 - Use `git log --diff-filter=D` to review deletions
 - Can always revert with `git revert`
@@ -491,18 +506,19 @@ cd mobile && npm run build
 
 ### Metrics After Cleanup
 
-| Metric | Before | After | Improvement |
-|---|---|---|---|
-| Root `.md` files | 20 | 8 | -60% |
-| Avg. file size | Varies | Consistent | +Clarity |
-| Separation concerns | Partial | Complete | +Quality |
-| Test coverage | ??? | Target 80%+ | +Reliability |
-| Build time | ??? | Target <2min | +Speed |
-| Type safety | Partial | 100% | +Confidence |
+| Metric              | Before  | After        | Improvement  |
+| ------------------- | ------- | ------------ | ------------ |
+| Root `.md` files    | 20      | 8            | -60%         |
+| Avg. file size      | Varies  | Consistent   | +Clarity     |
+| Separation concerns | Partial | Complete     | +Quality     |
+| Test coverage       | ???     | Target 80%+  | +Reliability |
+| Build time          | ???     | Target <2min | +Speed       |
+| Type safety         | Partial | 100%         | +Confidence  |
 
 ### Code Quality Improvements
 
 ✅ **After Cleanup:**
+
 - Clear separation: routes → controllers → services → models
 - Single responsibility per file
 - Testable components (no mixed concerns)
@@ -530,6 +546,7 @@ cd mobile && npm run build
 **Status: SAFE TO CLEAN**
 
 Aegis AI has:
+
 - ✅ Sound backend architecture
 - ✅ Proper authentication & security
 - ✅ Well-organized database layer

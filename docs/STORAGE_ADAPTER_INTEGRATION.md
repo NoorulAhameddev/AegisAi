@@ -10,24 +10,26 @@ The storage adapter abstraction layer allows Aegis AI to support multiple cloud 
 
 ## Supported Backends
 
-| Backend | Environment | Configuration | Effort |
-|---------|-------------|---------------|--------|
-| **Local** | Development | `STORAGE_TYPE=local` | ✅ Ready |
-| **AWS S3** | Production | `AWS_REGION`, `S3_BUCKET` | ✅ Ready |
-| **Azure Blob** | Production | `AZURE_STORAGE_ACCOUNT`, `AZURE_STORAGE_KEY` | ✅ Ready |
-| **Google Cloud** | Production | `GCS_BUCKET`, `GCP_PROJECT_ID` | ✅ Ready |
+| Backend          | Environment | Configuration                                | Effort   |
+| ---------------- | ----------- | -------------------------------------------- | -------- |
+| **Local**        | Development | `STORAGE_TYPE=local`                         | ✅ Ready |
+| **AWS S3**       | Production  | `AWS_REGION`, `S3_BUCKET`                    | ✅ Ready |
+| **Azure Blob**   | Production  | `AZURE_STORAGE_ACCOUNT`, `AZURE_STORAGE_KEY` | ✅ Ready |
+| **Google Cloud** | Production  | `GCS_BUCKET`, `GCP_PROJECT_ID`               | ✅ Ready |
 
 ---
 
 ## Configuration
 
 ### Development (Local Storage)
+
 ```env
 STORAGE_TYPE=local
 STORAGE_PATH=uploads
 ```
 
 ### Production (AWS S3)
+
 ```env
 STORAGE_TYPE=s3
 S3_BUCKET=aegis-ai-files-prod
@@ -37,6 +39,7 @@ AWS_SECRET_ACCESS_KEY=...
 ```
 
 ### Production (Azure)
+
 ```env
 STORAGE_TYPE=azure
 AZURE_STORAGE_ACCOUNT=aegisaistorage
@@ -44,6 +47,7 @@ AZURE_STORAGE_KEY=...
 ```
 
 ### Production (Google Cloud)
+
 ```env
 STORAGE_TYPE=gcs
 GCS_BUCKET=aegis-ai-files
@@ -56,16 +60,17 @@ GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
 ## API Usage
 
 ### Upload File
+
 ```typescript
-import { getStorageAdapter } from '@/lib/storage-adapter';
-import { Readable } from 'stream';
+import { getStorageAdapter } from "@/lib/storage-adapter";
+import { Readable } from "stream";
 
 const storage = getStorageAdapter();
 const fileStream = Readable.from([buffer]);
 
-const result = await storage.upload(fileStream, 'users/123/document.pdf', {
-  userId: '123',
-  uploadedBy: 'john@example.com'
+const result = await storage.upload(fileStream, "users/123/document.pdf", {
+  userId: "123",
+  uploadedBy: "john@example.com",
 });
 
 console.log(result);
@@ -78,49 +83,57 @@ console.log(result);
 ```
 
 ### Download File
+
 ```typescript
-const { stream, size, mimeType } = await storage.download('users/123/document.pdf');
+const { stream, size, mimeType } = await storage.download(
+  "users/123/document.pdf",
+);
 
 // Use stream to send to client
-response.setHeader('Content-Length', size);
-response.setHeader('Content-Type', mimeType);
+response.setHeader("Content-Length", size);
+response.setHeader("Content-Type", mimeType);
 stream.pipe(response);
 ```
 
 ### Get Public URL
+
 ```typescript
-const url = storage.getUrl('users/123/document.pdf');
+const url = storage.getUrl("users/123/document.pdf");
 // Local: /files/users/123/document.pdf
 // S3: https://bucket.s3.amazonaws.com/users/123/document.pdf
 ```
 
 ### Get Signed URL (Temporary Access)
+
 ```typescript
 // Temporary access for 1 hour
-const signedUrl = await storage.getSignedUrl('users/123/private.pdf', 3600);
+const signedUrl = await storage.getSignedUrl("users/123/private.pdf", 3600);
 
 // User can access even if bucket is private
 // URL expires in 1 hour
-fetch(signedUrl).then(r => r.blob());
+fetch(signedUrl).then((r) => r.blob());
 ```
 
 ### List Files
-```typescript
-const files = await storage.list('users/123/');
 
-files.forEach(file => {
+```typescript
+const files = await storage.list("users/123/");
+
+files.forEach((file) => {
   console.log(`${file.path} (${file.size} bytes)`);
 });
 ```
 
 ### Delete File
+
 ```typescript
-await storage.delete('users/123/document.pdf');
+await storage.delete("users/123/document.pdf");
 ```
 
 ### Check File Exists
+
 ```typescript
-const exists = await storage.exists('users/123/document.pdf');
+const exists = await storage.exists("users/123/document.pdf");
 ```
 
 ---
@@ -143,24 +156,28 @@ const exists = await storage.exists('users/123/document.pdf');
 ## Migration from Local to Cloud
 
 ### Step 1: Update Environment
+
 ```bash
 cp .env.local .env.production
 # Edit .env.production with S3 credentials
 ```
 
 ### Step 2: Run Migration Script (Optional)
+
 ```bash
 npx ts-node scripts/migrate-files-to-s3.ts
 # Copies existing uploads/ to S3 bucket
 ```
 
 ### Step 3: Deploy
+
 ```bash
 npm run build
 npm run start
 ```
 
 ### Step 4: Verify
+
 ```bash
 curl http://localhost:3000/api/health
 # Check storage type in logs
@@ -175,16 +192,16 @@ curl -F "file=@test.pdf" http://localhost:3000/api/files/upload
 
 ```typescript
 // scripts/migrate-files-to-s3.ts
-import { getStorageAdapter } from '@/lib/storage-adapter';
-import { promises as fs } from 'fs';
-import { Readable } from 'stream';
+import { getStorageAdapter } from "@/lib/storage-adapter";
+import { promises as fs } from "fs";
+import { Readable } from "stream";
 
 async function migrateLocalToCloud() {
-  const local = new LocalStorageAdapter('uploads');
+  const local = new LocalStorageAdapter("uploads");
   const cloud = getStorageAdapter();
 
-  if (cloud.type === 'local') {
-    console.log('Already using local storage. Skipping migration.');
+  if (cloud.type === "local") {
+    console.log("Already using local storage. Skipping migration.");
     return;
   }
 
@@ -215,6 +232,7 @@ migrateLocalToCloud();
 ### Local Development Issues
 
 **Problem:** Files not saving to `uploads/` folder
+
 ```bash
 # Solution: Ensure uploads directory exists
 mkdir -p uploads
@@ -222,6 +240,7 @@ chmod 755 uploads
 ```
 
 **Problem:** "STORAGE_TYPE environment variable not set"
+
 ```bash
 # Solution: Set in .env.local
 echo "STORAGE_TYPE=local" >> .env.local
@@ -230,6 +249,7 @@ echo "STORAGE_TYPE=local" >> .env.local
 ### AWS S3 Issues
 
 **Problem:** "NoCredentialsError: Missing credentials in config"
+
 ```bash
 # Solution: Set AWS credentials
 export AWS_ACCESS_KEY_ID=...
@@ -238,6 +258,7 @@ export AWS_SECRET_ACCESS_KEY=...
 ```
 
 **Problem:** "AccessDenied" error
+
 ```bash
 # Solution: Check S3 bucket permissions
 aws s3api get-bucket-policy --bucket aegis-ai-files
@@ -247,6 +268,7 @@ aws s3api get-bucket-policy --bucket aegis-ai-files
 ### Azure Issues
 
 **Problem:** "Authorization header value is not valid"
+
 ```bash
 # Solution: Verify storage key
 az storage account keys list --name aegisaistorage
@@ -256,6 +278,7 @@ az storage account keys list --name aegisaistorage
 ### GCS Issues
 
 **Problem:** "Could not load the default credentials"
+
 ```bash
 # Solution: Set service account
 export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json
@@ -330,15 +353,15 @@ All storage operations are logged:
 
 ```typescript
 // Upload logged as:
-logger.info('File uploaded to storage', {
-  storagePath: 'uploads/user123/doc.pdf',
-  provider: 's3',  // or 'azure', 'gcs', 'local'
-  url: 'https://...',
-  duration: 245    // milliseconds
+logger.info("File uploaded to storage", {
+  storagePath: "uploads/user123/doc.pdf",
+  provider: "s3", // or 'azure', 'gcs', 'local'
+  url: "https://...",
+  duration: 245, // milliseconds
 });
 
 // View storage metrics:
-GET /api/admin/analytics/storage
+GET / api / admin / analytics / storage;
 // Returns per-backend statistics
 ```
 
@@ -346,12 +369,12 @@ GET /api/admin/analytics/storage
 
 ## Cost Estimation (Monthly)
 
-| Storage | Volume | Cost | Notes |
-|---------|--------|------|-------|
-| S3 Standard | 100GB | $2.30 | 1000 users × 100MB avg |
-| S3 Glacier | 100GB | $0.40 | Archive tier |
-| Azure | 100GB | $2.05 | Similar to S3 |
-| GCS | 100GB | $2.00 | Slightly cheaper |
+| Storage     | Volume | Cost  | Notes                  |
+| ----------- | ------ | ----- | ---------------------- |
+| S3 Standard | 100GB  | $2.30 | 1000 users × 100MB avg |
+| S3 Glacier  | 100GB  | $0.40 | Archive tier           |
+| Azure       | 100GB  | $2.05 | Similar to S3          |
+| GCS         | 100GB  | $2.00 | Slightly cheaper       |
 
 **Recommendation:** Use S3 for < 1TB, consider Glacier for archive
 

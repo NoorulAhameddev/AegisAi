@@ -60,7 +60,7 @@ export async function verifyAuth(req: NextRequest) {
     if (!token) return null;
 
     const payload = verifyAccessToken(token);
-    
+
     // Get full user details from database
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
@@ -84,4 +84,3 @@ export async function verifyAuth(req: NextRequest) {
     return null;
   }
 }
-

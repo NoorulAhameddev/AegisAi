@@ -1,29 +1,26 @@
-import type { Config } from 'jest';
-import nextJest from 'next/jest';
+import type { Config } from "jest";
+import nextJest from "next/jest";
 
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
-  dir: './',
+  dir: "./",
 });
 
 // Add any custom config to be passed to Jest
 const config: Config = {
-  coverageProvider: 'v8',
-  testEnvironment: 'jsdom',
+  coverageProvider: "v8",
+  testEnvironment: "jsdom",
   // Add more setup options before each test is run
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+    "^@/(.*)$": "<rootDir>/src/$1",
   },
-  testMatch: [
-    '**/__tests__/**/*.test.ts',
-    '**/__tests__/**/*.test.tsx',
-  ],
+  testMatch: ["**/__tests__/**/*.test.ts", "**/__tests__/**/*.test.tsx"],
   collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/**/*.stories.tsx',
-    '!src/__tests__/**',
+    "src/**/*.{ts,tsx}",
+    "!src/**/*.d.ts",
+    "!src/**/*.stories.tsx",
+    "!src/__tests__/**",
   ],
 };
 

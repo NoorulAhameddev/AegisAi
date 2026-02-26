@@ -3,10 +3,10 @@
  * Monitor app health, performance metrics, and system status
  */
 
-import { Platform } from 'react-native';
-import { logger } from '../utils/logger';
-import * as Device from 'expo-device';
-import * as Application from 'expo-application';
+import { Platform } from "react-native";
+import { logger } from "../utils/logger";
+import * as Device from "expo-device";
+import * as Application from "expo-application";
 
 interface HealthMetrics {
   timestamp: number;
@@ -45,11 +45,11 @@ class MonitoringService {
   }
 
   private async initialize() {
-    logger.info('Monitoring service initialized');
-    
+    logger.info("Monitoring service initialized");
+
     // Log initial health check
     const health = await this.getHealthMetrics();
-    logger.info('Initial health check', health);
+    logger.info("Initial health check", health);
   }
 
   /**
@@ -81,7 +81,7 @@ class MonitoringService {
    */
   getAverageResponseTime(): number {
     if (this.responseTimeSamples.length === 0) return 0;
-    
+
     const sum = this.responseTimeSamples.reduce((a, b) => a + b, 0);
     return sum / this.responseTimeSamples.length;
   }
@@ -123,7 +123,9 @@ class MonitoringService {
 
     // Check for performance issues
     if (avgResponseTime > 2000) {
-      issues.push(`High average response time: ${avgResponseTime.toFixed(0)}ms`);
+      issues.push(
+        `High average response time: ${avgResponseTime.toFixed(0)}ms`,
+      );
     }
 
     // Check for excessive errors
@@ -133,13 +135,15 @@ class MonitoringService {
 
     // Check for excessive slow operations
     if (this.slowOperationCount > 5) {
-      issues.push(`Multiple slow operations detected: ${this.slowOperationCount}`);
+      issues.push(
+        `Multiple slow operations detected: ${this.slowOperationCount}`,
+      );
     }
 
     const healthy = issues.length === 0;
 
     if (!healthy) {
-      logger.warn('Health check failed', { issues });
+      logger.warn("Health check failed", { issues });
     }
 
     return { healthy, issues };
@@ -152,7 +156,7 @@ class MonitoringService {
     this.errorCount = 0;
     this.slowOperationCount = 0;
     this.responseTimeSamples = [];
-    logger.info('Monitoring metrics reset');
+    logger.info("Monitoring metrics reset");
   }
 
   /**

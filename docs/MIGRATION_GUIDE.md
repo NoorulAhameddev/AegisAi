@@ -8,22 +8,22 @@ Aegis AI has been restructured from a single-app repository to a monorepo for be
 
 ### Old Structure â†’ New Structure
 
-| Old Path | New Path | Notes |
-|----------|----------|-------|
-| `/src/` | `/apps/web/src/` | Web app source code |
-| `/public/` | `/apps/web/public/` | Static assets |
-| `/mobile/` | `/apps/mobile/` | Mobile app |
-| `/scripts/` | `/infra/scripts/` | Utility scripts |
-| `/tests/` | `/apps/web/tests/` | Web app tests |
-| `/prisma/` | `/prisma/` | Database (unchanged) |
-| `/docs/` | `/docs/` | Documentation (unchanged) |
-| `/archive/` | `/docs/archive-root/` | Archived files |
-| `tsconfig.json` | `/config/tsconfig.json` | Base config |
-| `eslint.config.mjs` | `/config/eslint.config.mjs` | Linting config |
-| `jest.config.ts` | `/config/jest.config.ts` | Test config |
-| `Dockerfile` | `/infra/docker/Dockerfile` | Docker image |
-| `docker-compose.yml` | `/infra/docker/docker-compose.yml` | Docker compose |
-| `middleware.ts` | `/apps/web/middleware.ts` | Next.js middleware |
+| Old Path             | New Path                           | Notes                     |
+| -------------------- | ---------------------------------- | ------------------------- |
+| `/src/`              | `/apps/web/src/`                   | Web app source code       |
+| `/public/`           | `/apps/web/public/`                | Static assets             |
+| `/mobile/`           | `/apps/mobile/`                    | Mobile app                |
+| `/scripts/`          | `/infra/scripts/`                  | Utility scripts           |
+| `/tests/`            | `/apps/web/tests/`                 | Web app tests             |
+| `/prisma/`           | `/prisma/`                         | Database (unchanged)      |
+| `/docs/`             | `/docs/`                           | Documentation (unchanged) |
+| `/archive/`          | `/docs/archive-root/`              | Archived files            |
+| `tsconfig.json`      | `/config/tsconfig.json`            | Base config               |
+| `eslint.config.mjs`  | `/config/eslint.config.mjs`        | Linting config            |
+| `jest.config.ts`     | `/config/jest.config.ts`           | Test config               |
+| `Dockerfile`         | `/infra/docker/Dockerfile`         | Docker image              |
+| `docker-compose.yml` | `/infra/docker/docker-compose.yml` | Docker compose            |
+| `middleware.ts`      | `/apps/web/middleware.ts`          | Next.js middleware        |
 
 ## ðŸ“¦ Package Changes
 
@@ -33,11 +33,7 @@ The root `package.json` now manages workspaces:
 
 ```json
 {
-  "workspaces": [
-    "apps/*",
-    "packages/*",
-    "services/*"
-  ]
+  "workspaces": ["apps/*", "packages/*", "services/*"]
 }
 ```
 
@@ -83,6 +79,7 @@ npm install --workspace=apps/web  # Install for specific workspace
 If you have absolute imports, update `tsconfig.json` paths:
 
 **apps/web/tsconfig.json:**
+
 ```json
 {
   "extends": "../../config/tsconfig.json",
@@ -102,13 +99,15 @@ No changes needed - `.env` files work the same way.
 ### Import Paths
 
 **Before:**
+
 ```typescript
-import { auth } from '@/lib/auth';
+import { auth } from "@/lib/auth";
 ```
 
 **After:** (unchanged)
+
 ```typescript
-import { auth } from '@/lib/auth';
+import { auth } from "@/lib/auth";
 ```
 
 The `@/` alias still points to `src/` within each app. No code changes needed!
@@ -180,6 +179,7 @@ npm test
 ### Issue: Docker build fails
 
 **Solution:** Update Docker context:
+
 ```bash
 # Build from infra/docker directory
 cd infra/docker
@@ -187,6 +187,7 @@ docker build -f Dockerfile -t aegis-ai ../..
 ```
 
 Or use the npm script:
+
 ```bash
 npm run docker:build
 ```
@@ -213,18 +214,21 @@ You may want to:
 ## ðŸŽ¯ Next Steps
 
 1. **Test your development environment:**
+
    ```bash
    npm install
    npm run dev
    ```
 
 2. **Verify workers:**
+
    ```bash
    npm run worker
    npm run worker:rag
    ```
 
 3. **Run tests:**
+
    ```bash
    npm test
    ```
@@ -262,4 +266,3 @@ If you encounter issues:
 **Migration Date**: February 10, 2026  
 **Structure Version**: 1.0.0  
 **Breaking Changes**: None (backwards compatible)
-

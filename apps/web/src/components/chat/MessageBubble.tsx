@@ -6,7 +6,15 @@ import rehypeKatex from "rehype-katex";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "katex/dist/katex.min.css";
-import { Bot, User, Copy, Check, ThumbsUp, ThumbsDown, Eye } from "lucide-react";
+import {
+  Bot,
+  User,
+  Copy,
+  Check,
+  ThumbsUp,
+  ThumbsDown,
+  Eye,
+} from "lucide-react";
 import { useState } from "react";
 
 interface MessageBubbleProps {
@@ -16,7 +24,12 @@ interface MessageBubbleProps {
   onArtifactOpen?: (content: string, language: string) => void;
 }
 
-export function MessageBubble({ role, content, onFeedback, onArtifactOpen }: MessageBubbleProps) {
+export function MessageBubble({
+  role,
+  content,
+  onFeedback,
+  onArtifactOpen,
+}: MessageBubbleProps) {
   const isUser = role === "USER";
   const [copied, setCopied] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState<boolean | null>(null);
@@ -46,7 +59,7 @@ export function MessageBubble({ role, content, onFeedback, onArtifactOpen }: Mes
     <div
       className={cn(
         "flex w-full gap-4 md:gap-6 animate-slide-up group",
-        isUser ? "justify-end" : "justify-start"
+        isUser ? "justify-end" : "justify-start",
       )}
     >
       {!isUser && (
@@ -63,7 +76,7 @@ export function MessageBubble({ role, content, onFeedback, onArtifactOpen }: Mes
             "relative max-w-[85%] md:max-w-[75%] rounded-2xl px-5 py-4 shadow-lg text-sm md:text-base leading-7 transition-all duration-200 hover-glow",
             isUser
               ? "bg-linear-to-br from-white to-zinc-50 text-black font-medium rounded-tr-sm shadow-white/5"
-              : "bg-zinc-900/50 backdrop-blur-xl border border-white/10 text-zinc-100 rounded-tl-sm hover:border-white/20 hover:bg-zinc-900/60"
+              : "bg-zinc-900/50 backdrop-blur-xl border border-white/10 text-zinc-100 rounded-tl-sm hover:border-white/20 hover:bg-zinc-900/60",
           )}
         >
           <div className="prose prose-invert prose-sm max-w-none prose-p:my-1 prose-headings:text-zinc-100 prose-a:text-blue-400 prose-a:underline prose-pre:my-2 prose-pre:bg-zinc-900/50 prose-pre:border prose-pre:border-white/10">
@@ -75,41 +88,50 @@ export function MessageBubble({ role, content, onFeedback, onArtifactOpen }: Mes
                   const match = /language-(\w+)/.exec(className || "");
                   const language = match ? match[1] : "";
                   const codeContent = String(children).replace(/\n$/, "");
-                  const isPreviewable = ["html", "svg"].includes(language.toLowerCase());
+                  const isPreviewable = ["html", "svg"].includes(
+                    language.toLowerCase(),
+                  );
 
                   return !inline && match ? (
                     <div className="rounded-lg overflow-hidden my-3 border border-white/10 shadow-lg group/code">
                       <div className="bg-zinc-900/80 px-4 py-1.5 text-xs text-zinc-400 border-b border-white/5 flex justify-between items-center">
-                        <span className="font-mono font-medium text-zinc-500">{language}</span>
+                        <span className="font-mono font-medium text-zinc-500">
+                          {language}
+                        </span>
                         <div className="flex items-center gap-2">
-                            {isPreviewable && onArtifactOpen && (
-                                <button
-                                    onClick={() => onArtifactOpen(codeContent, language)}
-                                    className="flex items-center gap-1 p-1 px-2 rounded text-xs text-purple-400 hover:text-white hover:bg-purple-500/20 transition-colors border border-purple-500/20"
-                                    aria-label="Preview code"
-                                >
-                                    <Eye className="h-3 w-3" />
-                                    Preview
-                                </button>
-                            )}
+                          {isPreviewable && onArtifactOpen && (
                             <button
+                              onClick={() =>
+                                onArtifactOpen(codeContent, language)
+                              }
+                              className="flex items-center gap-1 p-1 px-2 rounded text-xs text-purple-400 hover:text-white hover:bg-purple-500/20 transition-colors border border-purple-500/20"
+                              aria-label="Preview code"
+                            >
+                              <Eye className="h-3 w-3" />
+                              Preview
+                            </button>
+                          )}
+                          <button
                             onClick={() => {
-                                navigator.clipboard.writeText(codeContent);
-                                setCopied(true);
-                                setTimeout(() => setCopied(false), 2000);
+                              navigator.clipboard.writeText(codeContent);
+                              setCopied(true);
+                              setTimeout(() => setCopied(false), 2000);
                             }}
                             className="p-1 rounded text-xs text-zinc-500 hover:text-white hover:bg-white/10 transition-colors"
                             aria-label="Copy code"
-                            >
+                          >
                             {copied ? "Copied!" : "Copy"}
-                            </button>
+                          </button>
                         </div>
                       </div>
                       <SyntaxHighlighter
                         style={vscDarkPlus}
                         language={language}
                         PreTag="div"
-                        customStyle={{ margin: 0, background: 'rgba(0,0,0,0.4)' }}
+                        customStyle={{
+                          margin: 0,
+                          background: "rgba(0,0,0,0.4)",
+                        }}
                         {...props}
                       >
                         {codeContent}
@@ -119,7 +141,7 @@ export function MessageBubble({ role, content, onFeedback, onArtifactOpen }: Mes
                     <code
                       className={cn(
                         "bg-white/10 rounded px-1.5 py-0.5 text-xs font-mono text-purple-200",
-                        className
+                        className,
                       )}
                       {...props}
                     >
@@ -139,7 +161,11 @@ export function MessageBubble({ role, content, onFeedback, onArtifactOpen }: Mes
               className="absolute -bottom-8 left-0 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-1.5 px-3 py-1.5 text-xs text-zinc-400 hover:text-white bg-zinc-800/80 hover:bg-zinc-700/80 rounded-lg border border-white/10"
               aria-label="Copy message"
             >
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? (
+                <Check className="h-3.5 w-3.5 text-emerald-400" />
+              ) : (
+                <Copy className="h-3.5 w-3.5" />
+              )}
               {copied ? "Copied!" : "Copy"}
             </button>
           )}
@@ -155,7 +181,7 @@ export function MessageBubble({ role, content, onFeedback, onArtifactOpen }: Mes
                 "p-1.5 rounded-lg transition-all",
                 feedbackGiven === true
                   ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                  : "text-zinc-500 hover:text-emerald-400 hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/30"
+                  : "text-zinc-500 hover:text-emerald-400 hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/30",
               )}
               aria-label="Helpful"
             >
@@ -167,7 +193,7 @@ export function MessageBubble({ role, content, onFeedback, onArtifactOpen }: Mes
                 "p-1.5 rounded-lg transition-all",
                 feedbackGiven === false
                   ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                  : "text-zinc-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/30"
+                  : "text-zinc-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/30",
               )}
               aria-label="Not helpful"
             >

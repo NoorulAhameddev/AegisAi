@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Tabs } from '@/components/ui/Tabs';
-import { BookOpen, Plus, Trash2, RefreshCw } from 'lucide-react';
+import React, { useState } from "react";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Tabs } from "@/components/ui/Tabs";
+import { BookOpen, Plus, Trash2, RefreshCw } from "lucide-react";
 
 interface Flashcard {
   id: string;
   question: string;
   answer: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
   mastered: boolean;
 }
 
@@ -19,11 +19,14 @@ interface FlashcardGeneratorProps {
   loading?: boolean;
 }
 
-export function FlashcardGenerator({ onGenerate, loading = false }: FlashcardGeneratorProps) {
+export function FlashcardGenerator({
+  onGenerate,
+  loading = false,
+}: FlashcardGeneratorProps) {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [tab, setTab] = useState<'study' | 'list'>('study');
+  const [tab, setTab] = useState<"study" | "list">("study");
 
   const handleGenerate = async () => {
     const cards = await onGenerate();
@@ -62,7 +65,7 @@ export function FlashcardGenerator({ onGenerate, loading = false }: FlashcardGen
           disabled={loading}
           className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-6 rounded-lg transition"
         >
-          {loading ? 'Generating...' : 'Generate Flashcards'}
+          {loading ? "Generating..." : "Generate Flashcards"}
         </button>
       </Card>
     );
@@ -89,21 +92,21 @@ export function FlashcardGenerator({ onGenerate, loading = false }: FlashcardGen
       {/* Tabs */}
       <div className="flex gap-2">
         <button
-          onClick={() => setTab('study')}
+          onClick={() => setTab("study")}
           className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
-            tab === 'study'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            tab === "study"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
         >
           Study Mode
         </button>
         <button
-          onClick={() => setTab('list')}
+          onClick={() => setTab("list")}
           className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
-            tab === 'list'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            tab === "list"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
         >
           All Cards
@@ -111,7 +114,7 @@ export function FlashcardGenerator({ onGenerate, loading = false }: FlashcardGen
       </div>
 
       {/* Study Mode */}
-      {tab === 'study' && currentCard && (
+      {tab === "study" && currentCard && (
         <div className="space-y-4">
           <p className="text-sm text-center text-gray-500">
             Card {currentIndex + 1} of {flashcards.length}
@@ -124,7 +127,7 @@ export function FlashcardGenerator({ onGenerate, loading = false }: FlashcardGen
           >
             <div className="text-center text-white">
               <p className="text-sm opacity-70 mb-4">
-                {isFlipped ? 'ANSWER' : 'QUESTION'}
+                {isFlipped ? "ANSWER" : "QUESTION"}
               </p>
               <p className="text-2xl font-semibold leading-relaxed">
                 {isFlipped ? currentCard.answer : currentCard.question}
@@ -137,11 +140,11 @@ export function FlashcardGenerator({ onGenerate, loading = false }: FlashcardGen
           <div className="flex justify-center">
             <Badge
               variant={
-                currentCard.difficulty === 'easy'
-                  ? 'success'
-                  : currentCard.difficulty === 'medium'
-                    ? 'warning'
-                    : 'error'
+                currentCard.difficulty === "easy"
+                  ? "success"
+                  : currentCard.difficulty === "medium"
+                    ? "warning"
+                    : "error"
               }
             >
               {currentCard.difficulty.toUpperCase()}
@@ -169,13 +172,15 @@ export function FlashcardGenerator({ onGenerate, loading = false }: FlashcardGen
       )}
 
       {/* List View */}
-      {tab === 'list' && (
+      {tab === "list" && (
         <div className="space-y-2 max-h-96 overflow-y-auto">
           {flashcards.map((card, idx) => (
             <Card key={card.id} className="p-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{card.question}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {card.question}
+                  </p>
                   <p className="text-sm text-gray-600 mt-1">{card.answer}</p>
                 </div>
                 <div className="flex gap-2 ml-2">
@@ -185,7 +190,7 @@ export function FlashcardGenerator({ onGenerate, loading = false }: FlashcardGen
                     </Badge>
                   )}
                   <Badge
-                    variant={card.difficulty === 'easy' ? 'success' : 'warning'}
+                    variant={card.difficulty === "easy" ? "success" : "warning"}
                     className="text-xs"
                   >
                     {card.difficulty}

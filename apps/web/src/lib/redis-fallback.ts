@@ -1,16 +1,16 @@
 /**
  * Redis Fallback Mechanism
- * 
+ *
  * Provides in-memory fallbacks when Redis is unavailable
  * Ensures application continues to function in degraded mode
- * 
+ *
  * Fallback Strategies:
  * - Rate limiting: In-memory LRU cache per instance
  * - Caching: In-memory cache with TTL
  * - Session tracking: PostgreSQL fallback
  */
 
-import { logger } from './logger';
+import { logger } from "./logger";
 
 /**
  * In-memory LRU cache with TTL support
@@ -146,7 +146,7 @@ export class RedisHealthTracker {
     this.lastFailure = Date.now();
     this.failureCount++;
 
-    logger.warn('Redis connection failed', {
+    logger.warn("Redis connection failed", {
       failureCount: this.failureCount,
       lastFailure: new Date(Date.now()).toISOString(),
     });
@@ -158,7 +158,7 @@ export class RedisHealthTracker {
     this.failureCount = 0;
 
     if (wasUnhealthy) {
-      logger.info('Redis connection recovered');
+      logger.info("Redis connection recovered");
     }
   }
 
@@ -190,7 +190,7 @@ export const redisHealthTracker = new RedisHealthTracker();
 export async function withRedisFallback<T>(
   operation: () => Promise<T>,
   fallback: () => T | Promise<T>,
-  operationName: string = 'redis-operation'
+  operationName: string = "redis-operation",
 ): Promise<T> {
   try {
     const result = await operation();
@@ -199,11 +199,14 @@ export async function withRedisFallback<T>(
   } catch (error) {
     logger.error(`Redis operation failed: ${operationName}`, error as Error);
     redisHealthTracker.markFailure();
-    
+
     try {
       return await fallback();
     } catch (fallbackError) {
-      logger.error(`Fallback failed for ${operationName}`, fallbackError as Error);
+      logger.error(
+        `Fallback failed for ${operationName}`,
+        fallbackError as Error,
+      );
       throw fallbackError;
     }
   }

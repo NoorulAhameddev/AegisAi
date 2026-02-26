@@ -3,17 +3,17 @@
  * Handles DALL-E image generation and processing
  */
 
-import { openai } from './openai';
-import { logger } from '@/lib/logger';
-import { prisma } from '@/lib/prisma';
-import { encrypt } from '@/lib/encryption';
-import { notifyUser } from '@/services/realtime';
+import { openai } from "./openai";
+import { logger } from "@/lib/logger";
+import { prisma } from "@/lib/prisma";
+import { encrypt } from "@/lib/encryption";
+import { notifyUser } from "@/services/realtime";
 
 export interface GenerateImageOptions {
   prompt: string;
-  size?: '256x256' | '512x512' | '1024x1024' | '1792x1024' | '1024x1792';
-  quality?: 'standard' | 'hd';
-  style?: 'natural' | 'vivid';
+  size?: "256x256" | "512x512" | "1024x1024" | "1792x1024" | "1024x1792";
+  quality?: "standard" | "hd";
+  style?: "natural" | "vivid";
   numImages?: number;
   seed?: number;
 }
@@ -30,18 +30,18 @@ export interface GeneratedImage {
 export async function generateImages(
   userId: string,
   options: GenerateImageOptions,
-  requestId?: string
+  requestId?: string,
 ): Promise<GeneratedImage[]> {
   try {
     const {
       prompt,
-      size = '1024x1024',
-      quality = 'standard',
-      style = 'natural',
+      size = "1024x1024",
+      quality = "standard",
+      style = "natural",
       numImages = 1,
     } = options;
 
-    logger.worker('image-gen', 'started', {
+    logger.worker("image-gen", "started", {
       userId,
       promptLength: prompt.length,
       size,
@@ -52,22 +52,22 @@ export async function generateImages(
 
     // Validate prompt
     if (prompt.length < 1 || prompt.length > 4000) {
-      throw new Error('Prompt must be between 1 and 4000 characters');
+      throw new Error("Prompt must be between 1 and 4000 characters");
     }
 
     // Call DALL-E 3 API
     const response = await openai.images.generate({
-      model: 'dall-e-3',
+      model: "dall-e-3",
       prompt: sanitizePrompt(prompt),
       n: Math.min(Math.max(numImages, 1), 10), // Clamp to 1-10
       size: size as any,
       quality: quality as any,
       style: style as any,
-      response_format: 'url',
+      response_format: "url",
     });
 
     if (!response.data || response.data.length === 0) {
-      throw new Error('Failed to generate images');
+      throw new Error("Failed to generate images");
     }
 
     // Process generated images
@@ -81,11 +81,11 @@ export async function generateImages(
       try {
         await saveGeneratedImage(userId, prompt, image);
       } catch (err) {
-        logger.error('Failed to save image record', err as Error, { userId });
+        logger.error("Failed to save image record", err as Error, { userId });
       }
     }
 
-    logger.worker('image-gen', 'completed', {
+    logger.worker("image-gen", "completed", {
       userId,
       imagesGenerated: images.length,
       requestId,
@@ -93,7 +93,10 @@ export async function generateImages(
 
     return images;
   } catch (error) {
-    logger.error('Image generation failed', error as Error, { userId, requestId });
+    logger.error("Image generation failed", error as Error, {
+      userId,
+      requestId,
+    });
     throw error;
   }
 }
@@ -104,14 +107,17 @@ export async function generateImages(
 export async function generateImagesWithProgress(
   userId: string,
   options: GenerateImageOptions,
-  onProgress?: (message: string) => void
+  onProgress?: (message: string) => void,
 ): Promise<GeneratedImage[]> {
   try {
-    if (onProgress) onProgress('Validating prompt...');
+    if (onProgress) onProgress("Validating prompt...");
     const sanitized = sanitizePrompt(options.prompt);
 
-    if (onProgress) onProgress('Sending request to DALL-E...');
-    const images = await generateImages(userId, { ...options, prompt: sanitized });
+    if (onProgress) onProgress("Sending request to DALL-E...");
+    const images = await generateImages(userId, {
+      ...options,
+      prompt: sanitized,
+    });
 
     if (onProgress) onProgress(`Generated ${images.length} image(s)`);
 
@@ -128,7 +134,7 @@ export async function generateImagesWithProgress(
 export async function saveGeneratedImage(
   userId: string,
   originalPrompt: string,
-  image: GeneratedImage
+  image: GeneratedImage,
 ) {
   try {
     const encryptedUrl = await encrypt(image.url);
@@ -143,7 +149,7 @@ export async function saveGeneratedImage(
       },
     });
   } catch (error) {
-    logger.error('Failed to save generated image', error as Error, { userId });
+    logger.error("Failed to save generated image", error as Error, { userId });
     throw error;
   }
 }
@@ -154,19 +160,21 @@ export async function saveGeneratedImage(
 export async function getUserGeneratedImages(
   userId: string,
   limit: number = 50,
-  offset: number = 0
+  offset: number = 0,
 ) {
   try {
     const images = await prisma.generatedImage.findMany({
       where: { userId },
-      orderBy: { generatedAt: 'desc' },
+      orderBy: { generatedAt: "desc" },
       take: limit,
       skip: offset,
     });
 
     return images;
   } catch (error) {
-    logger.error('Failed to fetch generated images', error as Error, { userId });
+    logger.error("Failed to fetch generated images", error as Error, {
+      userId,
+    });
     return [];
   }
 }
@@ -181,16 +189,16 @@ export async function deleteGeneratedImage(imageId: string, userId: string) {
     });
 
     if (!image || image.userId !== userId) {
-      throw new Error('Image not found or access denied');
+      throw new Error("Image not found or access denied");
     }
 
     await prisma.generatedImage.delete({
       where: { id: imageId },
     });
 
-    logger.worker('image-gen', 'image_deleted', { userId, imageId });
+    logger.worker("image-gen", "image_deleted", { userId, imageId });
   } catch (error) {
-    logger.error('Failed to delete image', error as Error, { userId, imageId });
+    logger.error("Failed to delete image", error as Error, { userId, imageId });
     throw error;
   }
 }
@@ -213,20 +221,20 @@ export function sanitizePrompt(prompt: string): string {
   for (const pattern of harmfulPatterns) {
     if (pattern.test(sanitized)) {
       // Log attempt
-      logger.security('Potentially harmful image prompt detected', {
+      logger.security("Potentially harmful image prompt detected", {
         reason: `Pattern matched: ${pattern}`,
       });
-      throw new Error('Prompt contains inappropriate content');
+      throw new Error("Prompt contains inappropriate content");
     }
   }
 
   // Enhance prompt with quality keywords
   const enhancements = [
-    'high quality',
-    'detailed',
-    'professional',
-    'vivid colors',
-    'well-composed',
+    "high quality",
+    "detailed",
+    "professional",
+    "vivid colors",
+    "well-composed",
   ];
 
   // Don't over-enhance if prompt is already descriptive
@@ -247,38 +255,57 @@ export function detectImageRequest(message: string): {
   style?: string;
   quality?: string;
 } {
-  const imageKeywords = ['generate image', 'create image', 'draw', 'paint', 'design', 'illustrate'];
+  const imageKeywords = [
+    "generate image",
+    "create image",
+    "draw",
+    "paint",
+    "design",
+    "illustrate",
+  ];
   const lowerMessage = message.toLowerCase();
 
-  const isImageRequest = imageKeywords.some((keyword) => lowerMessage.includes(keyword));
+  const isImageRequest = imageKeywords.some((keyword) =>
+    lowerMessage.includes(keyword),
+  );
 
   if (!isImageRequest) {
     return { isImageRequest: false };
   }
 
   // Extract style if mentioned
-  let style = 'natural';
-  if (lowerMessage.includes('realistic') || lowerMessage.includes('photorealistic')) {
-    style = 'natural';
-  } else if (lowerMessage.includes('artistic') || lowerMessage.includes('vivid')) {
-    style = 'vivid';
+  let style = "natural";
+  if (
+    lowerMessage.includes("realistic") ||
+    lowerMessage.includes("photorealistic")
+  ) {
+    style = "natural";
+  } else if (
+    lowerMessage.includes("artistic") ||
+    lowerMessage.includes("vivid")
+  ) {
+    style = "vivid";
   }
 
   // Extract quality if mentioned
-  let quality = 'standard';
-  if (lowerMessage.includes('high quality') || lowerMessage.includes('hd') || lowerMessage.includes('ultra')) {
-    quality = 'hd';
+  let quality = "standard";
+  if (
+    lowerMessage.includes("high quality") ||
+    lowerMessage.includes("hd") ||
+    lowerMessage.includes("ultra")
+  ) {
+    quality = "hd";
   }
 
   // Extract prompt (remove image generation keywords)
   let prompt = message;
   for (const keyword of imageKeywords) {
-    prompt = prompt.replace(new RegExp(keyword, 'gi'), '').trim();
+    prompt = prompt.replace(new RegExp(keyword, "gi"), "").trim();
   }
 
   return {
     isImageRequest: true,
-    prompt: prompt || 'a professional artwork',
+    prompt: prompt || "a professional artwork",
     style: style as any,
     quality: quality as any,
   };
@@ -290,7 +317,7 @@ export function detectImageRequest(message: string): {
 export async function generateImageBatch(
   userId: string,
   prompts: string[],
-  options?: Partial<GenerateImageOptions>
+  options?: Partial<GenerateImageOptions>,
 ) {
   const results = [];
 

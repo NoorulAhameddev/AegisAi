@@ -3,6 +3,7 @@ import { X, Code, Eye, Maximize2, Minimize2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import DOMPurify from "isomorphic-dompurify";
 
 interface ArtifactsPanelProps {
   isOpen: boolean;
@@ -129,7 +130,11 @@ export function ArtifactsPanel({
             {language === "svg" && (
               <div
                 className="w-full h-full flex items-center justify-center bg-[url('/grid.svg')] bg-zinc-900"
-                dangerouslySetInnerHTML={{ __html: content }}
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(content, {
+                    USE_PROFILES: { svg: true },
+                  }),
+                }}
               />
             )}
           </div>

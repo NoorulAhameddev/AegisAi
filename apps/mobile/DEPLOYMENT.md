@@ -135,7 +135,6 @@ eas build --platform ios --profile production
 ### Submit to App Store
 
 1. **Configure App Store Connect:**
-
    - Create app in App Store Connect
    - Fill in metadata
    - Upload screenshots
@@ -148,7 +147,6 @@ eas build --platform ios --profile production
    ```
 
 3. **TestFlight Testing:**
-
    - Internal testing: Up to 100 testers
    - External testing: Up to 10,000 testers
    - Beta review required for external testing
@@ -403,7 +401,6 @@ eas update --branch production --message "Bug fixes and improvements"
 ### Beta Testing
 
 1. **TestFlight (iOS)**
-
    - Add internal testers
    - Collect feedback
    - Fix critical issues

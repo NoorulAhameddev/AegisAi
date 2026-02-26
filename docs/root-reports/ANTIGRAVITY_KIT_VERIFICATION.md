@@ -6,17 +6,17 @@
 
 ```powershell
 # Check if .agent folder exists
-if (Test-Path "d:\Aegis-Ai\.agent") { 
-    Write-Host "✅ .agent folder installed" -ForegroundColor Green 
-} else { 
-    Write-Host "❌ .agent folder missing" -ForegroundColor Red 
+if (Test-Path "d:\Aegis-Ai\.agent") {
+    Write-Host "✅ .agent folder installed" -ForegroundColor Green
+} else {
+    Write-Host "❌ .agent folder missing" -ForegroundColor Red
 }
 
 # Check Git exclude
-if (Get-Content ".git\info\exclude" | Select-String ".agent/") { 
-    Write-Host "✅ Git exclude configured" -ForegroundColor Green 
-} else { 
-    Write-Host "❌ Git exclude not configured" -ForegroundColor Red 
+if (Get-Content ".git\info\exclude" | Select-String ".agent/") {
+    Write-Host "✅ Git exclude configured" -ForegroundColor Green
+} else {
+    Write-Host "❌ Git exclude not configured" -ForegroundColor Red
 }
 
 # List installed components
@@ -52,6 +52,7 @@ Write-Host "Workflows: $((Get-ChildItem .agent\workflows -Filter *.md).Count)"
 #### Option B: Agent Invocation
 
 In Copilot Chat, try:
+
 ```
 @frontend-specialist What are React best practices for this project?
 ```
@@ -110,6 +111,7 @@ Expected: 🤖 Using @database-architect + @performance-optimizer
 **Symptoms**: Typing `/` shows no antigravity commands
 
 **Solutions**:
+
 ```powershell
 # 1. Verify .agent folder exists and has content
 Get-ChildItem .agent -Recurse | Select-Object FullName
@@ -130,6 +132,7 @@ code .vscode\settings.json
 **Symptoms**: AI responds without mentioning agents
 
 **Solutions**:
+
 1. **Restart VS Code** completely (close all instances)
 2. **Check Copilot Status**: Ensure GitHub Copilot is active
 3. **Try explicit mention**: `@frontend-specialist help me`
@@ -140,6 +143,7 @@ code .vscode\settings.json
 **Symptoms**: `git status` shows .agent as untracked
 
 **Solutions**:
+
 ```powershell
 # Verify exclude file
 Get-Content .git\info\exclude
@@ -156,6 +160,7 @@ Add-Content -Path ".git\info\exclude" -Value "`n.agent/`n"
 **Symptoms**: Agents behave differently than docs describe
 
 **Solutions**:
+
 ```powershell
 # Update to latest version
 ag-kit update
@@ -233,10 +238,10 @@ Create a test file to verify agent knowledge:
 
 /**
  * Test file for Antigravity Kit verification
- * 
+ *
  * Ask in Copilot Chat:
  * "@frontend-specialist Review this React component for best practices"
- * 
+ *
  * Expected: AI should identify issues with state management,
  * naming conventions, and suggest improvements based on
  * react-best-practices skill
@@ -246,7 +251,7 @@ import { useState } from 'react';
 
 export default function TestComponent() {
   const [data, setData] = useState<any>(null); // Poor typing
-  
+
   const handleClick = async () => {
     // Missing error handling
     const result = await fetch('/api/test');
@@ -254,7 +259,7 @@ export default function TestComponent() {
   };
 
   return (
-    <div onClick={handleClick}> 
+    <div onClick={handleClick}>
       {/* Accessibility issues */}
       {data && <p>{data}</p>}
     </div>
@@ -263,6 +268,7 @@ export default function TestComponent() {
 ```
 
 Ask AI to review this file. A successful integration will provide:
+
 - ✅ Specific React best practices violations
 - ✅ Type safety improvements
 - ✅ Accessibility recommendations
@@ -303,12 +309,12 @@ ag-kit status
 
 Test response quality:
 
-| Test | Without Antigravity | With Antigravity |
-|------|---------------------|------------------|
-| "Build auth system" | Generic code | Specialist-level security patterns |
-| "Fix bug" | Trial-and-error | Systematic debugging approach |
-| "Optimize code" | Basic suggestions | Performance profiling + metrics |
-| "Design UI" | Standard layout | 50 design styles + accessibility |
+| Test                | Without Antigravity | With Antigravity                   |
+| ------------------- | ------------------- | ---------------------------------- |
+| "Build auth system" | Generic code        | Specialist-level security patterns |
+| "Fix bug"           | Trial-and-error     | Systematic debugging approach      |
+| "Optimize code"     | Basic suggestions   | Performance profiling + metrics    |
+| "Design UI"         | Standard layout     | 50 design styles + accessibility   |
 
 ## Next Steps After Verification
 
@@ -321,6 +327,7 @@ Test response quality:
 ---
 
 **Questions or Issues?**
+
 - 📖 [Full Documentation](./ANTIGRAVITY_KIT_GUIDE.md)
 - 🌐 [Official Site](https://antigravity-kit.vercel.app)
 - 💻 [GitHub Repo](https://github.com/vudovn/antigravity-kit)

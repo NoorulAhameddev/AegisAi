@@ -4,71 +4,80 @@
 
 ### Core Fixes
 
-| Issue | File | Type | Status |
-|-------|------|------|--------|
-| **RBAC Incomplete** | `src/lib/rbac.ts` | Modified | ✅ All 5 roles implemented |
-| **No API Consistency** | `src/lib/response.ts` | Created | ✅ Standardized responses |
+| Issue                    | File                     | Type     | Status                     |
+| ------------------------ | ------------------------ | -------- | -------------------------- |
+| **RBAC Incomplete**      | `src/lib/rbac.ts`        | Modified | ✅ All 5 roles implemented |
+| **No API Consistency**   | `src/lib/response.ts`    | Created  | ✅ Standardized responses  |
 | **Missing Sanitization** | `src/lib/validations.ts` | Modified | ✅ Integrated into schemas |
-| **Weak Error Handling** | `src/lib/logger.ts` | Modified | ✅ Error tracking ready |
-| **JWT in Routes** | `middleware.ts` | Modified | ✅ Moved to middleware |
-| **Rate Limit Race** | `src/lib/rate-limit.ts` | Modified | ✅ Atomic Lua script |
-| **No Env Validation** | `src/lib/env.ts` | Created | ✅ Complete validation |
-| **Single Key Version** | `src/lib/encryption.ts` | Modified | ✅ Key versioning added |
-| **No Token Rotation** | `src/lib/session.ts` | Modified | ✅ Full rotation support |
-| **Zero Tests** | `src/__tests__/` | Created | ✅ 150+ test cases |
+| **Weak Error Handling**  | `src/lib/logger.ts`      | Modified | ✅ Error tracking ready    |
+| **JWT in Routes**        | `middleware.ts`          | Modified | ✅ Moved to middleware     |
+| **Rate Limit Race**      | `src/lib/rate-limit.ts`  | Modified | ✅ Atomic Lua script       |
+| **No Env Validation**    | `src/lib/env.ts`         | Created  | ✅ Complete validation     |
+| **Single Key Version**   | `src/lib/encryption.ts`  | Modified | ✅ Key versioning added    |
+| **No Token Rotation**    | `src/lib/session.ts`     | Modified | ✅ Full rotation support   |
+| **Zero Tests**           | `src/__tests__/`         | Created  | ✅ 150+ test cases         |
 
 ### Configuration
 
-| File | Type | Purpose |
-|------|------|---------|
-| `jest.config.ts` | Created | Jest test configuration |
-| `jest.setup.ts` | Created | Jest setup hooks |
-| `package.json` | Modified | Added test scripts & deps |
+| File             | Type     | Purpose                   |
+| ---------------- | -------- | ------------------------- |
+| `jest.config.ts` | Created  | Jest test configuration   |
+| `jest.setup.ts`  | Created  | Jest setup hooks          |
+| `package.json`   | Modified | Added test scripts & deps |
 
 ---
 
 ## Quick Usage Guide
 
 ### 1. Use Standardized Responses
+
 ```typescript
-import { successResponse, errorResponse } from '@/lib/response';
+import { successResponse, errorResponse } from "@/lib/response";
 
 export async function POST(req: NextRequest) {
   try {
-    return successResponse({ data: 'value' });
+    return successResponse({ data: "value" });
   } catch (error) {
-    return errorResponse('Something went wrong', { status: 500 });
+    return errorResponse("Something went wrong", { status: 500 });
   }
 }
 ```
 
 ### 2. Check Permissions
+
 ```typescript
-import { hasPermission, requirePermission } from '@/lib/rbac';
+import { hasPermission, requirePermission } from "@/lib/rbac";
 
 // Soft check
-if (!hasPermission(user.role, 'user:ban')) {
+if (!hasPermission(user.role, "user:ban")) {
   return forbiddenResponse();
 }
 
 // Hard check (throws)
-requirePermission(user.role, 'system:configure');
+requirePermission(user.role, "system:configure");
 ```
 
 ### 3. Rotate Tokens
+
 ```typescript
-import { rotateTokens, revokeAllSessions } from '@/lib/session';
+import { rotateTokens, revokeAllSessions } from "@/lib/session";
 
 // After password change
-await revokeAllSessions(userId, 'Password changed');
+await revokeAllSessions(userId, "Password changed");
 
 // Refresh access token
 const { accessToken } = await rotateTokens(userId, refreshToken, userAgent, ip);
 ```
 
 ### 4. Encrypt Sensitive Data
+
 ```typescript
-import { encrypt, decrypt, needsKeyRotation, rotateKey } from '@/lib/encryption';
+import {
+  encrypt,
+  decrypt,
+  needsKeyRotation,
+  rotateKey,
+} from "@/lib/encryption";
 
 // Encrypt (includes version)
 const encrypted = encrypt(sensitiveData);
@@ -83,30 +92,33 @@ if (needsKeyRotation(encrypted)) {
 ```
 
 ### 5. Track Errors
+
 ```typescript
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 // Manual error tracking
-logger.trackError(error, { userId, action: 'login' });
+logger.trackError(error, { userId, action: "login" });
 
 // Security events (auto-tracked)
-logger.security('Unauthorized access attempt', { ip, path });
+logger.security("Unauthorized access attempt", { ip, path });
 
 // Structured logging
-logger.auth('Login successful', { userId });
-logger.db('SELECT', 'users', duration);
+logger.auth("Login successful", { userId });
+logger.db("SELECT", "users", duration);
 ```
 
 ### 6. Validate Environment
+
 ```typescript
 // Auto-validates on import
-import { env } from '@/lib/env';
+import { env } from "@/lib/env";
 
 // Throws if invalid
 const apiKey = env.OPENAI_API_KEY;
 ```
 
 ### 7. Run Tests
+
 ```bash
 npm test                  # Run all tests
 npm run test:watch       # Watch mode
@@ -118,6 +130,7 @@ npm run test:coverage    # Coverage report
 ## Key Implementation Details
 
 ### RBAC Hierarchy
+
 ```
 SUPER_ADMIN (13 permissions)
 ├─ ADMIN (11 permissions)
@@ -127,6 +140,7 @@ SUPER_ADMIN (13 permissions)
 ```
 
 ### Encryption Format
+
 ```
 Before: iv:authTag:encrypted
 After:  v1:iv:authTag:encrypted (backward compatible)
@@ -134,6 +148,7 @@ Future: v2:iv:authTag:encrypted (supports key rotation)
 ```
 
 ### API Response Structure
+
 ```typescript
 interface ApiResponse<T> {
   success: boolean;
@@ -146,6 +161,7 @@ interface ApiResponse<T> {
 ```
 
 ### Middleware JWT Flow
+
 ```
 Request
   ↓
@@ -159,6 +175,7 @@ Response (with standardized format)
 ```
 
 ### Rate Limiting (Atomic)
+
 ```
 Redis.eval(Lua Script, [key, limit, window])
   ├─ INCR key (atomic)
@@ -171,35 +188,39 @@ Redis.eval(Lua Script, [key, limit, window])
 ## Testing Patterns
 
 ### Test Encryption
-```typescript
-import { encrypt, decrypt } from '@/lib/encryption';
 
-const encrypted = encrypt('secret');
-expect(decrypt(encrypted)).toBe('secret');
+```typescript
+import { encrypt, decrypt } from "@/lib/encryption";
+
+const encrypted = encrypt("secret");
+expect(decrypt(encrypted)).toBe("secret");
 ```
 
 ### Test RBAC
-```typescript
-import { hasPermission } from '@/lib/rbac';
 
-expect(hasPermission('ADMIN', 'user:ban')).toBe(true);
-expect(hasPermission('USER', 'user:ban')).toBe(false);
+```typescript
+import { hasPermission } from "@/lib/rbac";
+
+expect(hasPermission("ADMIN", "user:ban")).toBe(true);
+expect(hasPermission("USER", "user:ban")).toBe(false);
 ```
 
 ### Test Auth
-```typescript
-import { signAccessToken, verifyAccessToken } from '@/lib/auth';
 
-const token = signAccessToken({ userId: '123', tokenVersion: 1 });
+```typescript
+import { signAccessToken, verifyAccessToken } from "@/lib/auth";
+
+const token = signAccessToken({ userId: "123", tokenVersion: 1 });
 const verified = verifyAccessToken(token);
-expect(verified.userId).toBe('123');
+expect(verified.userId).toBe("123");
 ```
 
 ### Test Sanitization
-```typescript
-import { sanitize } from '@/lib/security';
 
-expect(sanitize('<script>')).toBe('&lt;script&gt;');
+```typescript
+import { sanitize } from "@/lib/security";
+
+expect(sanitize("<script>")).toBe("&lt;script&gt;");
 ```
 
 ---
@@ -231,13 +252,13 @@ NODE_ENV=production
 
 ## Performance Considerations
 
-| Component | Optimization |
-|-----------|--------------|
-| JWT Verification | Moved to middleware (single check) |
-| Rate Limiting | Atomic Lua script (no race condition) |
-| Session Cleanup | Async task (run during low traffic) |
-| Encryption | Key versioning supports async rotation |
-| Logging | Conditional (debug logs in dev only) |
+| Component        | Optimization                           |
+| ---------------- | -------------------------------------- |
+| JWT Verification | Moved to middleware (single check)     |
+| Rate Limiting    | Atomic Lua script (no race condition)  |
+| Session Cleanup  | Async task (run during low traffic)    |
+| Encryption       | Key versioning supports async rotation |
+| Logging          | Conditional (debug logs in dev only)   |
 
 ---
 

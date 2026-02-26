@@ -23,3 +23,10 @@ jobs:
           project: 'Aegis-AI'
           path: '.'
           format: 'JSON'
+
+      - name: Run gitleaks secret scan
+        uses: zricethezav/gitleaks-action@v2
+        with:
+          args: '--staged --exit-code 1'
+        env:
+          GITLEAKS_ARGS: '--no-git' # allow action to run in CI checkout

@@ -22,7 +22,7 @@ Configured BullMQ workers to use a centralized, environment-driven concurrency s
 **After**: Concurrency explicitly set from environment.
 
 ```typescript
-const worker = new Worker(chatQueue.name, async job => processChatJob(job), {
+const worker = new Worker(chatQueue.name, async (job) => processChatJob(job), {
   connection,
   concurrency: env.WORKER_CONCURRENCY,
   settings: {
@@ -41,17 +41,21 @@ const worker = new Worker(chatQueue.name, async job => processChatJob(job), {
 **After**: Concurrency explicitly set from environment.
 
 ```typescript
-const worker = new Worker(ragQueue.name, async job => {
-  // ...
-}, {
-  connection,
-  concurrency: env.WORKER_CONCURRENCY,
-  settings: {
-    stalledInterval: 60000,
-    maxStalledCount: 2,
+const worker = new Worker(
+  ragQueue.name,
+  async (job) => {
+    // ...
   },
-  lockDuration: 300000,
-});
+  {
+    connection,
+    concurrency: env.WORKER_CONCURRENCY,
+    settings: {
+      stalledInterval: 60000,
+      maxStalledCount: 2,
+    },
+    lockDuration: 300000,
+  },
+);
 ```
 
 ---
@@ -63,16 +67,16 @@ const worker = new Worker(ragQueue.name, async job => {
 **File**: [apps/web/src/lib/env.ts](../../apps/web/src/lib/env.ts)
 
 ```typescript
-WORKER_CONCURRENCY: z.coerce.number().int().positive().default(5)
+WORKER_CONCURRENCY: z.coerce.number().int().positive().default(5);
 ```
 
 ### Recommended Starting Values
 
-| Environment | Suggested Concurrency | Rationale |
-|-------------|------------------------|-----------|
-| Development | 1-2 | Avoid local CPU/DB contention |
-| Staging | 3-4 | Validate stability under load |
-| Production | 5 | Balanced throughput vs DB pool |
+| Environment | Suggested Concurrency | Rationale                      |
+| ----------- | --------------------- | ------------------------------ |
+| Development | 1-2                   | Avoid local CPU/DB contention  |
+| Staging     | 3-4                   | Validate stability under load  |
+| Production  | 5                     | Balanced throughput vs DB pool |
 
 ---
 
@@ -85,6 +89,7 @@ Total DB connections ≈ (workers × concurrency) + (api_instances × expected_r
 ```
 
 Example (current docs):
+
 - Workers: 4
 - Concurrency: 5
 - API instances: 2
@@ -94,6 +99,7 @@ Example (current docs):
 Total: $(4 × 5) + (2 × 20) + 15 = 75$ connections
 
 Update `DATABASE_URL` connection limit accordingly:
+
 ```
 postgresql://user:pass@host:5432/db?connection_limit=75&pool_timeout=30&connect_timeout=10
 ```

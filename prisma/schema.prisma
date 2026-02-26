@@ -4,6 +4,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // NOTE: VS Code Prisma extension shows deprecation warning for Prisma 7+
+  // We are on Prisma 5.17.0 where this syntax is valid and correct
+  // Migration to Prisma 7 config pattern planned for Q2 2026
   url      = env("DATABASE_URL")
 }
 
@@ -52,6 +55,9 @@ model Chat {
   projectId String?
   title     String?   @db.VarChar(255)
   
+  // Character/Persona field
+  characterId String? // Selected AI character preset for this chat
+  
   // Collaboration fields
   isShared  Boolean   @default(false)  // Whether chat is shared with others
   shareToken String?  @unique @db.VarChar(255) // Public share link token (optional)
@@ -62,6 +68,7 @@ model Chat {
   
   User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   Project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  Character CharacterPreset? @relation(fields: [characterId], references: [id], onDelete: SetNull)
   Message   Message[]
   ConversationSummary ConversationSummary[]
   UserPresence UserPresence[]
@@ -71,9 +78,46 @@ model Chat {
 
   @@index([userId, createdAt])
   @@index([projectId])
+  @@index([characterId])
   @@index([deletedAt]) // Index soft delete for fast filtering
   @@index([isShared])
   @@index([shareToken])
+}
+
+model CharacterPreset {
+  id            String   @id @default(uuid())
+  userId        String?  // NULL = system preset (admin-created), non-NULL = user-created
+  name          String   @db.VarChar(255)
+  description   String?  @db.Text
+  avatar        String?  @db.VarChar(500) // Emoji or image URL
+  systemPrompt  String   @db.Text
+  temperature   Float    @default(0.7)
+  model         String   @db.VarChar(100) @default("openai/gpt-4o-mini")
+  maxTokens     Int?     // Optional token limit override
+  
+  // Visibility & permissions
+  isPublic      Boolean  @default(false) // Available to all users
+  isSystem      Boolean  @default(false) // Admin-created, cannot be deleted by users
+  isActive      Boolean  @default(true)  // Soft delete
+  
+  // Metadata
+  tags          String[] @default([])
+  category      String?  @db.VarChar(100) // "Education", "Coding", "Creative", etc.
+  usageCount    Int      @default(0) // Popularity tracking
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  User User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Chat Chat[]
+  
+  @@index([userId, isActive])
+  @@index([isPublic, isActive])
+  @@index([isSystem, isActive])
+  @@index([category])
+  @@index([tags])
+  @@index([usageCount])
 }
 
 model File {
@@ -150,6 +194,7 @@ model Message {
   @@index([chatId, createdAt])
   @@index([chatId, role])
   @@index([chatId, role, contentHash])
+  @@index([chatId, deletedAt, createdAt]) // Composite for chat history pagination
   @@index([deletedAt]) // Index soft delete for fast filtering
   @@index([flagged])   // Index for admin moderation review
 }
@@ -404,6 +449,11 @@ model User {
   isBanned            Boolean       @default(false)
   tokenVersion        Int           @default(0)
   
+  // OAuth provider fields
+  provider            String?       @db.VarChar(50) // google, github, etc.
+  providerId          String?       @db.VarChar(255) // OAuth provider user ID
+  picture             String?       @db.VarChar(500) // Profile picture URL
+  
   // Monetization fields
   plan                PricingTier   @default(FREE)
   stripeCustomerId    String?       @unique @db.VarChar(255) // Stripe customer ID for payment processing
@@ -424,10 +474,12 @@ model User {
   ImageFile           ImageFile[]
   Subscription        Subscription[] // History of subscription changes
   Payment             Payment[]      // Payment history
+  CharacterPreset     CharacterPreset[] // User-created character presets
 
   @@index([email])
   @@index([plan])
   @@index([subscriptionEndsAt])
+  @@index([provider, providerId])
 }
 
 enum NoteType {

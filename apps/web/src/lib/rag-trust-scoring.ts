@@ -1,12 +1,12 @@
 /**
  * RAG Trust Scoring System
- * 
+ *
  * Replaces naive regex blacklist with intelligent trust scoring
  *- Source reputation: official docs > user uploads > web content
  * - Semantic relevance: penalize off-topic chunks
  * - Content safety: detect instruction injection
  * - Confidence scoring: transparency for users
- * 
+ *
  * Problem Solved:
  * - Old: Hard blocklist, easy to bypass with synonyms
  * - New: Probabilistic scoring, adaptive to new patterns
@@ -15,7 +15,7 @@
 export interface RAGChunk {
   id: string;
   text: string;
-  source: 'official_docs' | 'user_upload' | 'web' | 'custom';
+  source: "official_docs" | "user_upload" | "web" | "custom";
   relevanceScore?: number;
   metadata?: Record<string, any>;
 }
@@ -25,7 +25,7 @@ export interface TrustScore {
   safetyScore: number;
   relevanceScore: number;
   sourceReputation: number;
-  riskLevel: 'low' | 'medium' | 'high';
+  riskLevel: "low" | "medium" | "high";
   reasons: string[];
   confidence: number; // How confident we are in this score
 }
@@ -36,7 +36,7 @@ export interface TrustScore {
 export function scoreRAGChunk(
   chunk: RAGChunk,
   query: string,
-  context?: { userId: string; chatHistory: any[] }
+  context?: { userId: string; chatHistory: any[] },
 ): TrustScore {
   const reasons: string[] = [];
   let safetyScore = 1.0;
@@ -46,65 +46,91 @@ export function scoreRAGChunk(
   // 1. SOURCE REPUTATION SCORING
   // ==============================
   const sourceScores: Record<string, number> = {
-    official_docs: 1.2,  // Boost official docs
-    custom: 1.0,         // Neutral
-    user_upload: 0.8,    // Slight penalty
-    web: 0.7             // Lower trust for web content
+    official_docs: 1.2, // Boost official docs
+    custom: 1.0, // Neutral
+    user_upload: 0.8, // Slight penalty
+    web: 0.7, // Lower trust for web content
   };
 
   sourceReputation = sourceScores[chunk.source] || 1.0;
 
-  if (chunk.source === 'official_docs') {
-    reasons.push('verified_source');
-  } else if (chunk.source === 'web') {
-    reasons.push('web_content_lower_trust');
-  } else if (chunk.source === 'user_upload') {
-    reasons.push('user_uploaded_content');
+  if (chunk.source === "official_docs") {
+    reasons.push("verified_source");
+  } else if (chunk.source === "web") {
+    reasons.push("web_content_lower_trust");
+  } else if (chunk.source === "user_upload") {
+    reasons.push("user_uploaded_content");
   }
 
   // 2. CONTENT SAFETY SCORING
   // ==========================
   const dangerousPatterns = [
     // Direct instruction override
-    { pattern: /(?:ignore|disregard|forget|bypass|override).*(?:instruction|rule|guideline|policy)/i, weight: 0.4 },
+    {
+      pattern:
+        /(?:ignore|disregard|forget|bypass|override).*(?:instruction|rule|guideline|policy)/i,
+      weight: 0.4,
+    },
     // Mode switch / jailbreak
-    { pattern: /(?:dev|developer|test|harmless|unrestricted).*mode/i, weight: 0.35 },
+    {
+      pattern: /(?:dev|developer|test|harmless|unrestricted).*mode/i,
+      weight: 0.35,
+    },
     // Role confusion
-    { pattern: /(?:act as|pretend|roleplay|assume|become).*(?:engineer|developer|admin|coder)/i, weight: 0.3 },
+    {
+      pattern:
+        /(?:act as|pretend|roleplay|assume|become).*(?:engineer|developer|admin|coder)/i,
+      weight: 0.3,
+    },
     // Instruction reveal
-    { pattern: /(?:what|who|how).*(?:are you|is your role|is your purpose|should you)/i, weight: 0.2 },
+    {
+      pattern:
+        /(?:what|who|how).*(?:are you|is your role|is your purpose|should you)/i,
+      weight: 0.2,
+    },
     // Multi-turn jailbreak setup
-    { pattern: /(?:but if|however,|technically|technically,).*(?:you|could|should)/i, weight: 0.15 },
+    {
+      pattern:
+        /(?:but if|however,|technically|technically,).*(?:you|could|should)/i,
+      weight: 0.15,
+    },
     // Safety negation
     { pattern: /(?:no |don't |do not )(?:worry|concern|safe)/i, weight: 0.2 },
     // Constraint circumvention
-    { pattern: /(?:just this once|exception|just for|pretend)/i, weight: 0.15 }
+    { pattern: /(?:just this once|exception|just for|pretend)/i, weight: 0.15 },
   ];
 
   // Check each pattern
   for (const { pattern, weight } of dangerousPatterns) {
     if (pattern.test(chunk.text)) {
-      safetyScore *= (1 - weight);
+      safetyScore *= 1 - weight;
       reasons.push(`suspicious_pattern_detected: ${pattern.source}`);
     }
   }
 
   // Bonus for explicit disclaimers
-  if (/(?:for information only|reference only|educational|disclaim|not legal|not medical)/i.test(chunk.text)) {
+  if (
+    /(?:for information only|reference only|educational|disclaim|not legal|not medical)/i.test(
+      chunk.text,
+    )
+  ) {
     safetyScore = Math.min(safetyScore + 0.15, 1.0);
-    reasons.push('contains_appropriate_disclaimer');
+    reasons.push("contains_appropriate_disclaimer");
   }
 
   // Penalty for very long chunks (might be trying to hide injection)
   if (chunk.text.length > 5000) {
     safetyScore *= 0.9;
-    reasons.push('unusually_long_chunk');
+    reasons.push("unusually_long_chunk");
   }
 
   // 3. SEMANTIC RELEVANCE SCORING
   // ==============================
   // Simple TF-IDF-like scoring
-  const queryTerms = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+  const queryTerms = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((w) => w.length > 3);
   const chunkText = chunk.text.toLowerCase();
 
   let matchCount = 0;
@@ -115,34 +141,35 @@ export function scoreRAGChunk(
   }
 
   // Relevance is proportion of query terms found in chunk
-  const relevanceRatio = queryTerms.length > 0 ? matchCount / queryTerms.length : 0.5;
+  const relevanceRatio =
+    queryTerms.length > 0 ? matchCount / queryTerms.length : 0.5;
 
   if (relevanceRatio > 0.7) {
     relevanceScore = 1.0;
-    reasons.push('high_relevance');
+    reasons.push("high_relevance");
   } else if (relevanceRatio > 0.4) {
     relevanceScore = 0.8;
-    reasons.push('medium_relevance');
+    reasons.push("medium_relevance");
   } else if (relevanceRatio > 0.2) {
     relevanceScore = 0.5;
-    reasons.push('low_relevance');
+    reasons.push("low_relevance");
   } else {
     relevanceScore = 0.2;
-    reasons.push('minimal_relevance');
+    reasons.push("minimal_relevance");
   }
 
   // Use metadata relevance score if available
   if (chunk.metadata?.relevanceScore !== undefined) {
     relevanceScore *= chunk.metadata.relevanceScore;
-    reasons.push('metadata_relevance_applied');
+    reasons.push("metadata_relevance_applied");
   }
 
   // 4. OVERALL SCORING & RISK ASSESSMENT
   // ====================================
   const weights = {
-    safety: 0.5,      // Safety is most important
-    relevance: 0.3,   // Relevance is secondary
-    reputation: 0.2   // Source reputation is tertiary
+    safety: 0.5, // Safety is most important
+    relevance: 0.3, // Relevance is secondary
+    reputation: 0.2, // Source reputation is tertiary
   };
 
   const overallScore =
@@ -154,13 +181,13 @@ export function scoreRAGChunk(
   const finalScore = Math.max(0, Math.min(overallScore, 1.0));
 
   // Determine risk level
-  let riskLevel: 'low' | 'medium' | 'high';
+  let riskLevel: "low" | "medium" | "high";
   if (finalScore > 0.7) {
-    riskLevel = 'low';
+    riskLevel = "low";
   } else if (finalScore > 0.4) {
-    riskLevel = 'medium';
+    riskLevel = "medium";
   } else {
-    riskLevel = 'high';
+    riskLevel = "high";
   }
 
   // Calculate confidence (lower score = higher confidence in rejection)
@@ -173,7 +200,7 @@ export function scoreRAGChunk(
     sourceReputation,
     riskLevel,
     reasons,
-    confidence
+    confidence,
   };
 }
 
@@ -187,24 +214,20 @@ export function scoreRAGChunks(
     minTrustScore?: number;
     topK?: number;
     includeScores?: boolean;
-  } = {}
+  } = {},
 ): RAGChunk[] {
-  const {
-    minTrustScore = 0.4,
-    topK = 5,
-    includeScores = false
-  } = options;
+  const { minTrustScore = 0.4, topK = 5, includeScores = false } = options;
 
   // Score each chunk
-  const scored = chunks.map(chunk => ({
+  const scored = chunks.map((chunk) => ({
     chunk,
-    score: scoreRAGChunk(chunk, query)
+    score: scoreRAGChunk(chunk, query),
   }));
 
   // Filter by minimum trust score
-  const filtered = scored.filter(item =>
-    item.score.overall >= minTrustScore &&
-    item.score.riskLevel !== 'high'
+  const filtered = scored.filter(
+    (item) =>
+      item.score.overall >= minTrustScore && item.score.riskLevel !== "high",
   );
 
   // Sort by score (descending)
@@ -215,16 +238,16 @@ export function scoreRAGChunks(
 
   // Return with optional scores
   if (includeScores) {
-    return topChunks.map(item => ({
+    return topChunks.map((item) => ({
       ...item.chunk,
       metadata: {
         ...item.chunk.metadata,
-        trustScore: item.score
-      }
+        trustScore: item.score,
+      },
     }));
   }
 
-  return topChunks.map(item => item.chunk);
+  return topChunks.map((item) => item.chunk);
 }
 
 /**
@@ -233,21 +256,21 @@ export function scoreRAGChunks(
 export function formatRAGContextWithTrust(
   chunks: RAGChunk[],
   query: string,
-  showScores: boolean = false
+  showScores: boolean = false,
 ): string {
-  const scored = chunks.map(chunk => ({
+  const scored = chunks.map((chunk) => ({
     chunk,
-    score: scoreRAGChunk(chunk, query)
+    score: scoreRAGChunk(chunk, query),
   }));
 
   const formatted = scored
     .sort((a, b) => b.score.overall - a.score.overall)
-    .map(item => {
+    .map((item) => {
       const trustPercent = Math.round(item.score.overall * 100);
       const riskEmoji = {
-        low: '✅',
-        medium: '⚠️',
-        high: '🚫'
+        low: "✅",
+        medium: "⚠️",
+        high: "🚫",
       }[item.score.riskLevel];
 
       let header = `[${item.chunk.source}] ${riskEmoji} [Trust: ${trustPercent}%]`;
@@ -258,7 +281,7 @@ export function formatRAGContextWithTrust(
 
       return `${header}\n${item.chunk.text}`;
     })
-    .join('\n---\n');
+    .join("\n---\n");
 
   return formatted;
 }
@@ -275,19 +298,19 @@ export function detectRAGInjectionAttempt(text: string): {
   const injectionPatterns = [
     {
       pattern: /(?:SYSTEM|ADMIN|PROMPT).*:.*(?:ignore|override|replace)/i,
-      name: 'system_override_attempt',
-      mitigation: 'Filter context with trust scoring'
+      name: "system_override_attempt",
+      mitigation: "Filter context with trust scoring",
     },
     {
       pattern: /```.*(?:python|javascript|bash).*```/s,
-      name: 'code_injection_attempt',
-      mitigation: 'Sanitize code blocks'
+      name: "code_injection_attempt",
+      mitigation: "Sanitize code blocks",
     },
     {
       pattern: /(?:JSON|XML|YAML).*{.*}.*(?:execute|run|eval)/i,
-      name: 'config_injection_attempt',
-      mitigation: 'Parse and validate only safe structures'
-    }
+      name: "config_injection_attempt",
+      mitigation: "Parse and validate only safe structures",
+    },
   ];
 
   for (const { pattern, name, mitigation } of injectionPatterns) {
@@ -296,7 +319,7 @@ export function detectRAGInjectionAttempt(text: string): {
         detected: true,
         confidence: 0.85,
         pattern: name,
-        mitigation
+        mitigation,
       };
     }
   }
@@ -304,8 +327,8 @@ export function detectRAGInjectionAttempt(text: string): {
   return {
     detected: false,
     confidence: 0.0,
-    pattern: 'none',
-    mitigation: 'none'
+    pattern: "none",
+    mitigation: "none",
   };
 }
 
@@ -325,24 +348,24 @@ export function aggregateTrustScore(scores: TrustScore[]): {
       minimum: 0,
       maximum: 0,
       trustworthy: false,
-      explanation: 'No documents provided'
+      explanation: "No documents provided",
     };
   }
 
-  const overallScores = scores.map(s => s.overall);
+  const overallScores = scores.map((s) => s.overall);
   const average = overallScores.reduce((a, b) => a + b, 0) / scores.length;
   const minimum = Math.min(...overallScores);
   const maximum = Math.max(...overallScores);
 
-  let explanation = '';
+  let explanation = "";
   if (average > 0.8) {
-    explanation = 'High trust context - safe to use';
+    explanation = "High trust context - safe to use";
   } else if (average > 0.6) {
-    explanation = 'Medium trust - review source quality';
+    explanation = "Medium trust - review source quality";
   } else if (average > 0.4) {
-    explanation = 'Low trust - cross-check information';
+    explanation = "Low trust - cross-check information";
   } else {
-    explanation = 'Very low trust - consider alternative sources';
+    explanation = "Very low trust - consider alternative sources";
   }
 
   return {
@@ -350,6 +373,6 @@ export function aggregateTrustScore(scores: TrustScore[]): {
     minimum,
     maximum,
     trustworthy: average > 0.6,
-    explanation
+    explanation,
   };
 }

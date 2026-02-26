@@ -8,8 +8,10 @@
 ## 📋 IMPLEMENTATION CHECKLIST
 
 ### FIX 1: ✅ Rewrite System Prompt (CRITICAL)
+
 **File:** [src/services/ai/prompt.ts](src/services/ai/prompt.ts)  
 **What was fixed:**
+
 - ❌ Removed: "Never refuse to answer reasonable questions" (ambiguous, creates jailbreak vector)
 - ✅ Added: Explicit refusal categories for student safety
 - ✅ Added: Pedagogical focus ("Teaching > Solving")
@@ -22,13 +24,16 @@
 ---
 
 ### FIX 2: ✅ Remove Code Execution Tool (CRITICAL)
-**Files:** 
+
+**Files:**
+
 - [src/tools/compiler.ts](src/tools/compiler.ts) - **REMOVED FROM REGISTRATION**
 - [src/tools/code-review.ts](src/tools/code-review.ts) - **NEW: Safe static analysis**
 - [src/tools/code-formatter.ts](src/tools/code-formatter.ts) - **NEW: Safe formatting**
 - [src/tools/index.ts](src/tools/index.ts) - **UPDATED: Register only safe tools**
 
 **What was fixed:**
+
 - ❌ Removed: `CodeCompilerTool` (unsafe, no pedagogical value, resource exhaustion risk)
 - ✅ Added: `CodeReviewTool` - Static analysis only (identify bugs without execution)
 - ✅ Added: `CodeFormatterTool` - Code formatting for readability (no execution)
@@ -39,8 +44,10 @@
 ---
 
 ### FIX 3: ✅ Create StudentCodingAgent (CRITICAL)
+
 **File:** [src/services/ai/student-coding-agent.ts](src/services/ai/student-coding-agent.ts) - **NEW**  
 **What was fixed:**
+
 - ❌ Before: Raw service calls scattered across processor.ts (hard to audit, test, maintain)
 - ✅ After: Lightweight orchestrator with explicit stages:
   1. Input validation
@@ -52,6 +59,7 @@
   7. Output validation
 
 **Key features:**
+
 ```typescript
 class StudentCodingAgent {
   - chat()                  // Main orchestration
@@ -70,8 +78,10 @@ class StudentCodingAgent {
 ---
 
 ### FIX 4: ✅ Implement Token Budgets (CRITICAL)
+
 **File:** [src/services/billing/token-budget.ts](src/services/billing/token-budget.ts) - **NEW**  
 **What was fixed:**
+
 - ❌ Before: UNLIMITED token burn possible (no budgets existed)
 - ✅ After: Hard limits enforced:
   - Per-request: 10,000 tokens max
@@ -79,11 +89,12 @@ class StudentCodingAgent {
   - Daily: 500,000 tokens max
 
 **Integration in processor.ts:**
+
 ```typescript
 // Line ~102: Budget check BEFORE any AI work
 const budgetCheck = await tokenBudgetManager.checkBudget(userId, 5000);
 if (!budgetCheck.approved) {
-    return { status: 'completed', content: 'Budget exceeded', chatId };
+  return { status: "completed", content: "Budget exceeded", chatId };
 }
 
 // Line ~388: Record actual usage AFTER response
@@ -91,10 +102,11 @@ await tokenBudgetManager.recordUsage(userId, tokensUsed);
 ```
 
 **Key methods:**
+
 ```typescript
-- checkBudget(userId, estimatedTokens)    // Pre-request check
-- recordUsage(userId, tokensUsed)         // Post-request logging
-- getRemainingBudget(userId)              // User budget status
+-checkBudget(userId, estimatedTokens) - // Pre-request check
+  recordUsage(userId, tokensUsed) - // Post-request logging
+  getRemainingBudget(userId); // User budget status
 ```
 
 **Impact:** Prevents runaway costs, budget doesn't blow out from loops or attacks.
@@ -102,35 +114,40 @@ await tokenBudgetManager.recordUsage(userId, tokensUsed);
 ---
 
 ### FIX 5: ✅ Implement Memory Extraction (CRITICAL)
+
 **File:** [src/services/ai/memory-extractor.ts](src/services/ai/memory-extractor.ts) - **NEW**  
 **What was fixed:**
+
 - ❌ Before: Memory system existed but was NEVER POPULATED (saveMemory() never called)
 - ✅ After: Automatic extraction after each chat
 
 **Integration in processor.ts:**
+
 ```typescript
 // Line ~390: After response is saved
 const chatMessagesForMemory = [
-    { role: 'user', content: message },
-    { role: 'assistant', content: responseToSave }
+  { role: "user", content: message },
+  { role: "assistant", content: responseToSave },
 ];
 await extractAndSaveMemory(userId, chatMessagesForMemory, chatId);
 ```
 
 **What gets extracted:**
+
 ```typescript
 interface ExtractedMemory {
-    concepts: string[],              // e.g., "binary search trees"
-    preferences: Record<string>,     // e.g., "preferred_language: python"
-    struggles: string[]              // e.g., "memory management in C++"
+  concepts: string[]; // e.g., "binary search trees"
+  preferences: Record<string>; // e.g., "preferred_language: python"
+  struggles: string[]; // e.g., "memory management in C++"
 }
 ```
 
 **Key methods:**
+
 ```typescript
-- extractAndSaveMemory()             // Auto-extract after chat
-- getStudentMemorySummary()          // Retrieve for next chat
-- formatMemoryForPrompt()            // Include in system prompt
+-extractAndSaveMemory() - // Auto-extract after chat
+  getStudentMemorySummary() - // Retrieve for next chat
+  formatMemoryForPrompt(); // Include in system prompt
 ```
 
 **Impact:** Students are personalized across chats (system knows what they've learned, struggled with).
@@ -138,26 +155,30 @@ interface ExtractedMemory {
 ---
 
 ### FIX 6: ✅ Add OpenAI Moderation API (MEDIUM)
+
 **File:** [src/lib/moderation.ts](src/lib/moderation.ts) - **NEW**  
 **What was fixed:**
+
 - ❌ Before: Only custom safety checks (could miss patterns)
 - ✅ After: Redundant safety check using OpenAI's trained moderation model
 
 **Integration in processor.ts:**
+
 ```typescript
 // Line ~360: After validateResponseContent check
 const moderation = await checkModeration(finalContent);
 if (moderation.flagged) {
-    console.warn(`Moderation: ${formatModerationForLog(moderation)}`);
-    // Log but don't necessarily block—custom safety already evaluated
+  console.warn(`Moderation: ${formatModerationForLog(moderation)}`);
+  // Log but don't necessarily block—custom safety already evaluated
 }
 ```
 
 **Key methods:**
+
 ```typescript
-- checkModeration(content)           // Check against OAI policies
-- checkModerationBothDirections()    // Check input + output
-- formatModerationForLog()           // Format for audit logs
+-checkModeration(content) - // Check against OAI policies
+  checkModerationBothDirections() - // Check input + output
+  formatModerationForLog(); // Format for audit logs
 ```
 
 **Impact:** Second layer of defense (defense-in-depth), catches patterns custom logic misses.
@@ -167,6 +188,7 @@ if (moderation.flagged) {
 ## 🔧 FILES MODIFIED
 
 ### Core Processor
+
 - **[src/workers/processor.ts](src/workers/processor.ts)**
   - ✅ Added imports for token budgets, memory extraction, moderation
   - ✅ Added token budget check (line ~102)
@@ -175,6 +197,7 @@ if (moderation.flagged) {
   - ✅ Updated token recording to use TokenBudgetManager
 
 ### System Prompt
+
 - **[src/services/ai/prompt.ts](src/services/ai/prompt.ts)**
   - ✅ Rewrote entire system prompt for pedagogical focus
   - ✅ Removed "never refuse" language
@@ -183,6 +206,7 @@ if (moderation.flagged) {
   - ✅ Added level-based customization
 
 ### Tools
+
 - **[src/tools/index.ts](src/tools/index.ts)**
   - ✅ Removed CodeCompilerTool from registration
   - ✅ Added CodeReviewTool
@@ -212,37 +236,38 @@ src/lib/
 ## 🧪 TESTING RECOMMENDATIONS
 
 ### 1. Token Budget Tests
+
 ```bash
 # Test budget check
 npm test -- token-budget.test.ts
 ```
 
 ### 2. Memory Extraction Tests
+
 ```bash
 # Test memory extraction and usage
 npm test -- memory-extractor.test.ts
 ```
 
 ### 3. Integration Tests
+
 ```bash
 # Test full processor with all fixes
 npm test -- processor.integration.test.ts
 ```
 
 ### 4. Manual Testing (Post-Deployment)
+
 1. **Code Execution Removal:**
    - Ask model: "Can you run this Python code?"
    - Verify: Model suggests using IDE, doesn't execute
-   
 2. **Token Budget:**
    - Make multiple large requests
    - Verify: 3rd request is rejected with budget message
-   
 3. **Memory Extraction:**
    - Chat about learning "binary search"
    - Start new chat
    - Verify: System prompt mentions "learned concept: binary search"
-   
 4. **Moderation:**
    - Ask model for harmful content
    - Check logs: Should see "MODERATION_FLAG" entries
@@ -252,6 +277,7 @@ npm test -- processor.integration.test.ts
 ## 🚀 DEPLOYMENT STEPS
 
 ### Phase 1: Pre-Deployment
+
 1. Run full test suite
 2. Deploy to staging environment
 3. Smoke tests on staging
@@ -259,12 +285,14 @@ npm test -- processor.integration.test.ts
 5. Test memory extraction with real conversations
 
 ### Phase 2: Production Rollout
+
 1. Enable feature flag for 10% of users
 2. Monitor logs for errors (check for moderation/budget failures)
 3. Verify token usage stays within limits
 4. Increase to 100% after 24 hours of stable monitoring
 
 ### Phase 3: Post-Deployment Monitoring
+
 1. Monitor token budget hit rates
 2. Monitor moderation flag rates
 3. Monitor memory extraction success rate
@@ -274,13 +302,13 @@ npm test -- processor.integration.test.ts
 
 ## 📊 EXPECTED IMPACT
 
-| Metric | Before | After | Impact |
-|--------|--------|-------|--------|
-| **Safety Readiness** | Risky | Ready | ✅ Prompt injection vulnerabilities closed |
-| **Cost Control** | Unlimited | Capped | ✅ Budget protection added |
-| **Personalization** | None | Active | ✅ Student context remembered across chats |
-| **Execution Attacks** | Possible | Blocked | ✅ Code execution removed |
-| **Safety Layers** | 2-3 | 4+ | ✅ Redundant checks (custom + OAI moderation) |
+| Metric                | Before    | After   | Impact                                        |
+| --------------------- | --------- | ------- | --------------------------------------------- |
+| **Safety Readiness**  | Risky     | Ready   | ✅ Prompt injection vulnerabilities closed    |
+| **Cost Control**      | Unlimited | Capped  | ✅ Budget protection added                    |
+| **Personalization**   | None      | Active  | ✅ Student context remembered across chats    |
+| **Execution Attacks** | Possible  | Blocked | ✅ Code execution removed                     |
+| **Safety Layers**     | 2-3       | 4+      | ✅ Redundant checks (custom + OAI moderation) |
 
 ---
 

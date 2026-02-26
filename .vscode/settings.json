@@ -1,23 +1,48 @@
 {
-    "java.compile.nullAnalysis.mode": "automatic",
-    "css.lint.inlineStyles": "ignore",
-    "[typescriptreact]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.formatOnSave": true
-    },
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": "explicit"
-    },
-    // Antigravity Kit Configuration
-    "files.exclude": {
-        // Keep .agent folder visible for AI indexing
-    },
-    "search.exclude": {
-        // Keep .agent folder searchable
-    },
-    // GitHub Copilot settings for .agent folder
-    "github.copilot.enable": {
-        "*": true,
-        ".agent": true
+  "java.compile.nullAnalysis.mode": "automatic",
+  "css.lint.inlineStyles": "ignore",
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  // ========================================
+  // Antigravity Kit Configuration
+  // ========================================
+
+  // Keep .agent folder visible for AI indexing
+  "files.exclude": {
+    // Do NOT exclude .agent - AI needs to index it
+  },
+
+  // Keep .agent folder searchable
+  "search.exclude": {
+    // Do NOT exclude .agent - enables slash command detection
+  },
+
+  // GitHub Copilot settings for .agent folder and workflows
+  "github.copilot.enable": {
+    "*": true,
+    ".agent": true,
+    "markdown": true
+  },
+
+  // Enable Copilot to use .agent files as context
+  "github.copilot.advanced": {
+    "debug.overrideChatEngine": "gpt-4",
+    "inlineSuggest.count": 3
+  },
+
+  // Markdown settings for workflow files
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": {
+      "comments": "on",
+      "strings": "on",
+      "other": "on"
     }
+  }
 }

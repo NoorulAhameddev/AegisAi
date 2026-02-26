@@ -123,24 +123,25 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
 ### API Routes
 
 All API routes should:
+
 1. Use `verifyAuth()` for authentication
 2. Return standardized responses via `@/lib/response`
 3. Log operations with structured logger
 4. Handle errors gracefully
 
 ```typescript
-import { successResponse, errorResponse } from '@/lib/response';
-import { verifyAuth } from '@/services/auth/auth';
+import { successResponse, errorResponse } from "@/lib/response";
+import { verifyAuth } from "@/services/auth/auth";
 
 export async function POST(req: NextRequest) {
   try {
     const user = await verifyAuth(req);
     if (!user) return unauthorizedResponse();
-    
+
     // Process request
     return successResponse({ data: result });
   } catch (error) {
-    return errorResponse('Operation failed', { status: 500 });
+    return errorResponse("Operation failed", { status: 500 });
   }
 }
 ```
@@ -185,6 +186,7 @@ footer
 **Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
 **Examples**:
+
 ```bash
 git commit -m "feat(chat): add streaming response support"
 git commit -m "fix(auth): resolve JWT validation issue"
@@ -205,16 +207,19 @@ git commit -m "refactor(components): simplify input validation"
 ### Before Submitting
 
 1. **Create a feature branch**:
+
    ```bash
    git checkout -b feature/short-description
    ```
 
 2. **Keep commits clean**:
+
    ```bash
    git rebase -i origin/main  # Clean up history before PR
    ```
 
 3. **Run all tests locally**:
+
    ```bash
    npm run lint
    npm test
@@ -229,6 +234,7 @@ git commit -m "refactor(components): simplify input validation"
 ### Submitting PR
 
 1. **Push your branch**:
+
    ```bash
    git push origin feature/your-feature-name
    ```
@@ -241,23 +247,29 @@ git commit -m "refactor(components): simplify input validation"
    - Test instructions
 
 3. **PR Template** (automatically loaded):
+
    ```markdown
    ## Description
+
    Brief description of changes
-   
+
    ## Type of Change
+
    - [ ] Bug fix
    - [ ] New feature
    - [ ] Documentation update
    - [ ] Other
-   
+
    ## Related Issues
+
    Fixes #123
-   
+
    ## Testing
+
    Steps to test the changes
-   
+
    ## Checklist
+
    - [ ] Tests pass
    - [ ] Code follows style guidelines
    - [ ] Documentation updated
@@ -284,17 +296,18 @@ git commit -m "refactor(components): simplify input validation"
 ```
 
 **Test structure**:
+
 ```typescript
-describe('Chat API', () => {
-  it('should create a new chat', async () => {
+describe("Chat API", () => {
+  it("should create a new chat", async () => {
     // Arrange
-    const userId = '123';
-    
+    const userId = "123";
+
     // Act
     const result = await createChat(userId);
-    
+
     // Assert
-    expect(result).toHaveProperty('id');
+    expect(result).toHaveProperty("id");
     expect(result.userId).toBe(userId);
   });
 });
@@ -318,25 +331,30 @@ describe('Chat API', () => {
 - Keep language clear and concise
 
 **Document structure**:
+
 ```markdown
 # Title
 
 Brief overview (1-2 sentences)
 
 ## Table of Contents
+
 - [Section 1](#section-1)
 - [Section 2](#section-2)
 
 ## Section 1
+
 Content...
 
 ## Section 2
+
 Content...
 ```
 
 ### Updating README
 
 If your change affects how to use the project:
+
 - Update main [README.md](./README.md)
 - Update relevant docs in `docs/` directory
 - Update quick start guides
@@ -348,6 +366,7 @@ If your change affects how to use the project:
 ### Reporting Issues
 
 When reporting bugs, include:
+
 - **Title**: Clear, descriptive
 - **Description**: What happened vs. what was expected
 - **Steps to reproduce**: Exact steps to trigger the issue
@@ -355,6 +374,7 @@ When reporting bugs, include:
 - **Screenshots/Logs**: If relevant
 
 **Label your issue**:
+
 - `bug` - Actual bugs
 - `enhancement` - Feature requests
 - `documentation` - Doc improvements
@@ -411,6 +431,7 @@ npm run test:mcp
 ## Recognition
 
 Contributors will be recognized in:
+
 - `CONTRIBUTORS.md` file
 - GitHub contributors page
 - Release notes (for significant contributions)

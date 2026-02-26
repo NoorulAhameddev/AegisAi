@@ -4,9 +4,9 @@
  */
 
 export enum PricingTier {
-  FREE = 'FREE',
-  PRO = 'PRO',
-  ENTERPRISE = 'ENTERPRISE',
+  FREE = "FREE",
+  PRO = "PRO",
+  ENTERPRISE = "ENTERPRISE",
 }
 
 export interface TierConfig {
@@ -15,13 +15,13 @@ export interface TierConfig {
   description: string;
   monthlyPrice: number; // in cents (e.g., 999 = $9.99)
   yearlyPrice?: number; // optional yearly discount
-  
+
   // Token & API Limits
   monthlyTokenLimit: number; // Max tokens per month
   requestsPerMinute: number; // Rate limit
   maxContextLength: number; // Max context in characters
   maxChatsPerMonth: number; // Max conversations
-  
+
   // Features
   features: {
     rag: boolean; // Retrieval Augmented Generation
@@ -46,15 +46,15 @@ export const TIER_CONFIGS: Record<PricingTier, TierConfig> = {
   // FREE TIER
   [PricingTier.FREE]: {
     name: PricingTier.FREE,
-    displayName: 'Free',
-    description: 'Perfect for trying out Aegis AI',
+    displayName: "Free",
+    description: "Perfect for trying out Aegis AI",
     monthlyPrice: 0,
-    
+
     monthlyTokenLimit: 10_000, // 10K tokens/month (roughly 5K words)
     requestsPerMinute: 5, // 5 requests/min
     maxContextLength: 50_000, // 50K chars max context
     maxChatsPerMonth: 10, // 10 conversations
-    
+
     features: {
       rag: false,
       streaming: true,
@@ -74,16 +74,16 @@ export const TIER_CONFIGS: Record<PricingTier, TierConfig> = {
   // PRO TIER
   [PricingTier.PRO]: {
     name: PricingTier.PRO,
-    displayName: 'Pro',
-    description: 'For power users and students',
+    displayName: "Pro",
+    description: "For power users and students",
     monthlyPrice: 999, // $9.99/month
     yearlyPrice: 9990, // $99.90/year (~17% discount)
-    
+
     monthlyTokenLimit: 500_000, // 500K tokens/month (~250K words)
     requestsPerMinute: 30, // 30 requests/min
     maxContextLength: 500_000, // 500K chars
     maxChatsPerMonth: 500, // 500 conversations
-    
+
     features: {
       rag: true,
       streaming: true,
@@ -103,15 +103,15 @@ export const TIER_CONFIGS: Record<PricingTier, TierConfig> = {
   // ENTERPRISE TIER
   [PricingTier.ENTERPRISE]: {
     name: PricingTier.ENTERPRISE,
-    displayName: 'Enterprise',
-    description: 'For teams and organizations (custom pricing)',
+    displayName: "Enterprise",
+    description: "For teams and organizations (custom pricing)",
     monthlyPrice: 0, // Custom pricing via sales
-    
+
     monthlyTokenLimit: 10_000_000, // 10M tokens/month (unlimited effectively)
     requestsPerMinute: 1000, // 1000 requests/min
     maxContextLength: 10_000_000, // 10M chars
     maxChatsPerMonth: 100_000, // 100K conversations
-    
+
     features: {
       rag: true,
       streaming: true,
@@ -141,7 +141,10 @@ export function getTierConfig(tier: PricingTier | string): TierConfig | null {
  */
 export function getMonthlyTokenLimit(tier: PricingTier | string): number {
   const config = getTierConfig(tier);
-  return config?.monthlyTokenLimit || TIER_CONFIGS[PricingTier.FREE].monthlyTokenLimit;
+  return (
+    config?.monthlyTokenLimit ||
+    TIER_CONFIGS[PricingTier.FREE].monthlyTokenLimit
+  );
 }
 
 /**
@@ -149,13 +152,19 @@ export function getMonthlyTokenLimit(tier: PricingTier | string): number {
  */
 export function getRateLimit(tier: PricingTier | string): number {
   const config = getTierConfig(tier);
-  return config?.requestsPerMinute || TIER_CONFIGS[PricingTier.FREE].requestsPerMinute;
+  return (
+    config?.requestsPerMinute ||
+    TIER_CONFIGS[PricingTier.FREE].requestsPerMinute
+  );
 }
 
 /**
  * Check if a tier has a specific feature
  */
-export function hasTierFeature(tier: PricingTier | string, feature: keyof TierConfig['features']): boolean {
+export function hasTierFeature(
+  tier: PricingTier | string,
+  feature: keyof TierConfig["features"],
+): boolean {
   const config = getTierConfig(tier);
   return config?.features[feature] || false;
 }
@@ -188,106 +197,106 @@ export function getPricingComparison(): PricingComparison {
     tiers: [PricingTier.FREE, PricingTier.PRO, PricingTier.ENTERPRISE],
     features: [
       {
-        category: 'Core Features',
+        category: "Core Features",
         items: [
           {
-            name: 'Monthly Token Limit',
-            free: '10K',
-            pro: '500K',
-            enterprise: '10M',
+            name: "Monthly Token Limit",
+            free: "10K",
+            pro: "500K",
+            enterprise: "10M",
           },
           {
-            name: 'Streaming Responses',
-            free: '✅',
-            pro: '✅',
-            enterprise: '✅',
+            name: "Streaming Responses",
+            free: "✅",
+            pro: "✅",
+            enterprise: "✅",
           },
           {
-            name: 'Conversation Export',
-            free: '❌',
-            pro: '✅',
-            enterprise: '✅',
+            name: "Conversation Export",
+            free: "❌",
+            pro: "✅",
+            enterprise: "✅",
           },
         ],
       },
       {
-        category: 'AI Capabilities',
+        category: "AI Capabilities",
         items: [
           {
-            name: 'RAG (Document Context)',
-            free: '❌',
-            pro: '✅',
-            enterprise: '✅',
+            name: "RAG (Document Context)",
+            free: "❌",
+            pro: "✅",
+            enterprise: "✅",
           },
           {
-            name: 'Image Generation (DALL-E)',
-            free: '❌',
-            pro: '✅',
-            enterprise: '✅',
+            name: "Image Generation (DALL-E)",
+            free: "❌",
+            pro: "✅",
+            enterprise: "✅",
           },
           {
-            name: 'Voice Input',
-            free: '❌',
-            pro: '✅',
-            enterprise: '✅',
+            name: "Voice Input",
+            free: "❌",
+            pro: "✅",
+            enterprise: "✅",
           },
           {
-            name: 'Custom AI Models',
-            free: '❌',
-            pro: '❌',
-            enterprise: '✅',
+            name: "Custom AI Models",
+            free: "❌",
+            pro: "❌",
+            enterprise: "✅",
           },
         ],
       },
       {
-        category: 'Team & Organization',
+        category: "Team & Organization",
         items: [
           {
-            name: 'Collaborative Chats',
-            free: '❌',
-            pro: '❌',
-            enterprise: '✅',
+            name: "Collaborative Chats",
+            free: "❌",
+            pro: "❌",
+            enterprise: "✅",
           },
           {
-            name: 'Team Management',
-            free: '❌',
-            pro: '❌',
-            enterprise: '✅',
+            name: "Team Management",
+            free: "❌",
+            pro: "❌",
+            enterprise: "✅",
           },
           {
-            name: 'Advanced Analytics',
-            free: '❌',
-            pro: '✅',
-            enterprise: '✅',
+            name: "Advanced Analytics",
+            free: "❌",
+            pro: "✅",
+            enterprise: "✅",
           },
           {
-            name: 'API Access',
-            free: '❌',
-            pro: '❌',
-            enterprise: '✅',
+            name: "API Access",
+            free: "❌",
+            pro: "❌",
+            enterprise: "✅",
           },
         ],
       },
       {
-        category: 'Support',
+        category: "Support",
         items: [
           {
-            name: 'Community Support',
-            free: '✅',
-            pro: '✅',
-            enterprise: '✅',
+            name: "Community Support",
+            free: "✅",
+            pro: "✅",
+            enterprise: "✅",
           },
           {
-            name: 'Email Support',
-            free: '❌',
-            pro: '✅',
-            enterprise: '✅',
+            name: "Email Support",
+            free: "❌",
+            pro: "✅",
+            enterprise: "✅",
           },
           {
-            name: 'Priority Support',
-            free: '❌',
-            pro: '✅',
-            enterprise: '✅',
+            name: "Priority Support",
+            free: "❌",
+            pro: "✅",
+            enterprise: "✅",
           },
         ],
       },

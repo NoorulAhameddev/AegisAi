@@ -34,19 +34,35 @@ jest.mock("@/lib/queue", () => ({
 jest.mock("@/lib/response", () => ({
   successResponse: (data: any, options?: any) => ({
     status: options?.status || 200,
-    json: async () => ({ success: true, data, timestamp: new Date().toISOString() }),
+    json: async () => ({
+      success: true,
+      data,
+      timestamp: new Date().toISOString(),
+    }),
   }),
   errorResponse: (error: string, options?: any) => ({
     status: options?.status || 400,
-    json: async () => ({ success: false, error, timestamp: new Date().toISOString() }),
+    json: async () => ({
+      success: false,
+      error,
+      timestamp: new Date().toISOString(),
+    }),
   }),
   unauthorizedResponse: () => ({
     status: 401,
-    json: async () => ({ success: false, error: "Unauthorized", timestamp: new Date().toISOString() }),
+    json: async () => ({
+      success: false,
+      error: "Unauthorized",
+      timestamp: new Date().toISOString(),
+    }),
   }),
   badRequestResponse: (error: string) => ({
     status: 400,
-    json: async () => ({ success: false, error, timestamp: new Date().toISOString() }),
+    json: async () => ({
+      success: false,
+      error,
+      timestamp: new Date().toISOString(),
+    }),
   }),
 }));
 
@@ -94,7 +110,7 @@ describe("Chat Streaming Endpoints", () => {
           chatId: "chat-1",
           message: "Hello, how are you?",
         },
-        "user-1"
+        "user-1",
       );
 
       const res = await ChatStream(req);
@@ -126,7 +142,7 @@ describe("Chat Streaming Endpoints", () => {
         {
           chatId: "chat-1",
         },
-        "user-1"
+        "user-1",
       );
 
       const res = await ChatStream(req);
@@ -146,7 +162,7 @@ describe("Chat Streaming Endpoints", () => {
           chatId: "chat-1",
           message: longMessage,
         },
-        "user-1"
+        "user-1",
       );
 
       const res = await ChatStream(req);
@@ -189,7 +205,7 @@ describe("Chat Streaming Endpoints", () => {
           title: "New Chat",
           projectId: "project-1",
         },
-        "user-1"
+        "user-1",
       );
 
       const res = await CreateChat(req);
@@ -217,7 +233,9 @@ describe("Chat Streaming Endpoints", () => {
     const { GET: ChatHistory } = require("@/app/api/chat/history/route");
 
     function makeRequest(chatId: string, userId?: string): Request {
-      const url = new URL(`http://localhost:3000/api/chat/history?chatId=${chatId}`);
+      const url = new URL(
+        `http://localhost:3000/api/chat/history?chatId=${chatId}`,
+      );
       return {
         method: "GET",
         url: url.toString(),

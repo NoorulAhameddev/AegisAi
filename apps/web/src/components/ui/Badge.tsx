@@ -2,7 +2,15 @@ import { cn } from "@/lib/utils";
 import React from "react";
 
 interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "success" | "warning" | "danger" | "info" | "purple" | "secondary" | "error";
+  variant?:
+    | "default"
+    | "success"
+    | "warning"
+    | "danger"
+    | "info"
+    | "purple"
+    | "secondary"
+    | "error";
   size?: "sm" | "md" | "lg";
 }
 
@@ -27,7 +35,7 @@ export function Badge({
   const sizes = {
     sm: "px-2 py-0.5 text-xs",
     md: "px-3 py-1 text-sm",
-    lg: "px-4 py-1.5 text-base"
+    lg: "px-4 py-1.5 text-base",
   };
 
   return (
@@ -36,7 +44,7 @@ export function Badge({
         "inline-flex items-center justify-center rounded-full border font-medium",
         variants[variant ?? "default"],
         sizes[size],
-        className
+        className,
       )}
       {...props}
     >

@@ -5,6 +5,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 ## Pre-Launch Checklist
 
 ### ✅ Environment Configuration
+
 - [ ] All `.env` variables are properly configured
 - [ ] `DATABASE_URL` uses production PostgreSQL instance
 - [ ] `REDIS_URL` uses production Redis instance
@@ -17,6 +18,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] All secrets are in environment variables only
 
 ### ✅ Database Setup
+
 - [ ] PostgreSQL 14+ is installed and running
 - [ ] Database `aegis_ai` exists and is accessible
 - [ ] All Prisma migrations have been run: `npm run migrate`
@@ -27,6 +29,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] No sensitive data is stored unencrypted
 
 ### ✅ Redis Setup
+
 - [ ] Redis 7+ is installed and running
 - [ ] Redis is accessible from application
 - [ ] Redis persistence is enabled (AOF or RDB)
@@ -35,6 +38,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Redis monitoring/stats are available
 
 ### ✅ File System
+
 - [ ] `/uploads` directory exists and is writable
 - [ ] `/data/lancedb` directory exists for vector store
 - [ ] Disk space is adequate (minimum 5GB)
@@ -43,6 +47,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] File upload size limits are configured
 
 ### ✅ Dependencies
+
 - [ ] All npm dependencies are installed: `npm install --legacy-peer-deps`
 - [ ] No critical security vulnerabilities: `npm audit`
 - [ ] Node.js version is 20+ (LTS)
@@ -53,6 +58,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 ## Frontend Testing
 
 ### ✅ Study Hub Page Layout
+
 - [ ] All 7 tabs render correctly (Upload, AI Ops, Study Tools, RAG Chat, Export, Projects, Settings)
 - [ ] Tab switching works smoothly
 - [ ] Responsive design works on mobile/tablet/desktop
@@ -61,6 +67,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] No console errors on page load
 
 ### ✅ AI Operations Tab
+
 - [ ] All 10 study tools are visible and selectable
 - [ ] Text input area accepts content
 - [ ] Content processing works for each tool:
@@ -81,6 +88,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Processing timeout is reasonable (<30s)
 
 ### ✅ Upload Tab
+
 - [ ] File input accepts files
 - [ ] Multiple file selection works
 - [ ] File upload progress displays
@@ -91,12 +99,14 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Uploaded files appear in knowledge base
 
 ### ✅ Study Tools
+
 - [ ] Study tool selector displays all options
 - [ ] Tool selection updates preview
 - [ ] Difficulty levels (Easy/Medium/Hard) work
 - [ ] Tools generate appropriate output for each difficulty level
 
 ### ✅ RAG Chat Tab
+
 - [ ] Search input accepts queries
 - [ ] Search button triggers API call
 - [ ] Minimum 3 character validation works
@@ -106,6 +116,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Result count is accurate
 
 ### ✅ Export Tab
+
 - [ ] Export format selector works
 - [ ] All 4 formats are available (Markdown, PDF, DOCX, JSON)
 - [ ] Export button downloads file with correct format
@@ -115,6 +126,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] File can be opened in respective applications
 
 ### ✅ Projects Tab
+
 - [ ] Project creation button works
 - [ ] New project form accepts input
 - [ ] Project name validation works
@@ -123,6 +135,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Delete project works with confirmation
 
 ### ✅ Settings Tab
+
 - [ ] All settings display correctly
 - [ ] Settings changes are saved
 - [ ] Settings persist across sessions
@@ -130,6 +143,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Settings can be reset to defaults
 
 ### ✅ Error Handling
+
 - [ ] Network errors show appropriate messages
 - [ ] Timeout errors are handled gracefully
 - [ ] Invalid input shows validation errors
@@ -142,6 +156,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 ## API Testing
 
 ### ✅ Authentication
+
 - [ ] Login endpoint works: `POST /api/auth/login`
 - [ ] Register endpoint works: `POST /api/auth/register`
 - [ ] Token refresh works: `POST /api/auth/refresh`
@@ -150,6 +165,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Session management works correctly
 
 ### ✅ AI Operations API
+
 - [ ] All 10 operations are callable
 - [ ] Text input is validated (non-empty, max 12000 chars)
 - [ ] Each operation returns content
@@ -159,6 +175,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Response time is reasonable (<30s)
 
 ### ✅ File Upload API
+
 - [ ] Single file upload works
 - [ ] Multiple file upload works
 - [ ] File validation works (type, size)
@@ -168,6 +185,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] File encryption works (if enabled)
 
 ### ✅ RAG Search API
+
 - [ ] Search with valid query returns results
 - [ ] Results are ranked by relevance
 - [ ] Metadata is included in results
@@ -177,6 +195,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Query too short (< 3 chars) returns error
 
 ### ✅ Notes API
+
 - [ ] Create note works with all required fields
 - [ ] List notes works with pagination
 - [ ] Get single note returns correct data
@@ -188,6 +207,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Tags filtering works
 
 ### ✅ Projects API
+
 - [ ] Create project works
 - [ ] List projects returns all user projects
 - [ ] Get project with count of related items
@@ -196,6 +216,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Authorization prevents access to other users' projects
 
 ### ✅ Settings API
+
 - [ ] Get settings returns defaults for new user
 - [ ] Update settings persists changes
 - [ ] Reset settings to default works
@@ -206,6 +227,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 ## Performance Testing
 
 ### ✅ Load Testing
+
 - [ ] 10 concurrent users can use system
 - [ ] 50 concurrent users can use system
 - [ ] API response time under 2 seconds for normal operations
@@ -214,6 +236,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] No memory leaks after 1 hour of use
 
 ### ✅ Database Performance
+
 - [ ] Indexes are used for common queries
 - [ ] Join queries complete in < 50ms
 - [ ] Text search completes in < 1 second
@@ -221,6 +244,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Bulk operations are optimized
 
 ### ✅ File Handling Performance
+
 - [ ] File upload handles 50MB files
 - [ ] File processing completes for large files
 - [ ] Vector embeddings generate in reasonable time
@@ -231,6 +255,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 ## Security Testing
 
 ### ✅ Authentication & Authorization
+
 - [ ] Unauthenticated requests are rejected (401)
 - [ ] Users can only access their own data
 - [ ] Admin endpoints require admin role
@@ -240,6 +265,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Passwords are hashed (bcrypt)
 
 ### ✅ Data Protection
+
 - [ ] Sensitive data is encrypted at rest
 - [ ] Encryption key rotation is supported
 - [ ] HTTPS is enforced in production
@@ -249,6 +275,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Security headers are set (CSP, HSTS, X-Frame-Options)
 
 ### ✅ File Upload Security
+
 - [ ] File type validation prevents malicious files
 - [ ] File size limits prevent DoS
 - [ ] File path traversal is prevented
@@ -256,6 +283,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Virus scanning is available (if configured)
 
 ### ✅ API Security
+
 - [ ] Rate limiting prevents brute force attacks
 - [ ] Input validation sanitizes all user input
 - [ ] Error messages don't leak sensitive info
@@ -264,6 +292,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] API keys are not logged
 
 ### ✅ Infrastructure Security
+
 - [ ] Database user has minimal required permissions
 - [ ] Redis has password protection
 - [ ] Firewall restricts access to ports
@@ -276,6 +305,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 ## Deployment Testing
 
 ### ✅ Docker Build
+
 - [ ] Dockerfile builds successfully
 - [ ] Multi-stage build reduces image size
 - [ ] Dependencies are cached properly
@@ -283,6 +313,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Health check endpoint works
 
 ### ✅ Docker Compose
+
 - [ ] All services start without errors
 - [ ] Services communicate correctly
 - [ ] Volumes are mounted properly
@@ -292,6 +323,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Logs are accessible via docker-compose logs
 
 ### ✅ Health Checks
+
 - [ ] GET `/api/ping` returns 200 OK
 - [ ] Database health check passes
 - [ ] Redis health check passes
@@ -300,6 +332,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Readiness probe is available
 
 ### ✅ Monitoring
+
 - [ ] Application logs are captured
 - [ ] Error logging includes stack traces
 - [ ] Performance metrics are tracked
@@ -312,6 +345,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 ## Documentation Testing
 
 ### ✅ README
+
 - [ ] Setup instructions are clear
 - [ ] All prerequisites are listed
 - [ ] Installation steps work without modification
@@ -319,6 +353,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Troubleshooting section covers common issues
 
 ### ✅ API Documentation
+
 - [ ] All endpoints are documented
 - [ ] Request/response examples are provided
 - [ ] Error codes are documented
@@ -327,6 +362,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Deprecation warnings are clear
 
 ### ✅ Deployment Guide
+
 - [ ] Local development setup works
 - [ ] Docker deployment steps work
 - [ ] Production deployment options are covered
@@ -339,6 +375,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 ## Data Integrity Testing
 
 ### ✅ Database Consistency
+
 - [ ] Foreign key constraints work
 - [ ] Cascade deletes work correctly
 - [ ] Unique constraints prevent duplicates
@@ -346,6 +383,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] NULL constraints are enforced
 
 ### ✅ Data Validation
+
 - [ ] Email format validation works
 - [ ] URL format validation works
 - [ ] File type validation works
@@ -353,6 +391,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Custom validation rules work
 
 ### ✅ Data Migration
+
 - [ ] Migration up/down works
 - [ ] Data integrity is preserved
 - [ ] No data loss during migration
@@ -364,6 +403,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 ## User Experience Testing
 
 ### ✅ Usability
+
 - [ ] All buttons and links work
 - [ ] Form submission works
 - [ ] Form validation shows helpful messages
@@ -373,6 +413,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] No dead ends in user flow
 
 ### ✅ Accessibility
+
 - [ ] Keyboard navigation works
 - [ ] Screen reader compatibility
 - [ ] Color contrast meets WCAG standards
@@ -380,6 +421,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Touch targets are appropriate size
 
 ### ✅ Browser Compatibility
+
 - [ ] Works in Chrome/Chromium
 - [ ] Works in Firefox
 - [ ] Works in Safari
@@ -391,6 +433,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 ## Post-Launch Monitoring
 
 ### ✅ Performance Monitoring
+
 - [ ] Monitor API response times
 - [ ] Monitor database query times
 - [ ] Monitor file upload success rate
@@ -398,6 +441,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Monitor resource utilization
 
 ### ✅ Operational Monitoring
+
 - [ ] Database backup runs daily
 - [ ] Logs are reviewed regularly
 - [ ] Security updates are applied promptly
@@ -405,6 +449,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 - [ ] Incident response procedures are in place
 
 ### ✅ User Feedback
+
 - [ ] Feedback mechanism is in place
 - [ ] Bug reports are tracked
 - [ ] Feature requests are collected
@@ -415,10 +460,10 @@ This document outlines comprehensive testing and verification procedures to ensu
 
 ## Sign-Off
 
-- [ ] Project Lead: _________________ Date: _______
-- [ ] QA Lead: _________________ Date: _______
-- [ ] DevOps Lead: _________________ Date: _______
-- [ ] Security Review: _________________ Date: _______
+- [ ] Project Lead: **\*\*\*\***\_**\*\*\*\*** Date: **\_\_\_**
+- [ ] QA Lead: **\*\*\*\***\_**\*\*\*\*** Date: **\_\_\_**
+- [ ] DevOps Lead: **\*\*\*\***\_**\*\*\*\*** Date: **\_\_\_**
+- [ ] Security Review: **\*\*\*\***\_**\*\*\*\*** Date: **\_\_\_**
 
 ---
 
@@ -427,7 +472,7 @@ This document outlines comprehensive testing and verification procedures to ensu
 Use this section to document any issues found and their resolution:
 
 ```
-Issue 1: 
+Issue 1:
 Resolution:
 
 Issue 2:
@@ -444,6 +489,7 @@ Resolution:
 Once all checks pass, deploy using:
 
 ### Docker Deployment
+
 ```bash
 # Build images
 docker-compose build
@@ -460,6 +506,7 @@ docker-compose logs -f app
 ```
 
 ### Vercel/Cloud Deployment
+
 ```bash
 # Push to production branch
 git push origin main
@@ -472,6 +519,7 @@ curl https://yourdomain.com/api/ping
 ```
 
 ### Self-Hosted Deployment
+
 ```bash
 # SSH to server
 ssh user@server.com

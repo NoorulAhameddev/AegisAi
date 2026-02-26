@@ -5,6 +5,7 @@ Get the Study Hub running in minutes with this quick start guide.
 ## 5-Minute Local Setup
 
 ### 1. Install Prerequisites
+
 ```bash
 # Required: Node.js 20+, PostgreSQL 14+, Redis 7+
 node --version  # Should be v20.x or higher
@@ -12,6 +13,7 @@ npm --version   # Should be v10.x or higher
 ```
 
 ### 2. Clone & Setup
+
 ```bash
 git clone <repository-url>
 cd aegis-ai
@@ -19,11 +21,13 @@ npm install --legacy-peer-deps
 ```
 
 ### 3. Configure Environment
+
 ```bash
 cp .env.example .env.local
 ```
 
 Edit `.env.local` and fill in these critical values:
+
 ```env
 DATABASE_URL=postgresql://postgres:password@localhost:5432/aegis_ai
 REDIS_URL=redis://localhost:6379
@@ -36,6 +40,7 @@ NODE_ENV=development
 ```
 
 ### 4. Setup Database
+
 ```bash
 # Create database
 createdb aegis_ai
@@ -50,12 +55,15 @@ npm run studio
 ### 5. Start Services
 
 **Terminal 1 - Start Next.js Dev Server:**
+
 ```bash
 npm run dev
 ```
+
 Then open http://localhost:3000
 
 **Terminal 2 - Start AI Worker (Required for Chat):**
+
 ```bash
 npm run worker
 ```
@@ -63,16 +71,19 @@ npm run worker
 ## 5-Minute Docker Setup
 
 ### 1. Build & Start
+
 ```bash
 docker-compose up -d
 ```
 
 ### 2. Run Migrations
+
 ```bash
 docker-compose exec app npx prisma migrate deploy
 ```
 
 ### 3. Verify
+
 ```bash
 # Check services running
 docker-compose ps
@@ -87,6 +98,7 @@ curl http://localhost:3000/api/ping
 ## Available Commands
 
 ### Development
+
 ```bash
 npm run dev          # Start Next.js dev server
 npm run worker       # Start AI worker (in separate terminal)
@@ -94,6 +106,7 @@ npm run studio       # Open Prisma Studio (database UI)
 ```
 
 ### Database
+
 ```bash
 npm run migrate      # Run Prisma migrations
 npm run db:seed      # Seed test data
@@ -101,6 +114,7 @@ npm run db:reset     # Reset database (dev only)
 ```
 
 ### Testing
+
 ```bash
 npm test              # Run all tests
 npm run test:watch    # Watch mode
@@ -109,12 +123,14 @@ npm run test:study-hub # Study Hub integration tests
 ```
 
 ### Build
+
 ```bash
 npm run build         # Build for production
 npm start            # Run production build
 ```
 
 ### Linting
+
 ```bash
 npm run lint         # Run ESLint
 npm run lint:fix     # Fix linting issues
@@ -122,6 +138,7 @@ npm run format       # Format code with Prettier
 ```
 
 ### Docker
+
 ```bash
 docker-compose up -d          # Start all services
 docker-compose down           # Stop all services
@@ -157,26 +174,31 @@ src/
 ## Key Features & How They Work
 
 ### Study Hub Page (`src/app/study/page.tsx`)
+
 - 7 tabs for different functionalities
 - 10 study tools for content transformation
 - Integrated with all backend APIs
 
 ### AI Operations (`/api/ai/operate`)
+
 - Processes text through OpenRouter AI models
 - Supports 10 different operations (summary, notes, flashcards, etc.)
 - Saves results to database as notes
 
 ### File Upload (`/api/files/batch-upload`)
+
 - Accepts multiple files at once
 - Extracts text from PDF, DOCX, TXT, XLSX
 - Automatically creates vector embeddings for RAG
 
 ### RAG Search (`/api/rag/search`)
+
 - Searches vector database for similar documents
 - Returns relevant snippets with sources
 - Used in "RAG Chat" tab
 
 ### Export (`/api/notes/export`)
+
 - Converts notes to PDF, DOCX, or Markdown
 - Generates downloadable files
 - Includes metadata and formatting
@@ -184,6 +206,7 @@ src/
 ## Testing the Application
 
 ### Manual Testing
+
 1. Go to http://localhost:3000
 2. Navigate to Study Hub
 3. Try each tab:
@@ -195,6 +218,7 @@ src/
    - Settings: Adjust preferences
 
 ### API Testing with curl
+
 ```bash
 # Test AI operation
 curl -X POST http://localhost:3000/api/ai/operate \
@@ -214,6 +238,7 @@ curl -X POST http://localhost:3000/api/rag/search \
 ```
 
 ### Automated Testing
+
 ```bash
 # Run integration tests
 npm run test:study-hub
@@ -225,12 +250,14 @@ npm run test:watch
 ## Database Operations
 
 ### View Data in Studio
+
 ```bash
 npm run studio
 # Opens GUI at http://localhost:5555
 ```
 
 ### Access Database Directly
+
 ```bash
 # psql prompt
 psql -U postgres -d aegis_ai
@@ -242,6 +269,7 @@ SELECT COUNT(*) FROM "Project";
 ```
 
 ### Make Changes to Schema
+
 1. Edit `prisma/schema.prisma`
 2. Create migration: `npx prisma migrate dev --name description`
 3. Migration auto-applied
@@ -249,6 +277,7 @@ SELECT COUNT(*) FROM "Project";
 ## Environment Variables Explained
 
 ### Critical (MUST SET)
+
 - `DATABASE_URL` - PostgreSQL connection string
 - `REDIS_URL` - Redis connection string
 - `JWT_ACCESS_SECRET` - Random 32+ character string
@@ -257,10 +286,12 @@ SELECT COUNT(*) FROM "Project";
 - `OPENROUTER_API_KEY` - From https://openrouter.ai/keys
 
 ### Important
+
 - `NODE_ENV` - 'development' or 'production'
 - `SITE_URL` - Your application URL
 
 ### Optional
+
 - `MAX_FILE_SIZE` - Upload limit (default: 50MB)
 - `MAX_TOKENS` - LLM response tokens (default: 2000)
 - `LOG_LEVEL` - 'info', 'warn', 'error', 'debug' (default: 'info')
@@ -268,6 +299,7 @@ SELECT COUNT(*) FROM "Project";
 ## Common Issues & Quick Fixes
 
 ### "Database connection refused"
+
 ```bash
 # Start PostgreSQL
 brew services start postgresql  # macOS
@@ -275,6 +307,7 @@ sudo service postgresql start   # Linux
 ```
 
 ### "Redis connection timeout"
+
 ```bash
 # Start Redis
 redis-server              # Foreground
@@ -283,13 +316,16 @@ sudo service redis start  # Linux
 ```
 
 ### "Worker not processing jobs"
+
 Make sure you're running both:
+
 ```bash
 npm run dev      # Terminal 1
 npm run worker   # Terminal 2 (separate)
 ```
 
 ### "Port 3000 already in use"
+
 ```bash
 # Kill process on port 3000
 lsof -i :3000        # Find process ID
@@ -297,6 +333,7 @@ kill -9 <PID>        # Kill it
 ```
 
 ### "Module not found errors"
+
 ```bash
 # Reinstall dependencies
 rm -rf node_modules package-lock.json
@@ -306,6 +343,7 @@ npm install --legacy-peer-deps
 ## Architecture Overview
 
 ### Request Flow
+
 ```
 User Click
     ↓
@@ -325,6 +363,7 @@ Display in UI
 ```
 
 ### Study Operation Flow
+
 ```
 User Selects Tool + Enters Text
     ↓
@@ -344,6 +383,7 @@ User can export or search
 ```
 
 ### RAG Flow
+
 ```
 User Uploads File
     ↓
@@ -367,26 +407,32 @@ Return snippets to user
 ## File Organization by Feature
 
 ### Study Hub Frontend
+
 - `src/app/study/page.tsx` - Main page with all tabs
 
 ### AI Operations
+
 - `src/app/api/ai/operate/route.ts` - API endpoint
 - `src/services/ai/operations.service.ts` - Business logic
 
 ### File Upload & RAG
+
 - `src/app/api/files/batch-upload/route.ts` - Upload endpoint
 - `src/services/ingestion/ingestion.service.ts` - Ingestion logic
 - `src/services/rag/rag-retrieval.ts` - RAG search logic
 
 ### Notes & Export
+
 - `src/app/api/notes/route.ts` - Notes CRUD
 - `src/app/api/notes/export/route.ts` - Export endpoint
 - `src/services/export/export.service.ts` - Export logic
 
 ### Projects
+
 - `src/app/api/projects/route.ts` - Projects endpoint
 
 ### Settings (NEW)
+
 - `src/app/api/user/settings/route.ts` - Settings endpoint
 
 ## Next Steps
@@ -416,12 +462,14 @@ Return snippets to user
 ## Tips & Tricks
 
 ### Debug Mode
+
 ```bash
 # Enable verbose logging
 DEBUG=* npm run dev
 ```
 
 ### Test with Real Files
+
 ```bash
 # Create test file
 echo "Machine learning is a subset of AI" > test.txt
@@ -431,12 +479,14 @@ curl -F "file-0=@test.txt" http://localhost:3000/api/files/batch-upload
 ```
 
 ### Monitor Database
+
 ```bash
 # Watch database in real-time
 watch -n 1 'psql -U postgres -d aegis_ai -c "SELECT COUNT(*) as notes FROM \"Note\"; SELECT COUNT(*) as projects FROM \"Project\";"'
 ```
 
 ### Performance Testing
+
 ```bash
 # Load test with Apache Bench
 ab -n 100 -c 10 http://localhost:3000/api/ping
@@ -447,6 +497,7 @@ ab -n 100 -c 10 http://localhost:3000/api/ping
 **Ready to get started? Follow the 5-minute setup above and you'll be running in no time!**
 
 For detailed information, see:
+
 - `STUDY_HUB_README.md` - Complete documentation
 - `docs/DEPLOYMENT_GUIDE.md` - Deployment instructions
 - `PRODUCTION_AUDIT_CHECKLIST.md` - Pre-launch checklist

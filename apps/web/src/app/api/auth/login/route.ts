@@ -4,7 +4,11 @@ import { comparePassword } from "@/services/auth/auth";
 import { loginSchema } from "@/lib/validations";
 import { parseBody } from "@/lib/request-validation";
 import { env } from "@/lib/env";
-import { errorResponse, successResponse, rateLimitResponse } from "@/lib/response";
+import {
+  errorResponse,
+  successResponse,
+  rateLimitResponse,
+} from "@/lib/response";
 import { rateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
@@ -12,7 +16,9 @@ export async function POST(req: NextRequest) {
   // CRITICAL: Rate limit login attempts to prevent brute force
   const limit = await rateLimit(req, { limit: 20, window: 3600 }); // 20 attempts per hour per IP
   if (!limit.success) {
-    logger.security('Login rate limit exceeded', { ip: req.headers.get('x-forwarded-for') });
+    logger.security("Login rate limit exceeded", {
+      ip: req.headers.get("x-forwarded-for"),
+    });
     return rateLimitResponse();
   }
 
@@ -21,7 +27,7 @@ export async function POST(req: NextRequest) {
 
   const { email, password } = data;
   const user = await prisma.user.findUnique({ where: { email } });
-  
+
   if (!user) {
     return errorResponse("Invalid credentials", { status: 401 });
   }
@@ -33,7 +39,9 @@ export async function POST(req: NextRequest) {
   }
 
   if ((user as any).isBanned) {
-    return errorResponse("Your account has been permanently suspended.", { status: 403 });
+    return errorResponse("Your account has been permanently suspended.", {
+      status: 403,
+    });
   }
 
   // Get IP and UserAgent
@@ -41,14 +49,18 @@ export async function POST(req: NextRequest) {
   const userAgent = req.headers.get("user-agent") || "unknown";
 
   const { createSession } = await import("@/services/auth/session");
-  const { accessToken, refreshToken } = await createSession(user.id, userAgent, ip);
+  const { accessToken, refreshToken } = await createSession(
+    user.id,
+    userAgent,
+    ip,
+  );
 
   // Audit Log
   await prisma.auditLog.create({
     data: {
       userId: user.id,
       action: "LOGIN",
-    }
+    },
   });
 
   const res = successResponse({ message: "Logged in" });

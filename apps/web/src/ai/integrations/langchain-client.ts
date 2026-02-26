@@ -13,46 +13,46 @@ import { env } from "../../lib/env";
  * @param modelName - OpenAI model name
  */
 export function createLangChainClient(options?: {
-    streaming?: boolean;
-    temperature?: number;
-    modelName?: string;
-    maxTokens?: number;
+  streaming?: boolean;
+  temperature?: number;
+  modelName?: string;
+  maxTokens?: number;
 }) {
-    const {
-        streaming = false,
-        temperature = 0.7,
-        modelName = "gpt-4o-mini",
-        maxTokens = 4096
-    } = options || {};
+  const {
+    streaming = false,
+    temperature = 0.7,
+    modelName = "gpt-4o-mini",
+    maxTokens = 4096,
+  } = options || {};
 
-    return new ChatOpenAI({
-        openAIApiKey: env.OPENROUTER_API_KEY,
-        modelName,
-        temperature,
-        streaming,
-        maxTokens,
-        configuration: {
-            baseURL: "https://openrouter.ai/api/v1",
-        },
-    });
+  return new ChatOpenAI({
+    openAIApiKey: env.OPENROUTER_API_KEY,
+    modelName,
+    temperature,
+    streaming,
+    maxTokens,
+    configuration: {
+      baseURL: "https://openrouter.ai/api/v1",
+    },
+  });
 }
 
 /**
  * Create a streaming LangChain client
  */
 export function createStreamingClient(temperature = 0.7) {
-    return createLangChainClient({
-        streaming: true,
-        temperature,
-    });
+  return createLangChainClient({
+    streaming: true,
+    temperature,
+  });
 }
 
 /**
  * Create a non-streaming LangChain client
  */
 export function createStandardClient(temperature = 0.7) {
-    return createLangChainClient({
-        streaming: false,
-        temperature,
-    });
+  return createLangChainClient({
+    streaming: false,
+    temperature,
+  });
 }

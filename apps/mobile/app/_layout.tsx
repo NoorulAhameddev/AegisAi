@@ -1,15 +1,15 @@
-import { Slot } from 'expo-router';
-import { AuthProvider } from '../src/context/AuthContext';
-import { GlobalStateProvider } from '../src/context/GlobalStateContext';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { logger } from '../src/utils/logger';
-import ErrorBoundary from '../src/components/ErrorBoundary';
+import { Slot } from "expo-router";
+import { AuthProvider } from "../src/context/AuthContext";
+import { GlobalStateProvider } from "../src/context/GlobalStateContext";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import { logger } from "../src/utils/logger";
+import ErrorBoundary from "../src/components/ErrorBoundary";
 
 export default function RootLayout() {
   useEffect(() => {
-    logger.info('App initialized');
+    logger.info("App initialized");
   }, []);
 
   return (

@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getGoogleUserInfo } from '@/services/auth/google-oauth';
-import { createSession } from '@/services/auth/session';
-import { logger } from '@/lib/logger';
-import { env } from '@/lib/env';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getGoogleUserInfo } from "@/services/auth/google-oauth";
+import { createSession } from "@/services/auth/session";
+import { logger } from "@/lib/logger";
+import { env } from "@/lib/env";
 
-const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
+const SITE_URL = process.env.SITE_URL || "http://localhost:3000";
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,11 +13,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(`${SITE_URL}/login?error=oauth_disabled`);
     }
     const { searchParams } = new URL(req.url);
-    const code = searchParams.get('code');
-    const error = searchParams.get('error');
+    const code = searchParams.get("code");
+    const error = searchParams.get("error");
 
     if (error || !code) {
-      logger.security('Google OAuth callback error', { error });
+      logger.security("Google OAuth callback error", { error });
       return NextResponse.redirect(`${SITE_URL}/login?error=oauth_denied`);
     }
 
@@ -29,9 +29,9 @@ export async function GET(req: NextRequest) {
       where: {
         OR: [
           { email: googleUser.email },
-          { provider: 'google', providerId: googleUser.providerId }
-        ]
-      }
+          { provider: "google", providerId: googleUser.providerId },
+        ],
+      },
     });
 
     if (user) {
@@ -40,10 +40,10 @@ export async function GET(req: NextRequest) {
         user = await prisma.user.update({
           where: { id: user.id },
           data: {
-            provider: 'google',
+            provider: "google",
             providerId: googleUser.providerId,
             picture: googleUser.picture,
-          }
+          },
         });
       }
     } else {
@@ -52,14 +52,17 @@ export async function GET(req: NextRequest) {
         data: {
           email: googleUser.email,
           name: googleUser.name,
-          provider: 'google',
+          provider: "google",
           providerId: googleUser.providerId,
           picture: googleUser.picture,
-          role: 'USER',
-        }
+          role: "USER",
+        },
       });
 
-      logger.auth('New OAuth user registered', { userId: user.id, provider: 'google' });
+      logger.auth("New OAuth user registered", {
+        userId: user.id,
+        provider: "google",
+      });
     }
 
     // Check if banned
@@ -68,42 +71,46 @@ export async function GET(req: NextRequest) {
     }
 
     // Create session
-    const userAgent = req.headers.get('user-agent') || 'unknown';
-    const ip = req.headers.get('x-forwarded-for') || 'unknown';
-    const { accessToken, refreshToken } = await createSession(user.id, userAgent, ip);
+    const userAgent = req.headers.get("user-agent") || "unknown";
+    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    const { accessToken, refreshToken } = await createSession(
+      user.id,
+      userAgent,
+      ip,
+    );
 
     // Audit log
     await prisma.auditLog.create({
       data: {
         userId: user.id,
-        action: 'LOGIN_OAUTH',
-        metadata: { provider: 'google' }
-      }
+        action: "LOGIN_OAUTH",
+        metadata: { provider: "google" },
+      },
     });
 
     // Set cookies and redirect
     const response = NextResponse.redirect(`${SITE_URL}/dashboard`);
-    const isProd = env.NODE_ENV === 'production';
+    const isProd = env.NODE_ENV === "production";
 
-    response.cookies.set('auth_access', accessToken, {
+    response.cookies.set("auth_access", accessToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'strict' : 'lax',
-      path: '/',
+      sameSite: isProd ? "strict" : "lax",
+      path: "/",
       maxAge: 600, // 10 minutes
     });
 
-    response.cookies.set('auth_refresh', refreshToken, {
+    response.cookies.set("auth_refresh", refreshToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'strict' : 'lax',
-      path: '/',
+      sameSite: isProd ? "strict" : "lax",
+      path: "/",
       maxAge: 604800, // 7 days
     });
 
     return response;
   } catch (error) {
-    logger.error('Google OAuth callback failed', error as Error);
+    logger.error("Google OAuth callback failed", error as Error);
     return NextResponse.redirect(`${SITE_URL}/login?error=oauth_failed`);
   }
 }

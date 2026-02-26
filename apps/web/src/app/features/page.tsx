@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Tabs } from '@/components/ui/Tabs';
+import React, { useState } from "react";
+import { Tabs } from "@/components/ui/Tabs";
 import {
   TextInput,
   FileUpload,
@@ -18,50 +18,50 @@ import {
   ExportManager,
   SecuritySettings,
   FeaturesDashboard,
-} from '@/components/features';
+} from "@/components/features";
 
 /**
  * Complete example showing all 90+ features in action
  * This page demonstrates the full workflow from input to export
  */
 export default function FeaturesShowcasePage() {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [content, setContent] = useState('');
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [content, setContent] = useState("");
   const [documents, setDocuments] = useState([]);
 
   // Example handlers
   const handleTextSubmit = async (text: string) => {
-    console.log('Text submitted:', text);
+    console.log("Text submitted:", text);
     setContent(text);
   };
 
   const handleFileUpload = async (file: File) => {
-    console.log('File uploaded:', file.name);
+    console.log("File uploaded:", file.name);
     // In production, call API to process file
   };
 
   const handleURLIngest = async (url: string, type: string) => {
-    console.log('URL ingested:', url, type);
+    console.log("URL ingested:", url, type);
   };
 
   const handleGenerate = async (capability: string) => {
-    console.log('Generating:', capability);
-    return 'This is generated content...';
+    console.log("Generating:", capability);
+    return "This is generated content...";
   };
 
   const handleExport = async (format: string): Promise<Blob> => {
-    console.log('Exporting as:', format);
-    return new Blob([content], { type: 'text/plain' });
+    console.log("Exporting as:", format);
+    return new Blob([content], { type: "text/plain" });
   };
 
   const mockDocuments = [
     {
-      id: 'doc-1',
-      title: 'My Notes',
-      content: 'Sample content...',
-      tags: ['important', 'work'],
-      createdAt: '2024-01-25',
-      updatedAt: '2024-01-25',
+      id: "doc-1",
+      title: "My Notes",
+      content: "Sample content...",
+      tags: ["important", "work"],
+      createdAt: "2024-01-25",
+      updatedAt: "2024-01-25",
       version: 1,
       archived: false,
     },
@@ -69,27 +69,27 @@ export default function FeaturesShowcasePage() {
 
   const mockRAGDocuments = [
     {
-      id: 'rag-1',
-      name: 'document.pdf',
-      uploadedAt: 'Jan 25, 2024',
+      id: "rag-1",
+      name: "document.pdf",
+      uploadedAt: "Jan 25, 2024",
       chunks: 50,
       tokens: 12000,
-      language: 'en',
+      language: "en",
       selected: true,
     },
   ];
 
   const tabs = [
-    { label: '📊 Dashboard', value: 'dashboard' },
-    { label: '📥 Input', value: 'input' },
-    { label: '🔍 Extraction', value: 'extraction' },
-    { label: '✂️ Chunking', value: 'chunking' },
-    { label: '🧠 AI', value: 'ai' },
-    { label: '📚 RAG', value: 'rag' },
-    { label: '💬 Chat', value: 'chat' },
-    { label: '🎓 Study', value: 'study' },
-    { label: '📤 Export', value: 'export' },
-    { label: '🔐 Security', value: 'security' },
+    { label: "📊 Dashboard", value: "dashboard" },
+    { label: "📥 Input", value: "input" },
+    { label: "🔍 Extraction", value: "extraction" },
+    { label: "✂️ Chunking", value: "chunking" },
+    { label: "🧠 AI", value: "ai" },
+    { label: "📚 RAG", value: "rag" },
+    { label: "💬 Chat", value: "chat" },
+    { label: "🎓 Study", value: "study" },
+    { label: "📤 Export", value: "export" },
+    { label: "🔐 Security", value: "security" },
   ];
 
   return (
@@ -113,8 +113,8 @@ export default function FeaturesShowcasePage() {
               onClick={() => setActiveTab(tab.value)}
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 activeTab === tab.value
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
               }`}
             >
               {tab.label}
@@ -125,7 +125,7 @@ export default function FeaturesShowcasePage() {
         {/* Content */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           {/* Dashboard Tab */}
-          {activeTab === 'dashboard' && (
+          {activeTab === "dashboard" && (
             <FeaturesDashboard
               stats={{
                 totalDocuments: 42,
@@ -136,25 +136,25 @@ export default function FeaturesShowcasePage() {
               }}
               recentActivity={[
                 {
-                  id: '1',
-                  action: 'Uploaded PDF',
-                  description: 'document.pdf (2.3 MB)',
-                  timestamp: '2 min ago',
-                  type: 'upload',
+                  id: "1",
+                  action: "Uploaded PDF",
+                  description: "document.pdf (2.3 MB)",
+                  timestamp: "2 min ago",
+                  type: "upload",
                 },
                 {
-                  id: '2',
-                  action: 'Generated Summary',
-                  description: '156 words generated',
-                  timestamp: '5 min ago',
-                  type: 'process',
+                  id: "2",
+                  action: "Generated Summary",
+                  description: "156 words generated",
+                  timestamp: "5 min ago",
+                  type: "process",
                 },
               ]}
             />
           )}
 
           {/* Input Tab */}
-          {activeTab === 'input' && (
+          {activeTab === "input" && (
             <div className="space-y-6">
               <TextInput onSubmit={handleTextSubmit} />
               <FileUpload onUpload={handleFileUpload} />
@@ -167,32 +167,32 @@ export default function FeaturesShowcasePage() {
           )}
 
           {/* Extraction Tab */}
-          {activeTab === 'extraction' && (
+          {activeTab === "extraction" && (
             <ExtractionStatus
               status="success"
               documentName="document.pdf"
               preview={{
-                title: 'Sample Document',
-                author: 'John Doe',
-                language: 'en',
+                title: "Sample Document",
+                author: "John Doe",
+                language: "en",
                 chunks: 50,
                 tokens: 12000,
-                textPreview: 'This is a sample document excerpt...',
+                textPreview: "This is a sample document excerpt...",
               }}
             />
           )}
 
           {/* Chunking Tab */}
-          {activeTab === 'chunking' && (
+          {activeTab === "chunking" && (
             <div className="space-y-6">
               <ChunkingConfig
                 settings={{
                   chunkSize: 512,
                   overlapSize: 64,
-                  chunkingStrategy: 'recursive',
+                  chunkingStrategy: "recursive",
                   preserveStructure: true,
                 }}
-                onChange={(s) => console.log('Settings changed:', s)}
+                onChange={(s) => console.log("Settings changed:", s)}
                 documentTokens={25000}
               />
               <ChunkPreview
@@ -208,7 +208,7 @@ export default function FeaturesShowcasePage() {
           )}
 
           {/* AI Tab */}
-          {activeTab === 'ai' && (
+          {activeTab === "ai" && (
             <div className="space-y-6">
               <AICapabilities onGenerate={handleGenerate} result={content} />
               <FlashcardGenerator onGenerate={async () => []} />
@@ -216,29 +216,29 @@ export default function FeaturesShowcasePage() {
           )}
 
           {/* RAG Tab */}
-          {activeTab === 'rag' && (
+          {activeTab === "rag" && (
             <RAGContext
               documents={mockRAGDocuments}
-              onSelectDocuments={(ids) => console.log('Selected:', ids)}
-              onSearch={async (q) => console.log('Searching:', q)}
+              onSelectDocuments={(ids) => console.log("Selected:", ids)}
+              onSearch={async (q) => console.log("Searching:", q)}
             />
           )}
 
           {/* Chat Tab */}
-          {activeTab === 'chat' && (
+          {activeTab === "chat" && (
             <AdvancedChat
               onSendMessage={async (msg) => {
                 return `Response to: ${msg}`;
               }}
               suggestedQuestions={[
-                'What is the main topic?',
-                'Summarize in 2 sentences',
+                "What is the main topic?",
+                "Summarize in 2 sentences",
               ]}
             />
           )}
 
           {/* Study Tab */}
-          {activeTab === 'study' && (
+          {activeTab === "study" && (
             <div className="space-y-6">
               <FlashcardGenerator onGenerate={async () => []} />
               <QuizGenerator onGenerate={async () => []} />
@@ -246,20 +246,20 @@ export default function FeaturesShowcasePage() {
           )}
 
           {/* Export Tab */}
-          {activeTab === 'export' && (
+          {activeTab === "export" && (
             <div className="space-y-6">
               <ExportManager
-                content={content || 'Sample content to export...'}
+                content={content || "Sample content to export..."}
                 onExport={handleExport}
                 filename="export"
               />
               <DocumentStorage
                 onSave={async (title, content, tags) => {
-                  console.log('Saving:', title, tags);
-                  return 'doc-id';
+                  console.log("Saving:", title, tags);
+                  return "doc-id";
                 }}
                 onDelete={async (id) => {
-                  console.log('Deleting:', id);
+                  console.log("Deleting:", id);
                 }}
                 documents={mockDocuments}
                 currentContent={content}
@@ -268,15 +268,17 @@ export default function FeaturesShowcasePage() {
           )}
 
           {/* Security Tab */}
-          {activeTab === 'security' && (
+          {activeTab === "security" && (
             <SecuritySettings
-              onChangeDataPrivacy={async (level) => console.log('Privacy:', level)}
-              onChangeTokenExpiry={async (mins) => console.log('Expiry:', mins)}
-              onRevokeAllSessions={async () => console.log('Revoking...')}
+              onChangeDataPrivacy={async (level) =>
+                console.log("Privacy:", level)
+              }
+              onChangeTokenExpiry={async (mins) => console.log("Expiry:", mins)}
+              onRevokeAllSessions={async () => console.log("Revoking...")}
               securityInfo={{
-                encryption: 'enabled',
+                encryption: "enabled",
                 encryptionKeyVersion: 1,
-                dataLocalization: 'US-EAST-1',
+                dataLocalization: "US-EAST-1",
                 auditLogging: true,
               }}
             />
@@ -286,10 +288,12 @@ export default function FeaturesShowcasePage() {
         {/* Footer */}
         <div className="mt-8 text-center text-gray-600 text-sm">
           <p>
-            All 90+ features are production-ready with TypeScript, Accessibility, and
-            Responsive Design
+            All 90+ features are production-ready with TypeScript,
+            Accessibility, and Responsive Design
           </p>
-          <p className="mt-2">📖 See docs/FRONTEND_COMPONENTS.md for complete documentation</p>
+          <p className="mt-2">
+            📖 See docs/FRONTEND_COMPONENTS.md for complete documentation
+          </p>
         </div>
       </div>
     </div>

@@ -21,6 +21,7 @@ An S3 backup bucket is already provisioned in Terraform with versioning, encrypt
 - Public access blocked by default
 
 **Variables**:
+
 - `backup_retention_days`
 - `backup_glacier_transition_days`
 

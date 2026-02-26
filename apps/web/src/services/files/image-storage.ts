@@ -3,16 +3,16 @@
  * Handles image upload, storage, and retrieval with support for multiple backends
  */
 
-import fs from 'fs/promises';
-import path from 'path';
-import crypto from 'crypto';
-import { logger } from '@/lib/logger';
-import { encrypt, decrypt } from '@/lib/encryption';
-import { prisma } from '@/lib/prisma';
-import { notifyFileUploadComplete } from '@/services/realtime';
+import fs from "fs/promises";
+import path from "path";
+import crypto from "crypto";
+import { logger } from "@/lib/logger";
+import { encrypt, decrypt } from "@/lib/encryption";
+import { prisma } from "@/lib/prisma";
+import { notifyFileUploadComplete } from "@/services/realtime";
 
 export interface StorageConfig {
-  type: 'local' | 's3' | 'azure' | 'gcs';
+  type: "local" | "s3" | "azure" | "gcs";
   bucket?: string;
   region?: string;
   maxFileSize: number; // in bytes
@@ -32,20 +32,20 @@ export interface ImageMetadata {
 
 // Default storage config (local filesystem)
 const defaultConfig: StorageConfig = {
-  type: 'local',
+  type: "local",
   maxFileSize: 50 * 1024 * 1024, // 50MB
   allowedMimeTypes: [
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-    'image/gif',
-    'image/svg+xml',
-    'image/tiff',
-    'image/bmp',
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "image/svg+xml",
+    "image/tiff",
+    "image/bmp",
   ],
 };
 
-const UPLOADS_DIR = path.join(process.cwd(), 'uploads', 'images');
+const UPLOADS_DIR = path.join(process.cwd(), "uploads", "images");
 
 /**
  * Initialize storage (ensure directories exist)
@@ -53,9 +53,9 @@ const UPLOADS_DIR = path.join(process.cwd(), 'uploads', 'images');
 export async function initializeStorage() {
   try {
     await fs.mkdir(UPLOADS_DIR, { recursive: true });
-    logger.worker('storage', 'initialized', { dir: UPLOADS_DIR });
+    logger.worker("storage", "initialized", { dir: UPLOADS_DIR });
   } catch (error) {
-    logger.error('Failed to initialize storage', error as Error);
+    logger.error("Failed to initialize storage", error as Error);
     throw error;
   }
 }
@@ -68,7 +68,7 @@ export async function uploadImage(
   fileBuffer: Buffer,
   originalName: string,
   mimeType: string,
-  config: StorageConfig = defaultConfig
+  config: StorageConfig = defaultConfig,
 ): Promise<{ fileId: string; path: string; metadata: ImageMetadata }> {
   try {
     // Validate
@@ -77,24 +77,26 @@ export async function uploadImage(
     }
 
     if (fileBuffer.length > config.maxFileSize) {
-      throw new Error(`File exceeds maximum size of ${config.maxFileSize / 1024 / 1024}MB`);
+      throw new Error(
+        `File exceeds maximum size of ${config.maxFileSize / 1024 / 1024}MB`,
+      );
     }
 
     // Generate unique filename
-    const fileId = `img_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
+    const fileId = `img_${Date.now()}_${crypto.randomBytes(8).toString("hex")}`;
     const ext = path.extname(originalName);
     const fileName = sanitizeFilename(fileId + ext);
     const filePath = path.join(UPLOADS_DIR, fileName);
 
     // Calculate hash
-    const hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+    const hash = crypto.createHash("sha256").update(fileBuffer).digest("hex");
 
     // Store file
-    if (config.type === 'local') {
+    if (config.type === "local") {
       await fs.writeFile(filePath, fileBuffer);
     } else {
       // TODO: Implement S3/Azure/GCS storage
-      throw new Error('Only local storage is currently supported');
+      throw new Error("Only local storage is currently supported");
     }
 
     // Create database record
@@ -123,9 +125,18 @@ export async function uploadImage(
     });
 
     // Notify user
-    await notifyFileUploadComplete(userId, originalName, fileRecord.id, fileBuffer.length);
+    await notifyFileUploadComplete(
+      userId,
+      originalName,
+      fileRecord.id,
+      fileBuffer.length,
+    );
 
-    logger.worker('storage:upload', 'success', { userId, fileId, size: fileBuffer.length });
+    logger.worker("storage:upload", "success", {
+      userId,
+      fileId,
+      size: fileBuffer.length,
+    });
 
     return {
       fileId: fileRecord.id,
@@ -133,7 +144,7 @@ export async function uploadImage(
       metadata,
     };
   } catch (error) {
-    logger.error('Image upload failed', error as Error, { userId });
+    logger.error("Image upload failed", error as Error, { userId });
     throw error;
   }
 }
@@ -141,19 +152,22 @@ export async function uploadImage(
 /**
  * Retrieve image from storage
  */
-export async function getImage(imageId: string, userId: string): Promise<Buffer> {
+export async function getImage(
+  imageId: string,
+  userId: string,
+): Promise<Buffer> {
   try {
     const imageFile = await prisma.imageFile.findUnique({
       where: { id: imageId },
     });
 
     if (!imageFile) {
-      throw new Error('Image not found');
+      throw new Error("Image not found");
     }
 
     // Verify ownership
     if (imageFile.userId !== userId) {
-      throw new Error('Access denied');
+      throw new Error("Access denied");
     }
 
     // Decrypt path
@@ -162,11 +176,14 @@ export async function getImage(imageId: string, userId: string): Promise<Buffer>
     // Read file
     const buffer = await fs.readFile(decryptedPath);
 
-    logger.worker('storage:retrieve', 'success', { userId, imageId });
+    logger.worker("storage:retrieve", "success", { userId, imageId });
 
     return buffer;
   } catch (error) {
-    logger.error('Failed to retrieve image', error as Error, { imageId, userId });
+    logger.error("Failed to retrieve image", error as Error, {
+      imageId,
+      userId,
+    });
     throw error;
   }
 }
@@ -181,12 +198,12 @@ export async function deleteImage(imageId: string, userId: string) {
     });
 
     if (!imageFile) {
-      throw new Error('Image not found');
+      throw new Error("Image not found");
     }
 
     // Verify ownership
     if (imageFile.userId !== userId) {
-      throw new Error('Access denied');
+      throw new Error("Access denied");
     }
 
     // Delete from filesystem
@@ -201,9 +218,9 @@ export async function deleteImage(imageId: string, userId: string) {
       data: { deletedAt: new Date() },
     });
 
-    logger.worker('storage:delete', 'success', { userId, imageId });
+    logger.worker("storage:delete", "success", { userId, imageId });
   } catch (error) {
-    logger.error('Failed to delete image', error as Error, { imageId, userId });
+    logger.error("Failed to delete image", error as Error, { imageId, userId });
     throw error;
   }
 }
@@ -211,14 +228,18 @@ export async function deleteImage(imageId: string, userId: string) {
 /**
  * List user's images
  */
-export async function getUserImages(userId: string, limit: number = 50, offset: number = 0) {
+export async function getUserImages(
+  userId: string,
+  limit: number = 50,
+  offset: number = 0,
+) {
   try {
     const images = await prisma.imageFile.findMany({
       where: {
         userId,
         deletedAt: null,
       },
-      orderBy: { uploadedAt: 'desc' },
+      orderBy: { uploadedAt: "desc" },
       take: limit,
       skip: offset,
       select: {
@@ -234,7 +255,7 @@ export async function getUserImages(userId: string, limit: number = 50, offset: 
 
     return images;
   } catch (error) {
-    logger.error('Failed to list images', error as Error, { userId });
+    logger.error("Failed to list images", error as Error, { userId });
     return [];
   }
 }
@@ -244,7 +265,7 @@ export async function getUserImages(userId: string, limit: number = 50, offset: 
  */
 export async function findDuplicateImages(
   userId: string,
-  hash: string
+  hash: string,
 ): Promise<any[] | null> {
   try {
     const duplicates = await prisma.imageFile.findMany({
@@ -257,7 +278,7 @@ export async function findDuplicateImages(
 
     return duplicates.length > 0 ? duplicates : null;
   } catch (error) {
-    logger.error('Failed to check duplicates', error as Error);
+    logger.error("Failed to check duplicates", error as Error);
     return null;
   }
 }
@@ -283,7 +304,7 @@ export async function getUserImageStats(userId: string) {
       avgSize: totalImages > 0 ? (totalSize._sum?.size || 0) / totalImages : 0,
     };
   } catch (error) {
-    logger.error('Failed to get image stats', error as Error, { userId });
+    logger.error("Failed to get image stats", error as Error, { userId });
     return { totalImages: 0, totalSize: 0, avgSize: 0 };
   }
 }
@@ -307,14 +328,18 @@ export async function cleanupDeletedImages(daysOld: number = 30) {
         await fs.unlink(decryptedPath).catch(() => {});
         await prisma.imageFile.delete({ where: { id: image.id } });
       } catch (err) {
-        logger.error('Failed to cleanup image', err as Error, { imageId: image.id });
+        logger.error("Failed to cleanup image", err as Error, {
+          imageId: image.id,
+        });
       }
     }
 
-    logger.worker('storage:cleanup', 'success', { imagesDeleted: deletedImages.length });
+    logger.worker("storage:cleanup", "success", {
+      imagesDeleted: deletedImages.length,
+    });
     return deletedImages.length;
   } catch (error) {
-    logger.error('Image cleanup failed', error as Error);
+    logger.error("Image cleanup failed", error as Error);
     return 0;
   }
 }
@@ -324,7 +349,7 @@ export async function cleanupDeletedImages(daysOld: number = 30) {
  */
 function sanitizeFilename(filename: string): string {
   return filename
-    .replace(/[^\w.-]/g, '_')
-    .replace(/\s+/g, '_')
+    .replace(/[^\w.-]/g, "_")
+    .replace(/\s+/g, "_")
     .substring(0, 255);
 }

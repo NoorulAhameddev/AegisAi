@@ -11,6 +11,7 @@
 Implemented Prisma-level read replica routing to distribute read-heavy traffic across two RDS replicas while keeping all writes on the primary database. Added health and lag checks with automatic fallback to primary if replicas are unavailable or lag exceeds 5 seconds.
 
 ### Key Achievements
+
 - ✅ **Read Replica Client Layer**: New `read-replicas.ts` handles round-robin routing and fallback
 - ✅ **Read-Heavy Routes Updated**: Chat history, chat list, search, projects, notes, admin lists, and RAG fallback search now use replicas
 - ✅ **Replica Lag Visibility**: Health endpoint reports replica lag and marks degraded if lag > 5s
@@ -22,11 +23,13 @@ Implemented Prisma-level read replica routing to distribute read-heavy traffic a
 ## Architecture Overview
 
 **Primary** handles:
+
 - All writes (create/update/delete/upsert)
 - Transactions
 - Auth, billing, and other consistency-critical reads
 
 **Read Replicas** handle:
+
 - Chat history retrieval
 - Chat list
 - Search (chat + file)
@@ -37,6 +40,7 @@ Implemented Prisma-level read replica routing to distribute read-heavy traffic a
 - RAG fallback file search
 
 Routing Strategy:
+
 ```
 Read-only request → readPrisma (round-robin) → replica-1 or replica-2
 Write request     → prisma (primary)        → primary
@@ -52,6 +56,7 @@ If replica fails  → fallback to primary
 **File**: [apps/web/src/lib/read-replicas.ts](../../apps/web/src/lib/read-replicas.ts)
 
 **Capabilities**:
+
 - Round-robin selection across available replicas
 - Health checks every 30 seconds
 - Fallback to primary when replicas are unavailable
@@ -65,13 +70,13 @@ export const readPrisma = new Proxy({} as PrismaClient, {
   get(_target, prop: string) {
     const client = getReadReplica();
     return (client as any)[prop];
-  }
+  },
 });
 
 // Use explicit client for fallback behavior
 export async function withReplicaFallback<T>(
   queryFn: (client: PrismaClient) => Promise<T>,
-  context: Record<string, any> = {}
+  context: Record<string, any> = {},
 ): Promise<T> {
   try {
     return await queryFn(getReadReplica());
@@ -88,10 +93,12 @@ export async function withReplicaFallback<T>(
 **File**: [apps/web/src/lib/env.ts](../../apps/web/src/lib/env.ts)
 
 **New optional settings**:
+
 - `DATABASE_REPLICA_1_URL`
 - `DATABASE_REPLICA_2_URL`
 
 **Example**:
+
 ```
 DATABASE_URL=postgresql://user:pass@primary.rds.amazonaws.com:5432/aegis
 DATABASE_REPLICA_1_URL=postgresql://user:pass@replica-1.rds.amazonaws.com:5432/aegis
@@ -106,34 +113,42 @@ If replica URLs are not set, all reads automatically route to primary.
 
 **Chat History**  
 [apps/web/src/app/api/chat/history/route.ts](../../apps/web/src/app/api/chat/history/route.ts)
+
 - `message.count`, `conversationSummary.findMany`, `message.findMany` now use `readPrisma`
 
 **Chat List**  
 [apps/web/src/app/api/chat/list/route.ts](../../apps/web/src/app/api/chat/list/route.ts)
+
 - `chat.findMany` now uses `readPrisma`
 
 **Search**  
 [apps/web/src/app/api/search/route.ts](../../apps/web/src/app/api/search/route.ts)
+
 - `chat.findMany`, `file.findMany` now use `readPrisma`
 
 **Projects List**  
 [apps/web/src/app/api/projects/route.ts](../../apps/web/src/app/api/projects/route.ts)
+
 - GET `project.findMany` now uses `readPrisma`
 
 **Notes List**  
 [apps/web/src/app/api/notes/route.ts](../../apps/web/src/app/api/notes/route.ts)
+
 - GET `note.findMany` now uses `readPrisma`
 
 **Admin Users List**  
 [apps/web/src/app/api/admin/users/route.ts](../../apps/web/src/app/api/admin/users/route.ts)
+
 - `user.findMany` now uses `readPrisma`
 
 **Feature Flags List**  
 [apps/web/src/app/api/admin/feature-flags/route.ts](../../apps/web/src/app/api/admin/feature-flags/route.ts)
+
 - GET `featureFlag.findMany` now uses `readPrisma`
 
 **RAG Search Fallback**  
 [apps/web/src/app/api/rag/search/route.ts](../../apps/web/src/app/api/rag/search/route.ts)
+
 - Fallback `file.findMany` now uses `readPrisma`
 
 ---
@@ -152,7 +167,7 @@ checks.checks.readReplicas = {
   status: maxLag > 5 ? "degraded" : "ok",
   replica1Lag,
   replica2Lag,
-  message: maxLag > 5 ? "Replica lag above 5s" : "Replica lag within 5s"
+  message: maxLag > 5 ? "Replica lag above 5s" : "Replica lag within 5s",
 };
 ```
 
@@ -163,12 +178,14 @@ If lag exceeds 5 seconds, overall health is marked **degraded**.
 ## Read vs Write Guidance
 
 ### Use `readPrisma` for:
+
 - List pages (history, search, analytics)
 - Admin lists
 - Non-critical profile reads
 - RAG fallback file search
 
 ### Use `prisma` (primary) for:
+
 - Authentication checks
 - Token/billing logic
 - Transactions
@@ -187,6 +204,7 @@ curl http://localhost:3000/api/health
 ```
 
 Expected read replica section:
+
 ```
 "readReplicas": {
   "status": "ok",

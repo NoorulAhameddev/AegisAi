@@ -6,7 +6,7 @@ import { env } from "./src/lib/env";
 export const defineConfig = () => ({
   db: {
     url: env.DATABASE_URL,
-  }
+  },
 });
 
 export default defineConfig();

@@ -22,7 +22,7 @@ export function Tabs({ tabs, activeTab, onTabChange, className }: TabsProps) {
               "border-b-2 -mb-0.5 whitespace-nowrap",
               activeTab === tab.value
                 ? "border-purple-500 text-purple-400"
-                : "border-transparent text-zinc-500 hover:text-zinc-300"
+                : "border-transparent text-zinc-500 hover:text-zinc-300",
             )}
           >
             {tab.icon && <span className="h-4 w-4">{tab.icon}</span>}

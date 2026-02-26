@@ -4,7 +4,11 @@ interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "text" | "circular" | "rectangular";
 }
 
-export function Skeleton({ className, variant = "rectangular", ...props }: SkeletonProps) {
+export function Skeleton({
+  className,
+  variant = "rectangular",
+  ...props
+}: SkeletonProps) {
   return (
     <div
       className={cn(
@@ -12,7 +16,7 @@ export function Skeleton({ className, variant = "rectangular", ...props }: Skele
         variant === "text" && "h-4 rounded",
         variant === "circular" && "rounded-full",
         variant === "rectangular" && "rounded-xl",
-        className
+        className,
       )}
       {...props}
     />

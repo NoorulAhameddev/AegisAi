@@ -8,7 +8,11 @@ import { z } from "zod";
 import { verifyAuth } from "@/services/auth/auth";
 import { prisma } from "@/lib/prisma";
 import { parseBody } from "@/lib/request-validation";
-import { errorResponse, successResponse, unauthorizedResponse } from "@/lib/response";
+import {
+  errorResponse,
+  successResponse,
+  unauthorizedResponse,
+} from "@/lib/response";
 import { logger } from "@/lib/logger";
 
 export interface UserSettings {
@@ -94,10 +98,12 @@ export async function PUT(req: NextRequest) {
     // Validate settings
     const validSettings = {
       theme: data.theme || "dark",
-      notifications: data.notifications !== undefined ? data.notifications : true,
+      notifications:
+        data.notifications !== undefined ? data.notifications : true,
       emailDigest: data.emailDigest !== undefined ? data.emailDigest : false,
       enableRAG: data.enableRAG !== undefined ? data.enableRAG : true,
-      encryptStorage: data.encryptStorage !== undefined ? data.encryptStorage : true,
+      encryptStorage:
+        data.encryptStorage !== undefined ? data.encryptStorage : true,
       autoIngest: data.autoIngest !== undefined ? data.autoIngest : true,
       language: data.language || "en",
       metadata: data.metadata || {},
@@ -137,11 +143,13 @@ export async function DELETE(req: NextRequest) {
 
     const userId = authResult.id;
 
-    await prisma.systemSetting.delete({
-      where: { key: `user-settings:${userId}` },
-    }).catch(() => {
-      // Settings might not exist, that's OK
-    });
+    await prisma.systemSetting
+      .delete({
+        where: { key: `user-settings:${userId}` },
+      })
+      .catch(() => {
+        // Settings might not exist, that's OK
+      });
 
     return successResponse({ success: true });
   } catch (error) {

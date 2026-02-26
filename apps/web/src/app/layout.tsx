@@ -34,17 +34,27 @@ export default async function RootLayout({
     const headersList = await headers();
     const path = headersList.get("x-pathname") || "/";
 
-    if (!path.startsWith("/maintenance") && !path.startsWith("/login") && !path.startsWith("/admin") && !path.startsWith("/api")) {
+    if (
+      !path.startsWith("/maintenance") &&
+      !path.startsWith("/login") &&
+      !path.startsWith("/admin") &&
+      !path.startsWith("/api")
+    ) {
       const cookieStore = await cookies();
       const token = cookieStore.get("auth_access")?.value;
       let isAdmin = false;
 
       if (token) {
         try {
-          const payload: any = jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
-          const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+          const payload: any = jwt.verify(
+            token,
+            process.env.JWT_ACCESS_SECRET!,
+          );
+          const user = await prisma.user.findUnique({
+            where: { id: payload.userId },
+          });
           if (user?.role === "ADMIN") isAdmin = true;
-        } catch { }
+        } catch {}
       }
 
       if (!isAdmin) {

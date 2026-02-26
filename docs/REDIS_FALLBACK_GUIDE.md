@@ -6,12 +6,12 @@ Aegis AI implements graceful degradation when Redis becomes unavailable. Instead
 
 ### Fallback Strategies
 
-| Feature | Primary (Redis) | Fallback (When Redis Down) |
-|---------|-----------------|----------------------------|
-| **Job Queues** | BullMQ (Redis-backed) | PostgreSQL `fallback_queue` table |
-| **Rate Limiting** | Redis counters | In-memory per-instance LRU cache |
-| **Caching** | Redis cache | In-memory cache with TTL |
-| **Session Tracking** | Redis store | PostgreSQL sessions table |
+| Feature              | Primary (Redis)       | Fallback (When Redis Down)        |
+| -------------------- | --------------------- | --------------------------------- |
+| **Job Queues**       | BullMQ (Redis-backed) | PostgreSQL `fallback_queue` table |
+| **Rate Limiting**    | Redis counters        | In-memory per-instance LRU cache  |
+| **Caching**          | Redis cache           | In-memory cache with TTL          |
+| **Session Tracking** | Redis store           | PostgreSQL sessions table         |
 
 ---
 
@@ -42,7 +42,7 @@ CREATE TABLE fallback_queue (
   processed_at TIMESTAMP
 );
 
-CREATE INDEX idx_fallback_queue_lookup 
+CREATE INDEX idx_fallback_queue_lookup
   ON fallback_queue(queue_name, status, created_at);
 ```
 
@@ -53,22 +53,22 @@ CREATE INDEX idx_fallback_queue_lookup
 ### 1. Adding Jobs with Fallback
 
 ```typescript
-import { addJobWithFallback } from '@/lib/queue-operations';
-import { chatQueue } from '@/lib/queue';
+import { addJobWithFallback } from "@/lib/queue-operations";
+import { chatQueue } from "@/lib/queue";
 
 // Automatically falls back to PostgreSQL if Redis unavailable
 const jobId = await addJobWithFallback(
   chatQueue,
-  'job-123',
-  { userId: 'user-456', message: 'Hello' },
-  { attempts: 3 }
+  "job-123",
+  { userId: "user-456", message: "Hello" },
+  { attempts: 3 },
 );
 ```
 
 ### 2. Rate Limiting with Fallback
 
 ```typescript
-import { withRedisFallback, memoryRateLimiter } from '@/lib/redis-fallback';
+import { withRedisFallback, memoryRateLimiter } from "@/lib/redis-fallback";
 
 // Try Redis, fall back to in-memory
 const result = await withRedisFallback(
@@ -81,18 +81,18 @@ const result = await withRedisFallback(
     // In-memory fallback
     return await memoryRateLimiter.check(userId);
   },
-  'rate-limit-check'
+  "rate-limit-check",
 );
 
 if (!result.allowed) {
-  return res.status(429).json({ error: 'Rate limit exceeded' });
+  return res.status(429).json({ error: "Rate limit exceeded" });
 }
 ```
 
 ### 3. Caching with Fallback
 
 ```typescript
-import { withRedisFallback, memoryCache } from '@/lib/redis-fallback';
+import { withRedisFallback, memoryCache } from "@/lib/redis-fallback";
 
 const userData = await withRedisFallback(
   async () => {
@@ -104,13 +104,13 @@ const userData = await withRedisFallback(
     // Fall back to in-memory cache
     return memoryCache.get(`user:${userId}`);
   },
-  'user-cache-lookup'
+  "user-cache-lookup",
 );
 
 if (!userData) {
   // Cache miss - fetch from database
   userData = await prisma.user.findUnique({ where: { id: userId } });
-  
+
   // Store in cache
   memoryCache.set(`user:${userId}`, userData, 300); // 5 min TTL
 }
@@ -119,14 +119,14 @@ if (!userData) {
 ### 4. Queue Depth Monitoring
 
 ```typescript
-import { getQueueDepthWithFallback } from '@/lib/queue-operations';
-import { chatQueue } from '@/lib/queue';
+import { getQueueDepthWithFallback } from "@/lib/queue-operations";
+import { chatQueue } from "@/lib/queue";
 
 const depth = await getQueueDepthWithFallback(chatQueue);
 
 if (depth > 500) {
   // Backpressure: reject new requests
-  return res.status(503).json({ error: 'System overloaded' });
+  return res.status(503).json({ error: "System overloaded" });
 }
 ```
 
@@ -155,11 +155,11 @@ When Redis is unavailable, health check returns `degraded` status:
 ### Redis Health Tracker
 
 ```typescript
-import { redisHealthTracker, isRedisHealthy } from '@/lib/redis-fallback';
+import { redisHealthTracker, isRedisHealthy } from "@/lib/redis-fallback";
 
 // Check Redis health
 if (!isRedisHealthy()) {
-  logger.warn('Redis degraded, using fallback mechanisms');
+  logger.warn("Redis degraded, using fallback mechanisms");
 }
 
 // Get detailed health info
@@ -181,12 +181,16 @@ console.log(health);
 Workers should check both Redis (BullMQ) and PostgreSQL fallback:
 
 ```typescript
-import { Worker } from 'bullmq';
-import { getNextFallbackJob, completeFallbackJob, failFallbackJob } from '@/lib/fallback-queue';
-import { processChatJob } from './processor';
+import { Worker } from "bullmq";
+import {
+  getNextFallbackJob,
+  completeFallbackJob,
+  failFallbackJob,
+} from "@/lib/fallback-queue";
+import { processChatJob } from "./processor";
 
 // BullMQ worker (primary)
-const worker = new Worker('chat-queue', processChatJob, {
+const worker = new Worker("chat-queue", processChatJob, {
   connection: redisConnection,
 });
 
@@ -194,7 +198,7 @@ const worker = new Worker('chat-queue', processChatJob, {
 async function pollFallbackQueue() {
   if (isRedisHealthy()) return; // Skip if Redis working
 
-  const job = await getNextFallbackJob('chat-queue');
+  const job = await getNextFallbackJob("chat-queue");
   if (!job) return;
 
   try {
@@ -214,14 +218,14 @@ setInterval(pollFallbackQueue, 5000);
 When Redis recovers, migrate pending jobs back:
 
 ```typescript
-import { migrateFallbackJobsToRedis } from '@/lib/fallback-queue';
-import { chatQueue } from '@/lib/queue';
+import { migrateFallbackJobsToRedis } from "@/lib/fallback-queue";
+import { chatQueue } from "@/lib/queue";
 
 // Triggered on Redis reconnect
-redisConnection.on('ready', async () => {
-  logger.info('Redis recovered - migrating fallback jobs');
-  
-  const migrated = await migrateFallbackJobsToRedis('chat-queue', chatQueue);
+redisConnection.on("ready", async () => {
+  logger.info("Redis recovered - migrating fallback jobs");
+
+  const migrated = await migrateFallbackJobsToRedis("chat-queue", chatQueue);
   logger.info(`Migrated ${migrated} jobs back to Redis`);
 });
 ```
@@ -233,11 +237,13 @@ redisConnection.on('ready', async () => {
 ### In-Memory Fallback Limits
 
 **Memory Cache**:
+
 - Max size: 5,000 items
 - Eviction: LRU (oldest first)
 - TTL: Per-item expiry
 
 **Rate Limiter**:
+
 - Per-instance tracking (not cluster-wide)
 - Less accurate than Redis
 - Max ~10,000 tracked users per instance
@@ -247,6 +253,7 @@ redisConnection.on('ready', async () => {
 ### PostgreSQL Fallback Queue
 
 **Performance**:
+
 - ~100-500 jobs/sec (vs Redis 10K+/sec)
 - Uses `FOR UPDATE SKIP LOCKED` for concurrency
 - Indexed lookup by `(queue_name, status, created_at)`
@@ -254,7 +261,7 @@ redisConnection.on('ready', async () => {
 **Cleanup**: Run periodic cleanup to prevent table bloat:
 
 ```typescript
-import { cleanupFallbackQueue } from '@/lib/fallback-queue';
+import { cleanupFallbackQueue } from "@/lib/fallback-queue";
 
 // Delete completed/failed jobs older than 24 hours
 setInterval(async () => {
@@ -289,10 +296,10 @@ Add fallback queue polling:
 
 ```typescript
 // In src/workers/chat.worker.ts
-import { pollFallbackQueue } from './fallback-poller';
+import { pollFallbackQueue } from "./fallback-poller";
 
 // Start polling in parallel with BullMQ worker
-pollFallbackQueue('chat-queue');
+pollFallbackQueue("chat-queue");
 ```
 
 ### 4. Test Failure Scenarios
@@ -365,17 +372,18 @@ resource "aws_cloudwatch_metric_alarm" "redis_unhealthy" {
 
 ### Fallback Scope
 
-| Feature | Fallback Supported | Notes |
-|---------|-------------------|-------|
-| Job Queues | ✅ Full | PostgreSQL fallback |
-| Rate Limiting | ⚠️ Partial | Per-instance only (not cluster-wide) |
-| Caching | ⚠️ Partial | In-memory (lost on restart) |
-| Session Store | ✅ Full | Already PostgreSQL-backed |
-| Real-time Features | ❌ No | Pub/sub requires Redis |
+| Feature            | Fallback Supported | Notes                                |
+| ------------------ | ------------------ | ------------------------------------ |
+| Job Queues         | ✅ Full            | PostgreSQL fallback                  |
+| Rate Limiting      | ⚠️ Partial         | Per-instance only (not cluster-wide) |
+| Caching            | ⚠️ Partial         | In-memory (lost on restart)          |
+| Session Store      | ✅ Full            | Already PostgreSQL-backed            |
+| Real-time Features | ❌ No              | Pub/sub requires Redis               |
 
 ### Performance Impact
 
 When using fallbacks:
+
 - **Job processing**: 5-10x slower (but functional)
 - **Rate limiting**: Less accurate (may allow burst traffic)
 - **Caching**: Cache misses more frequent

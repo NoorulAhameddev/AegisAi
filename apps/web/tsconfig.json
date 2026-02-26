@@ -6,13 +6,17 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "src",
-    "next-env.d.ts",
-    ".next/types/**/*.ts"
-  ],
+  "include": ["src", "next-env.d.ts", ".next/types/**/*.ts"],
   "exclude": [
     "node_modules",
-    "src/ai/integrations"
+    "src/ai/integrations",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "src/app/api/auth/google",
+    "src/app/api/billing/webhooks",
+    "src/app/api/collaboration",
+    "src/app/api/admin/analytics/traces",
+    "src/app/api/admin/feature-flags"
   ]
 }

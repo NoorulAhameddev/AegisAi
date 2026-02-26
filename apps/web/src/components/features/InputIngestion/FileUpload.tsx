@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState, useRef } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Notification } from '@/components/ui/Notification';
-import { Upload, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import React, { useState, useRef } from "react";
+import { Card } from "@/components/ui/Card";
+import { Notification } from "@/components/ui/Notification";
+import { Upload, X, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 
 interface FileUploadProps {
   onUpload: (file: File) => Promise<void>;
@@ -13,31 +13,33 @@ interface FileUploadProps {
 }
 
 const ACCEPTED_FORMATS = {
-  pdf: 'application/pdf',
-  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  txt: 'text/plain',
-  md: 'text/markdown',
-  mp3: 'audio/mpeg',
-  wav: 'audio/wav',
-  jpg: 'image/jpeg',
-  png: 'image/png',
+  pdf: "application/pdf",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  txt: "text/plain",
+  md: "text/markdown",
+  mp3: "audio/mpeg",
+  wav: "audio/wav",
+  jpg: "image/jpeg",
+  png: "image/png",
 };
 
 export function FileUpload({
   onUpload,
-  acceptedFormats = ['pdf', 'docx', 'txt', 'md', 'mp3', 'wav', 'jpg', 'png'],
+  acceptedFormats = ["pdf", "docx", "txt", "md", "mp3", "wav", "jpg", "png"],
   maxFileSize = 100,
   loading = false,
 }: FileUploadProps) {
   const [files, setFiles] = useState<File[]>([]);
-  const [error, setError] = useState('');
-  const [uploadStatus, setUploadStatus] = useState<Record<string, 'pending' | 'uploading' | 'success' | 'error'>>({});
+  const [error, setError] = useState("");
+  const [uploadStatus, setUploadStatus] = useState<
+    Record<string, "pending" | "uploading" | "success" | "error">
+  >({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): string | null => {
-    const ext = file.name.split('.').pop()?.toLowerCase();
+    const ext = file.name.split(".").pop()?.toLowerCase();
     if (!ext || !acceptedFormats.includes(ext)) {
-      return `File format .${ext} not supported. Accepted: ${acceptedFormats.join(', ')}`;
+      return `File format .${ext} not supported. Accepted: ${acceptedFormats.join(", ")}`;
     }
 
     const sizeMB = file.size / (1024 * 1024);
@@ -66,38 +68,41 @@ export function FileUpload({
     }
 
     if (errors.length > 0) {
-      setError(errors.join('\n'));
+      setError(errors.join("\n"));
       return;
     }
 
     setFiles([...files, ...newFiles]);
-    setError('');
+    setError("");
 
     // Initialize upload status
-    const newStatus: Record<string, 'pending' | 'uploading' | 'success' | 'error'> = {};
+    const newStatus: Record<
+      string,
+      "pending" | "uploading" | "success" | "error"
+    > = {};
     newFiles.forEach((f) => {
-      newStatus[f.name] = 'pending';
+      newStatus[f.name] = "pending";
     });
     setUploadStatus((prev) => ({ ...prev, ...newStatus }));
   };
 
   const handleUpload = async (file: File) => {
     try {
-      setUploadStatus((prev) => ({ ...prev, [file.name]: 'uploading' }));
+      setUploadStatus((prev) => ({ ...prev, [file.name]: "uploading" }));
       await onUpload(file);
-      setUploadStatus((prev) => ({ ...prev, [file.name]: 'success' }));
+      setUploadStatus((prev) => ({ ...prev, [file.name]: "success" }));
       setTimeout(() => {
         setFiles((prev) => prev.filter((f) => f.name !== file.name));
       }, 2000);
     } catch (err) {
-      setUploadStatus((prev) => ({ ...prev, [file.name]: 'error' }));
+      setUploadStatus((prev) => ({ ...prev, [file.name]: "error" }));
       setError(`Upload failed for ${file.name}`);
     }
   };
 
   const handleUploadAll = async () => {
     for (const file of files) {
-      if (uploadStatus[file.name] !== 'success') {
+      if (uploadStatus[file.name] !== "success") {
         await handleUpload(file);
       }
     }
@@ -130,14 +135,20 @@ export function FileUpload({
             ref={fileInputRef}
             type="file"
             multiple
-            accept={acceptedFormats.map((ext) => ACCEPTED_FORMATS[ext as keyof typeof ACCEPTED_FORMATS] || `.${ext}`).join(',')}
+            accept={acceptedFormats
+              .map(
+                (ext) =>
+                  ACCEPTED_FORMATS[ext as keyof typeof ACCEPTED_FORMATS] ||
+                  `.${ext}`,
+              )
+              .join(",")}
             onChange={(e) => handleFileSelect(e.target.files)}
             className="hidden"
           />
 
           <Upload className="mx-auto mb-2 text-gray-400" size={32} />
           <p className="text-sm font-medium text-gray-700">
-            Drag files here or{' '}
+            Drag files here or{" "}
             <button
               onClick={() => fileInputRef.current?.click()}
               className="text-blue-600 hover:underline"
@@ -146,7 +157,7 @@ export function FileUpload({
             </button>
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            Max {maxFileSize}MB • Formats: {acceptedFormats.join(', ')}
+            Max {maxFileSize}MB • Formats: {acceptedFormats.join(", ")}
           </p>
         </div>
 
@@ -155,21 +166,32 @@ export function FileUpload({
         {/* File List */}
         {files.length > 0 && (
           <div className="space-y-2">
-            <p className="text-sm font-medium">{files.length} file(s) selected</p>
+            <p className="text-sm font-medium">
+              {files.length} file(s) selected
+            </p>
             {files.map((file) => (
               <div
                 key={file.name}
                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  {uploadStatus[file.name] === 'uploading' && (
-                    <Loader2 size={18} className="animate-spin text-blue-600 flex-shrink-0" />
+                  {uploadStatus[file.name] === "uploading" && (
+                    <Loader2
+                      size={18}
+                      className="animate-spin text-blue-600 flex-shrink-0"
+                    />
                   )}
-                  {uploadStatus[file.name] === 'success' && (
-                    <CheckCircle size={18} className="text-green-600 flex-shrink-0" />
+                  {uploadStatus[file.name] === "success" && (
+                    <CheckCircle
+                      size={18}
+                      className="text-green-600 flex-shrink-0"
+                    />
                   )}
-                  {uploadStatus[file.name] === 'error' && (
-                    <AlertCircle size={18} className="text-red-600 flex-shrink-0" />
+                  {uploadStatus[file.name] === "error" && (
+                    <AlertCircle
+                      size={18}
+                      className="text-red-600 flex-shrink-0"
+                    />
                   )}
 
                   <div className="flex-1 min-w-0">
@@ -180,7 +202,7 @@ export function FileUpload({
                   </div>
                 </div>
 
-                {uploadStatus[file.name] !== 'success' && (
+                {uploadStatus[file.name] !== "success" && (
                   <button
                     onClick={() => removeFile(file.name)}
                     className="ml-2 text-gray-400 hover:text-red-600"
@@ -196,10 +218,12 @@ export function FileUpload({
         {files.length > 0 && (
           <button
             onClick={handleUploadAll}
-            disabled={loading || files.every((f) => uploadStatus[f.name] === 'success')}
+            disabled={
+              loading || files.every((f) => uploadStatus[f.name] === "success")
+            }
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition"
           >
-            {loading ? 'Uploading...' : `Upload ${files.length} file(s)`}
+            {loading ? "Uploading..." : `Upload ${files.length} file(s)`}
           </button>
         )}
       </div>

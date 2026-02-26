@@ -3,6 +3,7 @@
 ## 📁 Directory Organization
 
 ### Root Level
+
 ```
 ├── config/                 # Configuration files
 ├── src/                    # Main application code
@@ -19,6 +20,7 @@
 ### `/src` - Main Application
 
 #### Core Folders
+
 - **`/app`** - Next.js App Router pages & layouts
   - `admin/` - Admin dashboard pages
   - `api/` - API routes
@@ -85,6 +87,7 @@
 ### `/scripts` - Organized Scripts
 
 #### Categories
+
 - **`/setup`** - Initial setup & configuration
   - `setup-admin.js`
   - `setup-role-accounts.ts`
@@ -155,6 +158,7 @@ prisma/
 ### `/config` - Configuration Files
 
 Store environment & configuration here:
+
 - `.env` / `.env.local`
 - Database configuration
 - API configuration
@@ -170,29 +174,34 @@ Store environment & configuration here:
 ## 🏗️ Architecture Overview
 
 ### Frontend (Next.js)
+
 - App Router for pages
 - React components
 - Tailwind CSS styling
 - Real-time chat UI
 
 ### Backend (Next.js API Routes)
+
 - API endpoints
 - Database operations (Prisma ORM)
 - Authentication & authorization
 - Business logic
 
 ### Database (PostgreSQL)
+
 - 13+ strategic indexes
 - Migrations for versioning
 - Prisma ORM for queries
 
 ### AI/ML Pipeline
+
 - OpenRouter integration
 - RAG with LanceDB
 - LangChain tools
 - Background workers with BullMQ
 
 ### Security
+
 - JWT authentication
 - AES-256-GCM encryption
 - RBAC system

@@ -5,6 +5,7 @@ Welcome to the organized **Aegis AI** project! This document summarizes all the 
 ## ✨ What's Been Organized
 
 ### 1. **Directory Structure** ✅
+
 - **Root level**: Configuration files organized in `config/`
 - **src/**: Main application split into logical domains
 - **scripts/**: Organized into setup, diagnostics, maintenance, testing
@@ -12,6 +13,7 @@ Welcome to the organized **Aegis AI** project! This document summarizes all the 
 - **mobile/**: Expo app with clear structure
 
 ### 2. **Documentation** ✅
+
 - **PROJECT_STRUCTURE.md** - Complete file organization guide
 - **QUICK_REFERENCE.md** - Quick navigation & common tasks
 - **SETUP.md** - Development environment setup
@@ -21,6 +23,7 @@ Welcome to the organized **Aegis AI** project! This document summarizes all the 
 ### 3. **Folder Organization** ✅
 
 #### Scripts Reorganized
+
 ```
 scripts/
 ├── setup/              ← Initial setup tasks
@@ -30,6 +33,7 @@ scripts/
 ```
 
 #### Source Code Ready
+
 ```
 src/
 ├── app/                ← Next.js pages (already organized)
@@ -115,7 +119,7 @@ src/
 
 Follow this onboarding path:
 
-1. **Day 1**: 
+1. **Day 1**:
    - Read [README.md](./README.md) - Project overview
    - Read [SETUP.md](./SETUP.md) - Setup your environment
    - Run `npm install && npm run migrate`
@@ -133,6 +137,7 @@ Follow this onboarding path:
 ## 📊 Organization Benefits
 
 ### Before
+
 - ❌ Mixed configuration files at root
 - ❌ Scripts not organized by purpose
 - ❌ Unclear file locations
@@ -140,6 +145,7 @@ Follow this onboarding path:
 - ❌ No quick navigation guide
 
 ### After
+
 - ✅ Clear directory structure
 - ✅ Scripts organized by purpose
 - ✅ Consistent file organization
@@ -150,20 +156,20 @@ Follow this onboarding path:
 
 ## 🔍 File Location Quick Reference
 
-| Type | Location |
-|------|----------|
-| Chat UI | `src/components/chat/` |
-| Admin UI | `src/components/dashboard/` |
-| API endpoint | `src/app/api/[route]/route.ts` |
-| Business logic | `src/services/[Service].ts` |
-| React hook | `src/hooks/use[Hook].ts` |
-| Type definitions | `src/types/[Domain].ts` |
-| Utilities | `src/utils/[category]/` |
-| Tests | `src/__tests__/[matching path]` |
-| Setup script | `scripts/setup/` |
-| Diagnostic script | `scripts/diagnostics/` |
-| Maintenance script | `scripts/maintenance/` |
-| Test script | `scripts/testing/` |
+| Type               | Location                        |
+| ------------------ | ------------------------------- |
+| Chat UI            | `src/components/chat/`          |
+| Admin UI           | `src/components/dashboard/`     |
+| API endpoint       | `src/app/api/[route]/route.ts`  |
+| Business logic     | `src/services/[Service].ts`     |
+| React hook         | `src/hooks/use[Hook].ts`        |
+| Type definitions   | `src/types/[Domain].ts`         |
+| Utilities          | `src/utils/[category]/`         |
+| Tests              | `src/__tests__/[matching path]` |
+| Setup script       | `scripts/setup/`                |
+| Diagnostic script  | `scripts/diagnostics/`          |
+| Maintenance script | `scripts/maintenance/`          |
+| Test script        | `scripts/testing/`              |
 
 ## 🚀 Ready to Get Started?
 
@@ -175,16 +181,19 @@ Follow this onboarding path:
 ## 📖 Complete Documentation Index
 
 ### Getting Started
+
 - [README.md](./README.md) - Project overview
 - [SETUP.md](./SETUP.md) - Development setup
 - [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) - Quick navigation
 
 ### Structure & Standards
+
 - [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) - Directory organization
 - [CONTRIBUTING.md](./CONTRIBUTING.md) - Code standards
 - [This file](#) - Organization summary
 
 ### Feature Documentation
+
 - [docs/DOCUMENTATION.md](./docs/DOCUMENTATION.md) - Full API docs
 - [docs/RAG_QUICKSTART.md](./docs/RAG_QUICKSTART.md) - RAG setup
 - [docs/RAG_GUIDE.md](./docs/RAG_GUIDE.md) - RAG detailed guide
@@ -192,6 +201,7 @@ Follow this onboarding path:
 - [docs/IMPLEMENTATION_GUIDE.md](./docs/IMPLEMENTATION_GUIDE.md) - Architecture
 
 ### Additional Resources
+
 - [docs/TEST_ACCOUNTS.md](./docs/TEST_ACCOUNTS.md) - Test credentials
 - [docs/CHANGELOG.md](./docs/CHANGELOG.md) - Version history
 - [docs/admin/ADMIN_IMPLEMENTATION.md](./docs/admin/ADMIN_IMPLEMENTATION.md) - Admin implementation
@@ -199,16 +209,19 @@ Follow this onboarding path:
 ## 💡 Pro Tips
 
 ### Finding Things
+
 - Use [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) "I need to..." section
 - Organize by feature, not by file type
 - Similar files are grouped together
 
 ### Contributing
+
 - Check [CONTRIBUTING.md](./CONTRIBUTING.md) before adding new code
 - Create files in organized folders
 - Follow naming conventions
 
 ### Maintenance
+
 - Regular cleanup of old migrations
 - Archive old documentation to `docs/archive/`
 - Keep scripts organized by purpose

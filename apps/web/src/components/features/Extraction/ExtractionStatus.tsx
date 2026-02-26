@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Loader2, CheckCircle, AlertCircle, Eye, Download } from 'lucide-react';
+import React, { useState } from "react";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Loader2, CheckCircle, AlertCircle, Eye, Download } from "lucide-react";
 
 interface ExtractionPreview {
   title?: string;
@@ -16,7 +16,7 @@ interface ExtractionPreview {
 }
 
 interface ExtractionStatusProps {
-  status: 'idle' | 'processing' | 'success' | 'error';
+  status: "idle" | "processing" | "success" | "error";
   documentName: string;
   preview?: ExtractionPreview;
   error?: string;
@@ -38,41 +38,41 @@ export function ExtractionStatus({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {status === 'processing' && (
+            {status === "processing" && (
               <Loader2 size={20} className="animate-spin text-blue-600" />
             )}
-            {status === 'success' && (
+            {status === "success" && (
               <CheckCircle size={20} className="text-green-600" />
             )}
-            {status === 'error' && (
+            {status === "error" && (
               <AlertCircle size={20} className="text-red-600" />
             )}
 
             <div>
               <p className="font-medium text-gray-900">{documentName}</p>
               <p className="text-sm text-gray-500">
-                {status === 'processing'
-                  ? 'Extracting content...'
-                  : status === 'success'
-                    ? 'Successfully extracted'
-                    : 'Extraction failed'}
+                {status === "processing"
+                  ? "Extracting content..."
+                  : status === "success"
+                    ? "Successfully extracted"
+                    : "Extraction failed"}
               </p>
             </div>
           </div>
 
-          {status === 'success' && preview && (
+          {status === "success" && preview && (
             <button
               onClick={() => setShowPreview(!showPreview)}
               className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
             >
               <Eye size={16} />
-              {showPreview ? 'Hide' : 'Preview'}
+              {showPreview ? "Hide" : "Preview"}
             </button>
           )}
         </div>
 
         {/* Metadata */}
-        {status === 'success' && preview && (
+        {status === "success" && preview && (
           <div className="grid grid-cols-2 gap-3 text-sm">
             {preview.title && (
               <div>
@@ -126,7 +126,7 @@ export function ExtractionStatus({
         )}
 
         {/* Error */}
-        {status === 'error' && error && (
+        {status === "error" && error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3">
             <p className="text-sm text-red-700">{error}</p>
             {onRetry && (

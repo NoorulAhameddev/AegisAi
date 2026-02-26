@@ -1,22 +1,19 @@
 /**
  * Queue Operations with Automatic Fallback
- * 
+ *
  * Wraps BullMQ queue operations to automatically fall back to PostgreSQL
  * when Redis is unavailable
  */
 
-import { Queue } from 'bullmq';
-import { logger } from './logger';
-import { redisHealthTracker } from './redis-fallback';
-import {
-  addFallbackJob,
-  getFallbackQueueDepth,
-} from './fallback-queue';
-import { publishQueueDepthMetric } from './cloudwatch-metrics';
+import { Queue } from "bullmq";
+import { logger } from "./logger";
+import { redisHealthTracker } from "./redis-fallback";
+import { addFallbackJob, getFallbackQueueDepth } from "./fallback-queue";
+import { publishQueueDepthMetric } from "./cloudwatch-metrics";
 
 /**
  * Add job to queue with automatic fallback
- * 
+ *
  * @param queue BullMQ queue instance
  * @param jobId Unique job ID (for deduplication)
  * @param data Job data
@@ -28,7 +25,7 @@ export async function addJobWithFallback(
   jobName: string,
   jobId: string,
   data: any,
-  options?: any
+  options?: any,
 ): Promise<string> {
   try {
     // Try Redis first
@@ -36,7 +33,7 @@ export async function addJobWithFallback(
     redisHealthTracker.markSuccess();
     return job.id!;
   } catch (error) {
-    logger.warn('Redis queue add failed, using PostgreSQL fallback', {
+    logger.warn("Redis queue add failed, using PostgreSQL fallback", {
       queue: queue.name,
       jobId,
       error: (error as Error).message,
@@ -65,14 +62,14 @@ export async function getQueueDepthWithFallback(queue: Queue): Promise<number> {
     try {
       await publishQueueDepthMetric(queue.name, depth);
     } catch (metricsError) {
-      logger.warn('Failed to publish queue depth metric', {
+      logger.warn("Failed to publish queue depth metric", {
         queue: queue.name,
         depth,
       });
     }
     return depth;
   } catch (error) {
-    logger.warn('Redis queue depth check failed, using PostgreSQL fallback', {
+    logger.warn("Redis queue depth check failed, using PostgreSQL fallback", {
       queue: queue.name,
     });
 
@@ -81,7 +78,7 @@ export async function getQueueDepthWithFallback(queue: Queue): Promise<number> {
     try {
       await publishQueueDepthMetric(queue.name, depth);
     } catch (metricsError) {
-      logger.warn('Failed to publish fallback queue depth metric', {
+      logger.warn("Failed to publish fallback queue depth metric", {
         queue: queue.name,
         depth,
       });
@@ -95,7 +92,7 @@ export async function getQueueDepthWithFallback(queue: Queue): Promise<number> {
  */
 export async function isQueueBackedUp(
   queue: Queue,
-  threshold: number = 500
+  threshold: number = 500,
 ): Promise<boolean> {
   const depth = await getQueueDepthWithFallback(queue);
   return depth >= threshold;

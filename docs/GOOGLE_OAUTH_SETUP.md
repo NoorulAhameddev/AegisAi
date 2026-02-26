@@ -22,17 +22,20 @@ The following have been implemented:
 Run ONE of the following options:
 
 **Option A: Using Node.js script (Recommended)**
+
 ```bash
 node scripts/run-oauth-migration.js
 ```
 
 **Option B: Using psql CLI**
+
 ```bash
 psql -U postgres -d aegis_ai -h localhost -f scripts/oauth-migration.sql
 ```
 
 **Option C: Manual SQL (if psql not available)**
 Open your PostgreSQL client (pgAdmin, DBeaver, etc.) and run:
+
 ```sql
 ALTER TABLE "User" ALTER COLUMN "password" DROP NOT NULL;
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "provider" VARCHAR(50);
@@ -94,24 +97,29 @@ npm run dev
 ## 🔍 Troubleshooting
 
 ### Error: "OAuth denied"
+
 - Check that redirect URI matches exactly in Google Console and `.env`
 - Ensure Google+ API is enabled
 
 ### Error: "Invalid credentials"
+
 - Verify GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are correct
 - Check for extra spaces or quotes in .env file
 
 ### Error: "Database error"
+
 - Run the database migration script: `node scripts/run-oauth-migration.js`
 - Verify database connection in `.env`
 
 ### Error: "Account banned"
+
 - Check the `isBanned` field in the User table
 - Unban the user if necessary
 
 ## 📁 Files Created/Modified
 
 ### Created Files:
+
 - `apps/web/src/services/auth/google-oauth.ts` - OAuth service
 - `apps/web/src/app/api/auth/google/route.ts` - OAuth redirect endpoint
 - `apps/web/src/app/api/auth/google/callback/route.ts` - OAuth callback handler
@@ -120,6 +128,7 @@ npm run dev
 - `docs/GOOGLE_OAUTH_SETUP.md` - This guide
 
 ### Modified Files:
+
 - `prisma/schema.prisma` - Added OAuth fields to User model
 - `.env` - Added Google OAuth environment variables
 - `apps/web/src/lib/env.ts` - Added OAuth variable validation
@@ -156,6 +165,7 @@ For production deployment:
 ## ✨ Next Steps
 
 Consider adding:
+
 - GitHub OAuth (similar implementation)
 - Microsoft OAuth
 - Apple Sign In

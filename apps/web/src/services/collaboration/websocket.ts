@@ -3,11 +3,11 @@
  * Handles presence, message sync, and collaborative editing
  */
 
-import { Server as SocketServer } from 'socket.io';
-import { Server as HttpServer } from 'http';
-import { logger } from '@/lib/logger';
-import { prisma } from '@/lib/prisma';
-import { verifyAccessToken } from '@/services/auth/auth';
+import { Server as SocketServer } from "socket.io";
+import { Server as HttpServer } from "http";
+import { logger } from "@/lib/logger";
+import { prisma } from "@/lib/prisma";
+import { verifyAccessToken } from "@/services/auth/auth";
 
 export interface PresenceData {
   userId: string;
@@ -34,28 +34,32 @@ export class CollaborationServer {
   constructor(httpServer: HttpServer) {
     this.io = new SocketServer(httpServer, {
       cors: {
-        origin: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-        methods: ['GET', 'POST'],
-        credentials: true
+        origin: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+        methods: ["GET", "POST"],
+        credentials: true,
       },
-      path: '/api/socket',
-      transports: ['websocket', 'polling']
+      path: "/api/socket",
+      transports: ["websocket", "polling"],
     });
 
     this.setupEventHandlers();
-    logger.info('Collaboration WebSocket server initialized');
+    logger.info("Collaboration WebSocket server initialized");
   }
 
   private setupEventHandlers() {
-    this.io.on('connection', async (socket) => {
-      logger.info('Client connected', { socketId: socket.id });
+    this.io.on("connection", async (socket) => {
+      logger.info("Client connected", { socketId: socket.id });
 
       // Authenticate socket connection
-      const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
-      
+      const token =
+        socket.handshake.auth.token ||
+        socket.handshake.headers.authorization?.replace("Bearer ", "");
+
       if (!token) {
-        logger.warn('Socket connection without auth token', { socketId: socket.id });
-        socket.emit('error', { message: 'Authentication required' });
+        logger.warn("Socket connection without auth token", {
+          socketId: socket.id,
+        });
+        socket.emit("error", { message: "Authentication required" });
         socket.disconnect();
         return;
       }
@@ -63,7 +67,7 @@ export class CollaborationServer {
       try {
         const payload = verifyAccessToken(token);
         if (!payload || !payload.userId) {
-          socket.emit('error', { message: 'Invalid token' });
+          socket.emit("error", { message: "Invalid token" });
           socket.disconnect();
           return;
         }
@@ -72,43 +76,50 @@ export class CollaborationServer {
         socket.data.userId = userId;
 
         // Handle joining a chat room
-        socket.on('join-chat', async (chatId: string) => {
+        socket.on("join-chat", async (chatId: string) => {
           await this.handleJoinChat(socket, userId, chatId);
         });
 
         // Handle leaving a chat room
-        socket.on('leave-chat', async (chatId: string) => {
+        socket.on("leave-chat", async (chatId: string) => {
           await this.handleLeaveChat(socket, userId, chatId);
         });
 
         // Handle presence updates (typing, cursor position)
-        socket.on('presence-update', (data: Partial<PresenceData>) => {
+        socket.on("presence-update", (data: Partial<PresenceData>) => {
           this.handlePresenceUpdate(socket, userId, data);
         });
 
         // Handle new message broadcast
-        socket.on('message-sent', (message: ChatMessage) => {
+        socket.on("message-sent", (message: ChatMessage) => {
           this.handleMessageSent(socket, message);
         });
 
         // Handle message editing
-        socket.on('message-edited', (data: { messageId: string; content: string; chatId: string }) => {
-          this.handleMessageEdited(socket, data);
-        });
+        socket.on(
+          "message-edited",
+          (data: { messageId: string; content: string; chatId: string }) => {
+            this.handleMessageEdited(socket, data);
+          },
+        );
 
         // Handle message deletion
-        socket.on('message-deleted', (data: { messageId: string; chatId: string }) => {
-          this.handleMessageDeleted(socket, data);
-        });
+        socket.on(
+          "message-deleted",
+          (data: { messageId: string; chatId: string }) => {
+            this.handleMessageDeleted(socket, data);
+          },
+        );
 
         // Handle disconnect
-        socket.on('disconnect', () => {
+        socket.on("disconnect", () => {
           this.handleDisconnect(socket, userId);
         });
-
       } catch (error) {
-        logger.error('Failed to authenticate socket', error as Error, { socketId: socket.id });
-        socket.emit('error', { message: 'Authentication failed' });
+        logger.error("Failed to authenticate socket", error as Error, {
+          socketId: socket.id,
+        });
+        socket.emit("error", { message: "Authentication failed" });
         socket.disconnect();
       }
     });
@@ -122,7 +133,7 @@ export class CollaborationServer {
       // Verify user has permission to access this chat
       const hasAccess = await this.verifyUserChatAccess(userId, chatId);
       if (!hasAccess) {
-        socket.emit('error', { message: 'Access denied to this chat' });
+        socket.emit("error", { message: "Access denied to this chat" });
         return;
       }
 
@@ -132,15 +143,15 @@ export class CollaborationServer {
       // Get user info
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { name: true }
+        select: { name: true },
       });
 
       // Add to presence map
       const presenceData: PresenceData = {
         userId,
-        userName: user?.name || 'Unknown',
+        userName: user?.name || "Unknown",
         chatId,
-        lastSeen: Date.now()
+        lastSeen: Date.now(),
       };
 
       if (!this.presenceMap.has(chatId)) {
@@ -148,7 +159,7 @@ export class CollaborationServer {
       }
 
       const chatPresence = this.presenceMap.get(chatId)!;
-      const existingIndex = chatPresence.findIndex(p => p.userId === userId);
+      const existingIndex = chatPresence.findIndex((p) => p.userId === userId);
       if (existingIndex >= 0) {
         chatPresence[existingIndex] = presenceData;
       } else {
@@ -156,29 +167,33 @@ export class CollaborationServer {
       }
 
       // Notify others in the room
-      socket.to(`chat:${chatId}`).emit('user-joined', {
+      socket.to(`chat:${chatId}`).emit("user-joined", {
         userId,
         userName: presenceData.userName,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       // Send current presence list to the joining user
-      socket.emit('presence-list', this.presenceMap.get(chatId) || []);
+      socket.emit("presence-list", this.presenceMap.get(chatId) || []);
 
       // Log activity
       await prisma.chatActivity.create({
         data: {
           chatId,
           userId,
-          action: 'joined',
-          metadata: { socketId: socket.id }
-        }
+          action: "joined",
+          metadata: { socketId: socket.id },
+        },
       });
 
-      logger.info('User joined chat room', { userId, chatId, socketId: socket.id });
+      logger.info("User joined chat room", {
+        userId,
+        chatId,
+        socketId: socket.id,
+      });
     } catch (error) {
-      logger.error('Failed to join chat', error as Error, { userId, chatId });
-      socket.emit('error', { message: 'Failed to join chat' });
+      logger.error("Failed to join chat", error as Error, { userId, chatId });
+      socket.emit("error", { message: "Failed to join chat" });
     }
   }
 
@@ -192,7 +207,7 @@ export class CollaborationServer {
       // Remove from presence map
       const chatPresence = this.presenceMap.get(chatId);
       if (chatPresence) {
-        const filtered = chatPresence.filter(p => p.userId !== userId);
+        const filtered = chatPresence.filter((p) => p.userId !== userId);
         if (filtered.length === 0) {
           this.presenceMap.delete(chatId);
         } else {
@@ -201,9 +216,9 @@ export class CollaborationServer {
       }
 
       // Notify others
-      socket.to(`chat:${chatId}`).emit('user-left', {
+      socket.to(`chat:${chatId}`).emit("user-left", {
         userId,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       // Log activity
@@ -211,44 +226,48 @@ export class CollaborationServer {
         data: {
           chatId,
           userId,
-          action: 'left'
-        }
+          action: "left",
+        },
       });
 
-      logger.info('User left chat room', { userId, chatId });
+      logger.info("User left chat room", { userId, chatId });
     } catch (error) {
-      logger.error('Failed to leave chat', error as Error, { userId, chatId });
+      logger.error("Failed to leave chat", error as Error, { userId, chatId });
     }
   }
 
   /**
    * Handle presence updates (typing indicator, cursor position)
    */
-  private handlePresenceUpdate(socket: any, userId: string, data: Partial<PresenceData>) {
+  private handlePresenceUpdate(
+    socket: any,
+    userId: string,
+    data: Partial<PresenceData>,
+  ) {
     const chatId = data.chatId;
     if (!chatId) return;
 
     const chatPresence = this.presenceMap.get(chatId);
     if (!chatPresence) return;
 
-    const userPresence = chatPresence.find(p => p.userId === userId);
+    const userPresence = chatPresence.find((p) => p.userId === userId);
     if (userPresence) {
       // Update cursor position
       if (data.cursor) {
         userPresence.cursor = data.cursor;
       }
-      if (typeof data.typing === 'boolean') {
+      if (typeof data.typing === "boolean") {
         userPresence.typing = data.typing;
       }
       userPresence.lastSeen = Date.now();
 
       // Broadcast to others in room
-      socket.to(`chat:${chatId}`).emit('presence-update', {
+      socket.to(`chat:${chatId}`).emit("presence-update", {
         userId,
         userName: userPresence.userName,
         cursor: data.cursor,
         typing: userPresence.typing,
-        lastSeen: userPresence.lastSeen
+        lastSeen: userPresence.lastSeen,
       });
     }
   }
@@ -260,40 +279,46 @@ export class CollaborationServer {
     const { chatId } = message;
 
     // Broadcast to all users in the chat (including sender for confirmation)
-    this.io.to(`chat:${chatId}`).emit('message-received', message);
+    this.io.to(`chat:${chatId}`).emit("message-received", message);
 
-    logger.info('Message broadcasted', { chatId, messageId: message.id });
+    logger.info("Message broadcasted", { chatId, messageId: message.id });
   }
 
   /**
    * Handle message editing
    */
-  private handleMessageEdited(socket: any, data: { messageId: string; content: string; chatId: string }) {
+  private handleMessageEdited(
+    socket: any,
+    data: { messageId: string; content: string; chatId: string },
+  ) {
     const { chatId, messageId, content } = data;
 
     // Broadcast edit to all users in the chat
-    socket.to(`chat:${chatId}`).emit('message-edited', {
+    socket.to(`chat:${chatId}`).emit("message-edited", {
       messageId,
       content,
-      editedAt: new Date().toISOString()
+      editedAt: new Date().toISOString(),
     });
 
-    logger.info('Message edit broadcasted', { chatId, messageId });
+    logger.info("Message edit broadcasted", { chatId, messageId });
   }
 
   /**
    * Handle message deletion
    */
-  private handleMessageDeleted(socket: any, data: { messageId: string; chatId: string }) {
+  private handleMessageDeleted(
+    socket: any,
+    data: { messageId: string; chatId: string },
+  ) {
     const { chatId, messageId } = data;
 
     // Broadcast deletion to all users
-    socket.to(`chat:${chatId}`).emit('message-deleted', {
+    socket.to(`chat:${chatId}`).emit("message-deleted", {
       messageId,
-      deletedAt: new Date().toISOString()
+      deletedAt: new Date().toISOString(),
     });
 
-    logger.info('Message deletion broadcasted', { chatId, messageId });
+    logger.info("Message deletion broadcasted", { chatId, messageId });
   }
 
   /**
@@ -302,7 +327,7 @@ export class CollaborationServer {
   private handleDisconnect(socket: any, userId: string) {
     // Remove from all presence maps
     for (const [chatId, presence] of this.presenceMap.entries()) {
-      const filtered = presence.filter(p => p.userId !== userId);
+      const filtered = presence.filter((p) => p.userId !== userId);
       if (filtered.length === 0) {
         this.presenceMap.delete(chatId);
       } else {
@@ -310,25 +335,28 @@ export class CollaborationServer {
       }
 
       // Notify others if user was in this chat
-      if (presence.some(p => p.userId === userId)) {
-        socket.to(`chat:${chatId}`).emit('user-left', {
+      if (presence.some((p) => p.userId === userId)) {
+        socket.to(`chat:${chatId}`).emit("user-left", {
           userId,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
     }
 
-    logger.info('Client disconnected', { socketId: socket.id, userId });
+    logger.info("Client disconnected", { socketId: socket.id, userId });
   }
 
   /**
    * Verify user has access to chat
    */
-  private async verifyUserChatAccess(userId: string, chatId: string): Promise<boolean> {
+  private async verifyUserChatAccess(
+    userId: string,
+    chatId: string,
+  ): Promise<boolean> {
     try {
       const chat = await prisma.chat.findUnique({
         where: { id: chatId },
-        select: { userId: true, isShared: true }
+        select: { userId: true, isShared: true },
       });
 
       // Owner always has access
@@ -342,16 +370,19 @@ export class CollaborationServer {
           where: {
             chatId_userId: {
               chatId,
-              userId
-            }
-          }
+              userId,
+            },
+          },
         });
         return permission !== null;
       }
 
       return false;
     } catch (error) {
-      logger.error('Failed to verify chat access', error as Error, { userId, chatId });
+      logger.error("Failed to verify chat access", error as Error, {
+        userId,
+        chatId,
+      });
       return false;
     }
   }
@@ -376,7 +407,9 @@ let collaborationServer: CollaborationServer | null = null;
 /**
  * Initialize collaboration server
  */
-export function initCollaborationServer(httpServer: HttpServer): CollaborationServer {
+export function initCollaborationServer(
+  httpServer: HttpServer,
+): CollaborationServer {
   if (!collaborationServer) {
     collaborationServer = new CollaborationServer(httpServer);
   }
