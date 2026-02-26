@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+husky -v || exit 0
+npm run -s lint-staged
+# Prevent accidental .env commits
+FILES="$(git diff --cached --name-only)"
+if echo "$FILES" | grep -Eq "(^|/)\.env(\.|$)|(^|/)\.env$"; then
+  echo "ERROR: Attempt to commit .env file. Do not commit secrets to git. Aborting." >&2
+  exit 1
+fi
