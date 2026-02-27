@@ -1,6 +1,6 @@
-# AI Character/Persona System - Implementation Plan
+﻿# AI Character/Persona System - Implementation Plan
 
-## 🧠 Brainstormed Approaches
+## ðŸ§  Brainstormed Approaches
 
 ### Approach 1: Database-Driven Character Presets (RECOMMENDED)
 
@@ -8,17 +8,17 @@
 
 **Pros**:
 
-- ✅ Scalable - characters stored in DB with full CRUD operations
-- ✅ User customization - users can create their own characters
-- ✅ Admin control - system-wide presets (Teacher, Coding Expert, Creative Writer)
-- ✅ Versioning - track character evolution over time
-- ✅ Permission-based - RBAC integration (who can create/edit/delete)
-- ✅ Analytics - track which characters are most popular
+- âœ… Scalable - characters stored in DB with full CRUD operations
+- âœ… User customization - users can create their own characters
+- âœ… Admin control - system-wide presets (Teacher, Coding Expert, Creative Writer)
+- âœ… Versioning - track character evolution over time
+- âœ… Permission-based - RBAC integration (who can create/edit/delete)
+- âœ… Analytics - track which characters are most popular
 
 **Cons**:
 
-- ❌ Requires database migration
-- ❌ More complex implementation (but more flexible)
+- âŒ Requires database migration
+- âŒ More complex implementation (but more flexible)
 
 **Database Schema**:
 
@@ -59,17 +59,17 @@ model Chat {
 
 **Pros**:
 
-- ✅ No database migration needed
-- ✅ Fast implementation (1-2 hours)
-- ✅ Version controlled (Git tracks changes)
-- ✅ Easy to share presets
+- âœ… No database migration needed
+- âœ… Fast implementation (1-2 hours)
+- âœ… Version controlled (Git tracks changes)
+- âœ… Easy to share presets
 
 **Cons**:
 
-- ❌ No user customization without code deployment
-- ❌ Harder to track usage analytics
-- ❌ Can't dynamically add characters without restart
-- ❌ No per-user character preferences stored
+- âŒ No user customization without code deployment
+- âŒ Harder to track usage analytics
+- âŒ Can't dynamically add characters without restart
+- âŒ No per-user character preferences stored
 
 **Implementation**:
 
@@ -81,10 +81,10 @@ model Chat {
       "id": "socratic-tutor",
       "name": "Socratic Tutor",
       "description": "Guides with questions, never gives direct answers",
-      "avatar": "🎓",
+      "avatar": "ðŸŽ“",
       "systemPrompt": "You are a Socratic tutor...",
       "temperature": 0.7,
-      "model": "openai/gpt-4o-mini"
+      "model": "glm-5"
     },
     // ... more presets
   ]
@@ -99,19 +99,19 @@ model Chat {
 
 **Pros**:
 
-- ✅ Best of both worlds
-- ✅ Fast default presets from config
-- ✅ User customization via DB
-- ✅ Graceful fallback if DB fails
+- âœ… Best of both worlds
+- âœ… Fast default presets from config
+- âœ… User customization via DB
+- âœ… Graceful fallback if DB fails
 
 **Cons**:
 
-- ❌ Most complex to maintain (two sources of truth)
-- ❌ Potential sync issues between config and DB
+- âŒ Most complex to maintain (two sources of truth)
+- âŒ Potential sync issues between config and DB
 
 ---
 
-## 📋 Selected Approach: **Approach 1 (Database-Driven)**
+## ðŸ“‹ Selected Approach: **Approach 1 (Database-Driven)**
 
 **Rationale**:
 
@@ -123,7 +123,7 @@ model Chat {
 
 ---
 
-## 🎯 Implementation Plan
+## ðŸŽ¯ Implementation Plan
 
 ### Phase 1: Database Schema Extension
 
@@ -267,7 +267,7 @@ POST   /api/characters/system   - Admin: Create system preset
         "id": "sys-001",
         "name": "Socratic Tutor",
         "description": "Guides with questions, never gives direct answers",
-        "avatar": "🎓",
+        "avatar": "ðŸŽ“",
         "category": "Education",
         "isSystem": true,
         "usageCount": 1250
@@ -411,7 +411,7 @@ const DEFAULT_CHARACTERS = [
   {
     name: "Socratic Tutor",
     description: "Guides learning with questions, never gives direct answers",
-    avatar: "🎓",
+    avatar: "ðŸŽ“",
     category: "Education",
     tags: ["education", "pedagogy", "questioning"],
     systemPrompt: `You are a Socratic tutor. Your goal is to help students learn by asking guiding questions, not by providing direct answers.
@@ -433,14 +433,14 @@ Always:
 - Encourage experimentation
 - Validate effort and reasoning`,
     temperature: 0.7,
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     isSystem: true,
     isPublic: true,
   },
   {
     name: "Code Reviewer",
     description: "Analyzes code for bugs, performance, and best practices",
-    avatar: "🔍",
+    avatar: "ðŸ”",
     category: "Coding",
     tags: ["coding", "review", "debugging"],
     systemPrompt: `You are a senior code reviewer. Your job is to analyze code for:
@@ -451,9 +451,9 @@ Always:
 5. Best practices and design patterns
 
 Format your feedback as:
-✅ What's good (positive reinforcement)
-⚠️ Issues to fix (categorized by severity)
-💡 Suggestions for improvement
+âœ… What's good (positive reinforcement)
+âš ï¸ Issues to fix (categorized by severity)
+ðŸ’¡ Suggestions for improvement
 
 Never:
 - Rewrite the entire code
@@ -465,7 +465,7 @@ Always:
 - Provide examples of better approaches
 - Link to documentation when relevant`,
     temperature: 0.5,
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     isSystem: true,
     isPublic: true,
   },
@@ -473,7 +473,7 @@ Always:
     name: "Creative Writer",
     description:
       "Helps with storytelling, world-building, and creative writing",
-    avatar: "✍️",
+    avatar: "âœï¸",
     category: "Creative",
     tags: ["creative", "writing", "storytelling"],
     systemPrompt: `You are a creative writing coach. You help writers brainstorm ideas, develop characters, build worlds, and refine their prose.
@@ -495,14 +495,14 @@ Avoid:
 - Imposing your story on theirs
 - Discouraging their creative vision`,
     temperature: 0.9, // Higher creativity
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     isSystem: true,
     isPublic: true,
   },
   {
     name: "Math Tutor",
     description: "Explains mathematical concepts with step-by-step reasoning",
-    avatar: "🔢",
+    avatar: "ðŸ”¢",
     category: "Education",
     tags: ["math", "education", "problem-solving"],
     systemPrompt: `You are a patient math tutor. Break down complex mathematical concepts into intuitive steps.
@@ -525,14 +525,14 @@ Never:
 - Use unexplained jargon
 - Rush through explanations`,
     temperature: 0.4, // Lower for precision
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     isSystem: true,
     isPublic: true,
   },
   {
     name: "Debugging Assistant",
     description: "Helps identify and fix bugs through systematic investigation",
-    avatar: "🐛",
+    avatar: "ðŸ›",
     category: "Coding",
     tags: ["debugging", "troubleshooting", "coding"],
     systemPrompt: `You are a debugging expert. Help students systematically identify and fix bugs.
@@ -563,7 +563,7 @@ Never:
 - Assume bugs are trivial
 - Blame the student for mistakes`,
     temperature: 0.6,
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     isSystem: true,
     isPublic: true,
   },
@@ -588,7 +588,7 @@ Never:
 
 ---
 
-## 🧪 Testing Strategy
+## ðŸ§ª Testing Strategy
 
 ### Unit Tests
 
@@ -609,21 +609,21 @@ Never:
 
 ### Integration Tests
 
-1. Create chat with character → verify system prompt used
-2. Switch character mid-chat → verify new prompt applied
-3. Delete character → verify chats revert to default
-4. Admin creates system character → verify available to all users
+1. Create chat with character â†’ verify system prompt used
+2. Switch character mid-chat â†’ verify new prompt applied
+3. Delete character â†’ verify chats revert to default
+4. Admin creates system character â†’ verify available to all users
 
 ### E2E Tests (Manual)
 
-1. Open chat → Select "Socratic Tutor" → Ask coding question → Verify response is question-based
-2. Settings → Create custom character → Use in chat → Verify custom prompt works
-3. Admin panel → Create system character → Verify appears for all users
-4. Delete custom character → Verify removed from character list
+1. Open chat â†’ Select "Socratic Tutor" â†’ Ask coding question â†’ Verify response is question-based
+2. Settings â†’ Create custom character â†’ Use in chat â†’ Verify custom prompt works
+3. Admin panel â†’ Create system character â†’ Verify appears for all users
+4. Delete custom character â†’ Verify removed from character list
 
 ---
 
-## 📊 Success Metrics
+## ðŸ“Š Success Metrics
 
 1. **User Engagement**: % of chats using custom characters (target: 40%)
 2. **Character Creation**: # of user-created characters (target: 500/month)
@@ -632,7 +632,7 @@ Never:
 
 ---
 
-## 🚀 Deployment Checklist
+## ðŸš€ Deployment Checklist
 
 - [ ] Database migration tested in staging
 - [ ] Seed default characters in production DB
@@ -646,7 +646,7 @@ Never:
 
 ---
 
-## 🔮 Future Enhancements
+## ðŸ”® Future Enhancements
 
 ### Phase 2 Features (Post-Launch)
 
@@ -662,10 +662,10 @@ Never:
 
 ---
 
-## 📝 Notes
+## ðŸ“ Notes
 
 - **Character Switching Mid-Chat**: Supported - new system prompt applies to next message
-- **Migration Path**: Existing chats get `characterId = NULL` → use default prompt
+- **Migration Path**: Existing chats get `characterId = NULL` â†’ use default prompt
 - **Performance**: Character fetch cached in Redis (5-min TTL)
 - **Security**: User-created characters sanitized (no prompt injection)
 - **Monetization**: Pro tier gets unlimited custom characters (Free tier: 3 max)
@@ -684,3 +684,4 @@ Never:
 - Testing: 1-2 hours
 
 **Ready to proceed with implementation!**
+

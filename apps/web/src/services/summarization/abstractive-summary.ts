@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Abstractive Summarization with Timestamp Mapping
  * Generates condensed explanations for each scene and aligns highlights to transcript timestamps.
  */
@@ -25,7 +25,7 @@ export async function summarizeScenesWithTimestamps(
     const sceneText = scene.sentences.join(" ");
     const prompt = `Summarize the following scene in 2-3 sentences. Preserve meaning and narrative arc.\n\nScene Title: ${scene.title}\nScene Content: ${sceneText}`;
     const response = await openai.chat.completions.create({
-      model: "openai/gpt-4o-mini",
+      model: "glm-5",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.2,
     });
@@ -51,3 +51,4 @@ export async function summarizeScenesWithTimestamps(
 
   return summaries;
 }
+

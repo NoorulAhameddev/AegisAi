@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { openai } from "@/services/ai/openai";
 import { logger } from "@/lib/logger";
 import { MemoryType } from "@prisma/client";
@@ -74,7 +74,7 @@ export async function extractAndSaveMemory(
     });
   } catch (error) {
     logger.error("Memory extraction failed", error as Error, { userId });
-    // Don't throw—memory extraction is non-blocking
+    // Don't throwâ€”memory extraction is non-blocking
   }
 }
 
@@ -109,7 +109,7 @@ Be concise. Maximum 5 concepts, 3 struggles. Return ONLY valid JSON.`;
 
   try {
     const response = await openai.chat.completions.create({
-      model: "openai/gpt-4o-mini",
+      model: "glm-5",
       messages: [{ role: "user", content: extractionPrompt }],
       temperature: 0.3,
       max_tokens: 500,
@@ -236,9 +236,9 @@ export function formatMemoryForPrompt(
 
   if (Object.keys(summary.preferences).length > 0) {
     if (summary.preferences.preferred_explanation_level === "beginner") {
-      block += `\nSTUDENT LEVEL: Beginner—use simple words and concrete examples`;
+      block += `\nSTUDENT LEVEL: Beginnerâ€”use simple words and concrete examples`;
     } else if (summary.preferences.preferred_explanation_level === "advanced") {
-      block += `\nSTUDENT LEVEL: Advanced—be concise and assume background knowledge`;
+      block += `\nSTUDENT LEVEL: Advancedâ€”be concise and assume background knowledge`;
     }
 
     if (summary.preferences.preferred_language) {
@@ -248,3 +248,4 @@ export function formatMemoryForPrompt(
 
   return block;
 }
+

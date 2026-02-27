@@ -1,6 +1,6 @@
-# Task 10: pgvector Setup and Migration - Implementation Report
+﻿# Task 10: pgvector Setup and Migration - Implementation Report
 
-**Status**: ✅ **INFRASTRUCTURE COMPLETE** (Awaiting User Execution)  
+**Status**: âœ… **INFRASTRUCTURE COMPLETE** (Awaiting User Execution)  
 **Date**: June 2025  
 **Production Gap Addressed**: Using LanceDB (filesystem) instead of production-grade pgvector
 
@@ -12,12 +12,12 @@ Replaced filesystem-based LanceDB with production-grade PostgreSQL pgvector for 
 
 ### Key Achievements
 
-- ✅ **Schema Updated**: Enabled vector columns with proper dimensions (1536, 3072, 1536)
-- ✅ **HNSW Indexes**: Production-grade indexes for order-of-magnitude faster searches
-- ✅ **Migration Tool**: 260-line TypeScript tool with check/dry-run/migrate/verify commands
-- ✅ **Helper Functions**: 3 SQL functions for similarity search and monitoring
-- ✅ **Provider Updated**: Similarity-based search with 0.7 threshold
-- ⏳ **User Action Required**: Execute migration steps (detailed below)
+- âœ… **Schema Updated**: Enabled vector columns with proper dimensions (1536, 3072, 1536)
+- âœ… **HNSW Indexes**: Production-grade indexes for order-of-magnitude faster searches
+- âœ… **Migration Tool**: 260-line TypeScript tool with check/dry-run/migrate/verify commands
+- âœ… **Helper Functions**: 3 SQL functions for similarity search and monitoring
+- âœ… **Provider Updated**: Similarity-based search with 0.7 threshold
+- â³ **User Action Required**: Execute migration steps (detailed below)
 
 ---
 
@@ -29,9 +29,9 @@ Replaced filesystem-based LanceDB with production-grade PostgreSQL pgvector for 
 
 ```
 LanceDB Files (data/lancedb/)
-  ↓
+  â†“
 File System Storage
-  ↓
+  â†“
 Not ACID-compliant
 Limited to single server
 No transaction support
@@ -41,11 +41,11 @@ No transaction support
 
 ```
 PostgreSQL Database
-  ↓
+  â†“
 pgvector Extension
-  ↓
+  â†“
 HNSW Indexes (m=16, ef_construction=64)
-  ↓
+  â†“
 ACID-compliant, transactional
 Multi-AZ replication
 Read replica support
@@ -101,7 +101,7 @@ CREATE INDEX IF NOT EXISTS idx_document_image_embedding_hnsw
 
 1. **`search_documents_by_vector()`**: Single-vector similarity search
    - Parameters: `query_vector`, `user_id`, `similarity_threshold`, `result_limit`
-   - Returns: Documents with similarity ≥ threshold, ordered by relevance
+   - Returns: Documents with similarity â‰¥ threshold, ordered by relevance
    - Uses: Cosine distance operator `<=>` with HNSW index
 
 2. **`search_documents_multimodal()`**: Weighted text + image search
@@ -239,9 +239,9 @@ model Document {
 
 **Validation**:
 
-- ✅ Prisma schema compiles without errors
-- ⚠️ One non-blocking warning: `datasource url` deprecated in Prisma 7 (future migration notice)
-- ✅ FallbackQueue model quote escaping fixed (was blocking, now resolved)
+- âœ… Prisma schema compiles without errors
+- âš ï¸ One non-blocking warning: `datasource url` deprecated in Prisma 7 (future migration notice)
+- âœ… FallbackQueue model quote escaping fixed (was blocking, now resolved)
 
 ### 4. Vector Provider (`apps/web/src/lib/vector-providers/pgvector-provider.ts`)
 
@@ -328,10 +328,10 @@ npm run tsx -- infra/scripts/migrate-lancedb-to-pgvector.ts check
 **Expected Output**:
 
 ```
-✓ pgvector extension is installed
-✓ HNSW index exists: idx_document_vector_hnsw
-✓ HNSW index exists: idx_document_text_embedding_hnsw
-✓ HNSW index exists: idx_document_image_embedding_hnsw
+âœ“ pgvector extension is installed
+âœ“ HNSW index exists: idx_document_vector_hnsw
+âœ“ HNSW index exists: idx_document_text_embedding_hnsw
+âœ“ HNSW index exists: idx_document_image_embedding_hnsw
 Environment validation complete!
 ```
 
@@ -386,9 +386,9 @@ CONFIRM_MIGRATION=yes npm run tsx -- infra/scripts/migrate-lancedb-to-pgvector.t
 **Expected Output**:
 
 ```
-⚠️  WARNING: This will migrate all LanceDB vectors to PostgreSQL pgvector
-⚠️  Ensure you have a database backup before proceeding
-✓ CONFIRM_MIGRATION=yes detected, starting migration...
+âš ï¸  WARNING: This will migrate all LanceDB vectors to PostgreSQL pgvector
+âš ï¸  Ensure you have a database backup before proceeding
+âœ“ CONFIRM_MIGRATION=yes detected, starting migration...
 
 Migrating 2,341 documents...
 Progress: 100/2,341 (4%)
@@ -397,7 +397,7 @@ Progress: 200/2,341 (9%)
 Progress: 2,300/2,341 (98%)
 Progress: 2,341/2,341 (100%)
 
-✓ Migration complete!
+âœ“ Migration complete!
   - Migrated: 2,341 documents
   - Failed: 0 documents
   - Duration: 4m 23s
@@ -441,11 +441,11 @@ Document counts:
   - Documents with image embeddings: 456 (19%)
 
 Running test similarity search...
-✓ Test search returned 10 results
-✓ Similarity scores range: 0.87-0.73
-✓ All results above 0.7 threshold
+âœ“ Test search returned 10 results
+âœ“ Similarity scores range: 0.87-0.73
+âœ“ All results above 0.7 threshold
 
-✅ Migration verification complete!
+âœ… Migration verification complete!
 ```
 
 **Verify Search Quality**:
@@ -507,7 +507,7 @@ npm uninstall vectordb @lancedb/lancedb apache-arrow
 
 | Component   | LanceDB                     | pgvector        | Notes                        |
 | ----------- | --------------------------- | --------------- | ---------------------------- |
-| Vector data | 24MB (10K × 1536 × 4 bytes) | 24MB            | Same raw data size           |
+| Vector data | 24MB (10K Ã— 1536 Ã— 4 bytes) | 24MB            | Same raw data size           |
 | Indexes     | 0MB (no indexes)            | 16MB            | HNSW index overhead          |
 | Metadata    | 8MB (separate files)        | Included        | Unified storage              |
 | **Total**   | **32MB**                    | **40MB** (+25%) | Worth it for 20x performance |
@@ -516,13 +516,13 @@ npm uninstall vectordb @lancedb/lancedb apache-arrow
 
 | Feature                | LanceDB    | pgvector                  |
 | ---------------------- | ---------- | ------------------------- |
-| ACID Compliance        | ❌ No      | ✅ Yes                    |
-| Transactions           | ❌ No      | ✅ Yes                    |
-| Multi-AZ Replication   | ❌ No      | ✅ Yes                    |
-| Read Replicas          | ❌ No      | ✅ Yes (Task 11)          |
-| Automated Backups      | ❌ Manual  | ✅ RDS auto-backups       |
-| Point-in-Time Recovery | ❌ No      | ✅ Yes (35-day retention) |
-| Monitoring             | ❌ Limited | ✅ CloudWatch integration |
+| ACID Compliance        | âŒ No      | âœ… Yes                    |
+| Transactions           | âŒ No      | âœ… Yes                    |
+| Multi-AZ Replication   | âŒ No      | âœ… Yes                    |
+| Read Replicas          | âŒ No      | âœ… Yes (Task 11)          |
+| Automated Backups      | âŒ Manual  | âœ… RDS auto-backups       |
+| Point-in-Time Recovery | âŒ No      | âœ… Yes (35-day retention) |
+| Monitoring             | âŒ Limited | âœ… CloudWatch integration |
 
 ---
 
@@ -550,7 +550,7 @@ npm uninstall vectordb @lancedb/lancedb apache-arrow
 async function generateEmbedding(text: string) {
   // Calls OpenAI text-embedding-3-small (1536-dim)
   const response = await openai.embeddings.create({
-    model: "text-embedding-3-small",
+    model: "glm-5",
     input: text,
   });
   return response.data[0].embedding; // Float32Array[1536]
@@ -800,7 +800,7 @@ Move connection URLs to `prisma.config.ts` (Prisma 7 migration notice)
 
 ### 3. Vector Dimension Changes
 
-**Issue**: Changing embedding models requires re-ingestion (e.g., 1536 → 768 dimensions)  
+**Issue**: Changing embedding models requires re-ingestion (e.g., 1536 â†’ 768 dimensions)  
 **Impact**: Can't mix vectors of different dimensions in same column  
 **Solution**:
 
@@ -835,16 +835,16 @@ Move connection URLs to `prisma.config.ts` (Prisma 7 migration notice)
 
 | Corpus Size | Files | Chunks | Embeddings API Time   | Worker Processing          | Total Time      |
 | ----------- | ----- | ------ | --------------------- | -------------------------- | --------------- |
-| 100 docs    | 100   | 500    | 50 req × 0.5s = 25s   | 500 chunks × 2s = 16m      | **~17 minutes** |
-| 1K docs     | 1K    | 5K     | 500 req × 0.5s = 4m   | 5K chunks × 2s = 166m      | **~3 hours**    |
-| 10K docs    | 10K   | 50K    | 5K req × 0.5s = 42m   | 50K chunks × 2s = 1,666m   | **~29 hours**   |
-| 100K docs   | 100K  | 500K   | 50K req × 0.5s = 417m | 500K chunks × 2s = 16,666m | **~12 days**    |
+| 100 docs    | 100   | 500    | 50 req Ã— 0.5s = 25s   | 500 chunks Ã— 2s = 16m      | **~17 minutes** |
+| 1K docs     | 1K    | 5K     | 500 req Ã— 0.5s = 4m   | 5K chunks Ã— 2s = 166m      | **~3 hours**    |
+| 10K docs    | 10K   | 50K    | 5K req Ã— 0.5s = 42m   | 50K chunks Ã— 2s = 1,666m   | **~29 hours**   |
+| 100K docs   | 100K  | 500K   | 50K req Ã— 0.5s = 417m | 500K chunks Ã— 2s = 16,666m | **~12 days**    |
 
 **Optimization Strategies**:
 
-1. **Parallel Workers**: Run 5 RAG workers instead of 2 → 2.5x faster
-2. **Batch Embeddings**: Group 100 chunks per API call → 10x fewer API calls
-3. **Cache Unchanged**: Only re-embed modified files → Skip up to 80% of corpus
+1. **Parallel Workers**: Run 5 RAG workers instead of 2 â†’ 2.5x faster
+2. **Batch Embeddings**: Group 100 chunks per API call â†’ 10x fewer API calls
+3. **Cache Unchanged**: Only re-embed modified files â†’ Skip up to 80% of corpus
 4. **Incremental**: Re-ingest top-priority files first, rest in background
 
 **Cost Estimate** (OpenAI Embeddings):
@@ -862,9 +862,9 @@ Move connection URLs to `prisma.config.ts` (Prisma 7 migration notice)
 
 ### Immediate (Today)
 
-1. ✅ **User Action**: Run migration steps 1-4 (detailed above)
-2. ✅ **User Action**: Verify search quality matches LanceDB results
-3. ✅ **User Action**: Monitor CloudWatch for 24 hours (verify <10ms latency)
+1. âœ… **User Action**: Run migration steps 1-4 (detailed above)
+2. âœ… **User Action**: Verify search quality matches LanceDB results
+3. âœ… **User Action**: Monitor CloudWatch for 24 hours (verify <10ms latency)
 
 ### Short-Term (This Week)
 
@@ -883,15 +883,15 @@ Move connection URLs to `prisma.config.ts` (Prisma 7 migration notice)
 
 ## Acceptance Criteria
 
-- ✅ pgvector extension installed and validated
-- ✅ HNSW indexes created for 3 vector types
-- ✅ Migration tool with check/dry-run/migrate/verify commands
-- ✅ Prisma schema updated with vector columns
-- ✅ Vector provider updated for similarity-based search
-- ⏳ Migration executed successfully (user action)
-- ⏳ Post-migration verification passed (user action)
-- ⏳ Search latency <10ms for 10K documents (user monitoring)
-- ⏳ Zero vector search errors in 24-hour monitoring period
+- âœ… pgvector extension installed and validated
+- âœ… HNSW indexes created for 3 vector types
+- âœ… Migration tool with check/dry-run/migrate/verify commands
+- âœ… Prisma schema updated with vector columns
+- âœ… Vector provider updated for similarity-based search
+- â³ Migration executed successfully (user action)
+- â³ Post-migration verification passed (user action)
+- â³ Search latency <10ms for 10K documents (user monitoring)
+- â³ Zero vector search errors in 24-hour monitoring period
 
 ---
 
@@ -905,5 +905,6 @@ Move connection URLs to `prisma.config.ts` (Prisma 7 migration notice)
 
 ---
 
-**Task 10 Status**: ✅ **INFRASTRUCTURE COMPLETE** - Awaiting user execution of migration steps  
+**Task 10 Status**: âœ… **INFRASTRUCTURE COMPLETE** - Awaiting user execution of migration steps  
 **Next Task**: Task 11 - Read Replicas Configuration
+

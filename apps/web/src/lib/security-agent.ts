@@ -1,4 +1,4 @@
-import { openai } from "../services/ai/openai";
+﻿import { openai } from "../services/ai/openai";
 import { logger } from "./logger";
 
 type Intent = "SAFE" | "UNSAFE" | "JAILBREAK" | "PII_LEAK";
@@ -102,7 +102,7 @@ export async function checkIntent(
   // 2. LLM Evaluation (Slow Pass) - Only if passed regex
   try {
     const response = await openai.chat.completions.create({
-      model: "openai/gpt-4o-mini", // Cheap & Fast
+      model: "glm-5", // Cheap & Fast
       temperature: 0,
       max_tokens: 100,
       messages: [
@@ -163,3 +163,4 @@ export function resetRateLimits(): void {
   securityCheckCounter.clear();
   logger.security("Rate limits reset", {});
 }
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * RAG Configuration Manager
  * Provides flexible configuration options for RAG operations
  * Supports strategies, fallbacks, and feature flags
@@ -33,7 +33,7 @@ export interface RAGConfig {
   mode: RAGMode;
 
   // Embedding settings
-  embeddingModel: "text-embedding-3-small" | "text-embedding-3-large";
+  embeddingModel: "glm-5" | "text-embedding-3-large";
   mergeStrategy: MergeStrategy;
 
   enableMultiModal: boolean;
@@ -75,7 +75,7 @@ export interface RAGConfig {
  */
 export const DEFAULT_RAG_CONFIG: RAGConfig = {
   mode: "permissive",
-  embeddingModel: "text-embedding-3-small",
+  embeddingModel: "glm-5",
   mergeStrategy: "text-only",
   enableMultiModal: true,
   enableImageEmbeddings: !!env.HUGGINGFACE_API_KEY,
@@ -335,3 +335,4 @@ export function logConfiguration(): void {
     },
   });
 }
+

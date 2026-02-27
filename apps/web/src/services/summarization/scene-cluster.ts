@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Semantic Scene Clustering for Video Transcripts
  * Groups transcript sentences into logical episodes/scenes based on semantic similarity and narrative flow.
  */
@@ -23,7 +23,7 @@ export async function clusterScenes(
   const prompt = `Group the following transcript sentences into logical scenes or episodes. For each scene, provide a title and the list of sentences. Preserve narrative order. Limit to ${maxScenes} scenes.\n\nTranscript:\n${transcriptText}`;
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.3,
   });
@@ -40,3 +40,4 @@ export async function clusterScenes(
     return [];
   }
 }
+

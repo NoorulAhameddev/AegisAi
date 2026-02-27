@@ -1,4 +1,4 @@
-/**
+﻿/**
  * RAG (Retrieval Augmented Generation) Configuration
  * Central configuration for document ingestion, chunking, and retrieval
  */
@@ -70,7 +70,7 @@ export const defaultRAGConfig: RAGConfig = {
     extractImages: true,
   },
   embedding: {
-    model: "openai/text-embedding-3-small",
+    model: "glm-5",
     dimensions: 1536,
     batchSize: 100,
   },
@@ -122,3 +122,4 @@ export function isSupportedFileType(mimeType: string): boolean {
 export function isValidFileSize(size: number): boolean {
   return size <= getRAGConfig().processing.maxFileSize;
 }
+

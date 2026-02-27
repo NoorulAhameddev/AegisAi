@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { openai } from "@/services/ai/openai";
 import { NextRequest } from "next/server";
 import { z } from "zod";
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "openai/gpt-4o-mini",
+      model: "glm-5",
       messages: [
         { role: "system", content: "Answer ONLY using the provided document." },
         { role: "user", content: file.content.slice(0, 12000) },
@@ -49,3 +49,4 @@ export async function POST(req: NextRequest) {
     return errorResponse("Failed to answer question", { status: 500 });
   }
 }
+

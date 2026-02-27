@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Default Character Presets Seeder
  * Seeds system-wide AI character presets
  * Run with: npx ts-node --project tsconfig.json prisma/seeders/character-presets.ts
@@ -11,7 +11,7 @@ const DEFAULT_CHARACTERS = [
   {
     name: "Socratic Tutor",
     description: "Guides learning with questions, never gives direct answers",
-    avatar: "🎓",
+    avatar: "ðŸŽ“",
     category: "Education",
     tags: ["education", "pedagogy", "questioning"],
     systemPrompt: `You are a Socratic tutor dedicated to helping students learn through guided questioning. Your fundamental approach is to avoid providing direct answers or complete solutions.
@@ -51,7 +51,7 @@ ALWAYS:
 - Validate effort and reasoning
 - Point them toward resources when appropriate`,
     temperature: 0.7,
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     isSystem: true,
     isPublic: true,
   },
@@ -59,7 +59,7 @@ ALWAYS:
     name: "Code Reviewer",
     description:
       "Analyzes code for bugs, performance issues, and best practices",
-    avatar: "🔍",
+    avatar: "ðŸ”",
     category: "Coding",
     tags: ["coding", "review", "debugging", "performance"],
     systemPrompt: `You are an experienced code reviewer with expertise in multiple programming languages. Your role is to provide constructive, educational feedback on code submissions.
@@ -74,16 +74,16 @@ REVIEW SCOPE:
 
 FEEDBACK FORMAT:
 Start with positive observations:
-✅ What's good - Point out well-written sections, good practices used
+âœ… What's good - Point out well-written sections, good practices used
 
 Then constructive criticism:
-⚠️ Potential Issues - List bugs, logic errors, edge cases
+âš ï¸ Potential Issues - List bugs, logic errors, edge cases
    - Issue: [description]
    - Why: [explanation]
    - Fix: [suggested improvement or reference]
 
 Then improvements:
-💡 Suggestions - Non-critical improvements for code quality
+ðŸ’¡ Suggestions - Non-critical improvements for code quality
    - Suggestion: [description]
    - Benefit: [why this matters]
    - Example: [show how]
@@ -116,7 +116,7 @@ ALWAYS:
 - Suggest resources for learning
 - Celebrate good practices you see`,
     temperature: 0.5,
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     isSystem: true,
     isPublic: true,
   },
@@ -124,7 +124,7 @@ ALWAYS:
     name: "Creative Writer",
     description:
       "Helps with storytelling, world-building, and creative writing",
-    avatar: "✍️",
+    avatar: "âœï¸",
     category: "Creative",
     tags: ["creative", "writing", "storytelling", "fiction"],
     systemPrompt: `You are a creative writing coach with deep knowledge of narrative structure, character development, and world-building. Your mission is to help writers improve their craft through guidance and inspiration.
@@ -194,14 +194,14 @@ ALWAYS:
 - Give specific examples from published works
 - Encourage bold creative choices`,
     temperature: 0.9,
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     isSystem: true,
     isPublic: true,
   },
   {
     name: "Math Tutor",
     description: "Explains mathematical concepts with step-by-step reasoning",
-    avatar: "🔢",
+    avatar: "ðŸ”¢",
     category: "Education",
     tags: ["math", "education", "problem-solving"],
     systemPrompt: `You are a patient math tutor who explains mathematical concepts clearly and builds understanding step-by-step. Your goal is to make abstract math concrete and intuitive.
@@ -268,14 +268,14 @@ ALWAYS:
 - Check: "Does this make sense so far?"
 - Offer practice with feedback`,
     temperature: 0.4,
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     isSystem: true,
     isPublic: true,
   },
   {
     name: "Debugging Assistant",
     description: "Helps identify and fix bugs through systematic investigation",
-    avatar: "🐛",
+    avatar: "ðŸ›",
     category: "Coding",
     tags: ["debugging", "troubleshooting", "coding"],
     systemPrompt: `You are a systematic debugging coach who helps developers find and fix bugs through methodical investigation rather than guessing.
@@ -350,7 +350,7 @@ ALWAYS:
 - Suggest how to prevent similar bugs
 - Celebrate effective detective work`,
     temperature: 0.6,
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     isSystem: true,
     isPublic: true,
   },
@@ -385,7 +385,7 @@ async function seedCharacters() {
     }
 
     logger.info(
-      `✅ Successfully seeded ${DEFAULT_CHARACTERS.length} character presets`,
+      `âœ… Successfully seeded ${DEFAULT_CHARACTERS.length} character presets`,
     );
   } catch (error) {
     logger.error("Failed to seed character presets", error as Error);
@@ -397,13 +397,14 @@ async function seedCharacters() {
 if (require.main === module) {
   seedCharacters()
     .then(() => {
-      console.log("✅ Seeding complete");
+      console.log("âœ… Seeding complete");
       process.exit(0);
     })
     .catch((error) => {
-      console.error("❌ Seeding failed:", error);
+      console.error("âŒ Seeding failed:", error);
       process.exit(1);
     });
 }
 
 export { seedCharacters };
+

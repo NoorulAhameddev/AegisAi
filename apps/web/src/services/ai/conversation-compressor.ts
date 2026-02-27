@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+﻿import { prisma } from "@/lib/prisma";
 import { openai } from "@/services/ai/openai";
 import { logger } from "@/lib/logger";
 
@@ -67,7 +67,7 @@ async function summarizeMessages(
       .join("\n");
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Use faster/cheaper model for summarization
+      model: "glm-5", // Use faster/cheaper model for summarization
       messages: [
         {
           role: "user",
@@ -143,7 +143,7 @@ export async function compressConversation(
 
     const summary = await summarizeMessages(messageContent, chatTitle);
 
-    // 5. Estimate tokens saved (rough: 5 characters ≈ 1 token)
+    // 5. Estimate tokens saved (rough: 5 characters â‰ˆ 1 token)
     const originalTokens = messagesToSummarize.reduce(
       (sum, m) => sum + Math.ceil(m.content.length / 5),
       0,
@@ -311,3 +311,4 @@ export async function getCompressionStats(chatId: string) {
     })),
   };
 }
+

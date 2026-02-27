@@ -1,4 +1,4 @@
-import { openai } from "@/services/ai/openai";
+﻿import { openai } from "@/services/ai/openai";
 import { logger } from "@/lib/logger";
 import { Message } from "@prisma/client";
 import { tokenBudgetManager } from "@/services/billing/token-budget";
@@ -104,7 +104,7 @@ export class StudentCodingAgent {
       });
 
       const response = await openai.chat.completions.create({
-        model: "openai/gpt-4o-mini",
+        model: "glm-5",
         messages: [
           { role: "system" as const, content: systemPrompt },
           ...messages,
@@ -261,13 +261,13 @@ TOOLS:
 - Use 'calculator' for arithmetic verification
 - Use 'code_review' to analyze code for issues (static analysis only)
 - Use 'format_code' to improve code readability
-- DO NOT suggest running code through this AI—they should use their IDE
+- DO NOT suggest running code through this AIâ€”they should use their IDE
 
 TEACHING TECHNIQUES:
 - Ask "what have you tried?" before explaining
 - Use pseudocode to teach logic before syntax
 - Explain WHY, not just WHAT
-- Point to documentation: "Check the docs—what do you find?"
+- Point to documentation: "Check the docsâ€”what do you find?"
 
 FORMATTING:
 - Use \`code\` for inline code, \`\`\`language for blocks
@@ -280,8 +280,8 @@ FORMATTING:
       prompt += `\n\nBEGINNER MODE:
 - Use simple words and concrete examples
 - Break concepts into small steps
-- Be extra patient—struggling is normal when learning
-- Celebrate progress: "Good question—that's exactly where people get confused!"`;
+- Be extra patientâ€”struggling is normal when learning
+- Celebrate progress: "Good questionâ€”that's exactly where people get confused!"`;
     } else if (this.student.level === "advanced") {
       prompt += `\n\nADVANCED MODE:
 - Assume knowledge of: ${this.student.knownConcepts?.join(", ") || "algorithms, data structures"}
@@ -390,7 +390,7 @@ FORMATTING:
   private estimateTokens(
     messages: Array<{ role: string; content: string }>,
   ): number {
-    // Rough estimate: 1 token ≈ 4 characters
+    // Rough estimate: 1 token â‰ˆ 4 characters
     const charCount = messages.reduce(
       (sum, msg) => sum + msg.content.length,
       0,
@@ -408,3 +408,4 @@ FORMATTING:
     };
   }
 }
+

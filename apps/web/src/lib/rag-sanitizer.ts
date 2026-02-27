@@ -1,4 +1,4 @@
-import { logger } from "@/lib/logger";
+﻿import { logger } from "@/lib/logger";
 import { openai } from "@/services/ai/openai";
 
 /**
@@ -105,7 +105,7 @@ export async function detectInjectionViaLLM(
   try {
     // Use fast model (Haiku) for quick check
     const response = await openai.chat.completions.create({
-      model: "anthropic/claude-3-haiku",
+      model: "glm-5",
       messages: [
         {
           role: "system",
@@ -200,3 +200,4 @@ export async function sanitizeRagDocuments(
   // Filter out empty results
   return results.filter((text) => text.length > 0);
 }
+

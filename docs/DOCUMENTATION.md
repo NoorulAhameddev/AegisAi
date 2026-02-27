@@ -1,4 +1,4 @@
-# 📘 Aegis AI: Technical Documentation
+﻿# ðŸ“˜ Aegis AI: Technical Documentation
 
 **Version**: 1.0.0  
 **Last Updated**: January 9, 2026, 19:51 IST  
@@ -8,7 +8,7 @@ Welcome to the comprehensive technical documentation for **Aegis AI**. This guid
 
 ---
 
-## 📋 Table of Contents
+## ðŸ“‹ Table of Contents
 
 1. [System Architecture](#system-architecture)
 2. [Installation & Setup](#installation--setup)
@@ -23,72 +23,72 @@ Welcome to the comprehensive technical documentation for **Aegis AI**. This guid
 
 ---
 
-## 🏗️ System Architecture
+## ðŸ—ï¸ System Architecture
 
 ### High-Level Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     USER BROWSER                             │
-└────────────────┬────────────────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────────────────┐
-│              NEXT.JS 16 (App Router)                         │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │  Edge Middleware (middleware.ts)                     │   │
-│  │  - JWT validation                                    │   │
-│  │  - Route protection                                  │   │
-│  └──────────────────────────────────────────────────────┘   │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │  API Routes (26 endpoints)                           │   │
-│  │  - Authentication (5 routes)                         │   │
-│  │  - Chat (5 routes)                                   │   │
-│  │  - Files (4 routes)                                  │   │
-│  │  - Admin (7 routes)                                  │   │
-│  │  - User (2 routes)                                   │   │
-│  │  - System (3 routes)                                 │   │
-│  └──────────────────────────────────────────────────────┘   │
-└────────────────┬────────────────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  BULLMQ JOB QUEUE                            │
-│                  (Redis-backed)                              │
-│  - Async AI processing                                       │
-│  - Retry with exponential backoff                            │
-│  - Job deduplication                                         │
-└────────────────┬────────────────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────────────────┐
-│               WORKER PROCESS                                 │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │  AI Processing Pipeline                              │   │
-│  │  1. Security validation (Regex + AI Sentinel)        │   │
-│  │  2. RAG retrieval (Vector search)                    │   │
-│  │  3. OpenAI chat completion                           │   │
-│  │  4. Tool execution (Search, Calculator, Images)      │   │
-│  │  5. Output validation (Leak detection)               │   │
-│  │  6. Encryption & storage                             │   │
-│  └──────────────────────────────────────────────────────┘   │
-└────────────────┬────────────────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    DATA LAYER                                │
-│  ┌─────────────────────┐  ┌─────────────────────────────┐   │
-│  │   PostgreSQL        │  │      Redis                  │   │
-│  │   (Prisma ORM)      │  │   - Job Queue               │   │
-│  │   - 9 models        │  │   - Rate Limiting           │   │
-│  │   - 13+ indexes     │  │   - Caching                 │   │
-│  └─────────────────────┘  └─────────────────────────────┘   │
-│  ┌─────────────────────┐  ┌─────────────────────────────┐   │
-│  │   LanceDB           │  │   OpenAI API                │   │
-│  │   (Vector Store)    │  │   - GPT-4o-mini             │   │
-│  │   - RAG documents   │  │   - Tool calling            │   │
-│  └─────────────────────┘  └─────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                     USER BROWSER                             â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                 â”‚
+                 â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚              NEXT.JS 16 (App Router)                         â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
+â”‚  â”‚  Edge Middleware (middleware.ts)                     â”‚   â”‚
+â”‚  â”‚  - JWT validation                                    â”‚   â”‚
+â”‚  â”‚  - Route protection                                  â”‚   â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
+â”‚  â”‚  API Routes (26 endpoints)                           â”‚   â”‚
+â”‚  â”‚  - Authentication (5 routes)                         â”‚   â”‚
+â”‚  â”‚  - Chat (5 routes)                                   â”‚   â”‚
+â”‚  â”‚  - Files (4 routes)                                  â”‚   â”‚
+â”‚  â”‚  - Admin (7 routes)                                  â”‚   â”‚
+â”‚  â”‚  - User (2 routes)                                   â”‚   â”‚
+â”‚  â”‚  - System (3 routes)                                 â”‚   â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                 â”‚
+                 â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                  BULLMQ JOB QUEUE                            â”‚
+â”‚                  (Redis-backed)                              â”‚
+â”‚  - Async AI processing                                       â”‚
+â”‚  - Retry with exponential backoff                            â”‚
+â”‚  - Job deduplication                                         â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                 â”‚
+                 â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚               WORKER PROCESS                                 â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
+â”‚  â”‚  AI Processing Pipeline                              â”‚   â”‚
+â”‚  â”‚  1. Security validation (Regex + AI Sentinel)        â”‚   â”‚
+â”‚  â”‚  2. RAG retrieval (Vector search)                    â”‚   â”‚
+â”‚  â”‚  3. OpenAI chat completion                           â”‚   â”‚
+â”‚  â”‚  4. Tool execution (Search, Calculator, Images)      â”‚   â”‚
+â”‚  â”‚  5. Output validation (Leak detection)               â”‚   â”‚
+â”‚  â”‚  6. Encryption & storage                             â”‚   â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                 â”‚
+                 â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    DATA LAYER                                â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
+â”‚  â”‚   PostgreSQL        â”‚  â”‚      Redis                  â”‚   â”‚
+â”‚  â”‚   (Prisma ORM)      â”‚  â”‚   - Job Queue               â”‚   â”‚
+â”‚  â”‚   - 9 models        â”‚  â”‚   - Rate Limiting           â”‚   â”‚
+â”‚  â”‚   - 13+ indexes     â”‚  â”‚   - Caching                 â”‚   â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
+â”‚  â”‚   LanceDB           â”‚  â”‚   OpenAI API                â”‚   â”‚
+â”‚  â”‚   (Vector Store)    â”‚  â”‚   - GPT-4o-mini             â”‚   â”‚
+â”‚  â”‚   - RAG documents   â”‚  â”‚   - Tool calling            â”‚   â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### Key Components
@@ -103,7 +103,7 @@ Welcome to the comprehensive technical documentation for **Aegis AI**. This guid
 
 ---
 
-## ⚡ Installation & Setup
+## âš¡ Installation & Setup
 
 ### Prerequisites
 
@@ -142,7 +142,7 @@ Visit `http://localhost:3000`
 
 ---
 
-## 🔧 Configuration
+## ðŸ”§ Configuration
 
 ### Environment Variables
 
@@ -176,7 +176,7 @@ ENCRYPTION_KEY="exactly_32_characters_required"
 # AI SERVICES
 # ============================================
 OPENAI_API_KEY="sk-..."
-OPENAI_MODEL="gpt-4o-mini"  # or gpt-4o
+OPENAI_MODEL="glm-5"  # or gpt-4o
 
 # ============================================
 # REDIS (Required for production)
@@ -191,20 +191,20 @@ QUEUE_NAME="chat-queue"  # Default is fine
 
 ### Critical Configuration Notes
 
-⚠️ **ENCRYPTION_KEY**:
+âš ï¸ **ENCRYPTION_KEY**:
 
 - MUST be exactly 32 characters
 - Used for AES-256-GCM encryption
 - Changing this will make old data unreadable
 - Generate securely: `node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"`
 
-⚠️ **JWT Secrets**:
+âš ï¸ **JWT Secrets**:
 
 - Use strong random values (min 32 characters)
 - Never commit to version control
 - Different for access and refresh tokens
 
-⚠️ **DATABASE_URL**:
+âš ï¸ **DATABASE_URL**:
 
 - PostgreSQL 14+ required
 - Ensure database exists before running migrations
@@ -212,7 +212,7 @@ QUEUE_NAME="chat-queue"  # Default is fine
 
 ---
 
-## 🎯 Core Features
+## ðŸŽ¯ Core Features
 
 ### 1. Autonomous Web Search
 
@@ -307,7 +307,7 @@ Comprehensive system management.
 
 ---
 
-## 🔌 API Reference
+## ðŸ”Œ API Reference
 
 ### Authentication Endpoints
 
@@ -580,7 +580,7 @@ Get system metrics.
 
 ---
 
-## 🔒 Security
+## ðŸ”’ Security
 
 ### Authentication & Authorization
 
@@ -648,7 +648,7 @@ Get system metrics.
 
 ---
 
-## 🗄️ Database Schema
+## ðŸ—„ï¸ Database Schema
 
 ### Models
 
@@ -716,7 +716,7 @@ Get system metrics.
 
 ---
 
-## ⚙️ Worker System
+## âš™ï¸ Worker System
 
 ### Architecture
 
@@ -734,7 +734,7 @@ Get system metrics.
 
 ### Job Processing Flow
 
-1. User sends message → API
+1. User sends message â†’ API
 2. Message encrypted and saved to DB
 3. Job queued to BullMQ (Redis)
 4. Worker picks up job
@@ -754,7 +754,7 @@ Get system metrics.
 
 ---
 
-## 🚀 Deployment
+## ðŸš€ Deployment
 
 ### Production Checklist
 
@@ -803,7 +803,7 @@ npm run worker
 
 ---
 
-## 🐛 Troubleshooting
+## ðŸ› Troubleshooting
 
 ### Common Issues
 
@@ -845,16 +845,17 @@ node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
 
 ---
 
-## 📞 Support
+## ðŸ“ž Support
 
 For technical support:
 
-- 📧 Email: support@aegis-ai.com
-- 🐛 Issues: [GitHub Issues](https://github.com/your-org/aegis-ai/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/your-org/aegis-ai/discussions)
-- 📚 Docs: [Full Documentation](./DOCUMENTATION.md)
+- ðŸ“§ Email: support@aegis-ai.com
+- ðŸ› Issues: [GitHub Issues](https://github.com/your-org/aegis-ai/issues)
+- ðŸ’¬ Discussions: [GitHub Discussions](https://github.com/your-org/aegis-ai/discussions)
+- ðŸ“š Docs: [Full Documentation](./DOCUMENTATION.md)
 
 ---
 
 **Maintained by the Aegis AI Team**  
 **Last Updated**: January 9, 2026
+

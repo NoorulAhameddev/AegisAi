@@ -1,4 +1,4 @@
-import { Tool } from "./index";
+﻿import { Tool } from "./index";
 import { openai } from "@/services/ai/openai";
 
 export const ImageGeneratorTool: Tool = {
@@ -28,7 +28,7 @@ export const ImageGeneratorTool: Tool = {
       // - stability-ai/stable-diffusion-xl
       // - openai/dall-e-3 (if OpenRouter adds support)
       const response = await openai.images.generate({
-        model: "dall-e-3",
+        model: "glm-5",
         prompt,
         n: 1,
         size: "1024x1024",
@@ -45,3 +45,4 @@ export const ImageGeneratorTool: Tool = {
     }
   },
 };
+

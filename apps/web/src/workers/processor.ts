@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma";
+﻿import { prisma } from "../lib/prisma";
 import fs from "fs";
 import { openai } from "../services/ai/openai";
 import { Job } from "bullmq";
@@ -111,7 +111,7 @@ export async function processChatJob(job: Job) {
 
   try {
     // TOKEN BUDGET CHECK - Use dynamic estimate based on message size
-    // Rough estimate: 1 token ≈ 4 characters, add buffer for history and response
+    // Rough estimate: 1 token â‰ˆ 4 characters, add buffer for history and response
     const messageTokenEstimate = Math.ceil(message.length / 4) + 100;
     const estimatedTokens = messageTokenEstimate; // Better estimate based on actual message
     const budgetCheck = await tokenBudgetManager.reserveBudget(
@@ -183,7 +183,7 @@ export async function processChatJob(job: Job) {
       })),
     );
 
-    // 🚀 ENHANCED RAG Context Injection with Trust Scoring
+    // ðŸš€ ENHANCED RAG Context Injection with Trust Scoring
     tracer.startStage("rag-retrieval");
     let ragContext = "";
     let ragSourceCount = 0;
@@ -341,8 +341,8 @@ ${sanitizedRagContext}
       }
     }
 
-    // ✅ USE CENTRALIZED OPENAI CLIENT (NOT RAW KEY)
-    logger.worker(job.id as string, "ai-preparation", { model: "gpt-4o-mini" });
+    // âœ… USE CENTRALIZED OPENAI CLIENT (NOT RAW KEY)
+    logger.worker(job.id as string, "ai-preparation", { model: "glm-5" });
 
     // 4. Define Tools (Dynamic)
     const { getOpenAITools, toolsRegistry } = await import("../tools/index");
@@ -360,7 +360,7 @@ ${sanitizedRagContext}
 
     try {
       tracer.startStage("openai-api", {
-        model: "gpt-4o-mini",
+        model: "glm-5",
         messageCount: formattedMessages.length,
         toolCount: tools ? tools.length : 0,
       });
@@ -369,7 +369,7 @@ ${sanitizedRagContext}
       response = await retryWithBackoff(
         async () =>
           openai.chat.completions.create({
-            model: "openai/gpt-4o-mini",
+            model: "glm-5",
             messages: formattedMessages,
             tools: tools,
             tool_choice: "auto",
@@ -497,7 +497,7 @@ ${sanitizedRagContext}
         const secondResponse = await retryWithBackoff(
           async () =>
             openai.chat.completions.create({
-              model: "openai/gpt-4o-mini",
+              model: "glm-5",
               messages: formattedMessages,
             }),
           RetryStrategies.openai,
@@ -745,3 +745,4 @@ ${sanitizedRagContext}
     throw err;
   }
 }
+

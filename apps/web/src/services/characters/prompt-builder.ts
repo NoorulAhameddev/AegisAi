@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Character Prompt Builder
  * Builds character-aware system prompts with optional user memory injection
  */
@@ -91,7 +91,7 @@ export async function getCharacterConfig(
   try {
     if (!characterId) {
       return {
-        model: "openai/gpt-4o-mini",
+        model: "glm-5",
         temperature: 0.7,
       };
     }
@@ -103,7 +103,7 @@ export async function getCharacterConfig(
 
     if (!character) {
       return {
-        model: "openai/gpt-4o-mini",
+        model: "glm-5",
         temperature: 0.7,
       };
     }
@@ -118,7 +118,7 @@ export async function getCharacterConfig(
       characterId,
     });
     return {
-      model: "openai/gpt-4o-mini",
+      model: "glm-5",
       temperature: 0.7,
     };
   }
@@ -150,3 +150,4 @@ export async function canUserAccessCharacter(
     return false;
   }
 }
+

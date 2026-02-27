@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Comprehensive Tests for Chat Processor Worker
  * Tests security layers, RAG integration, encryption, token budgets, and response safety
  */
@@ -150,7 +150,7 @@ describe("Chat Processor Worker", () => {
       userId: "user-123",
       tokens: 150,
       cost: 0.0015,
-      model: "gpt-4o-mini",
+      model: "glm-5",
       createdAt: new Date(),
     } as any);
 
@@ -158,7 +158,7 @@ describe("Chat Processor Worker", () => {
       id: "chatcmpl-123",
       object: "chat.completion",
       created: Date.now(),
-      model: "gpt-4o-mini",
+      model: "glm-5",
       choices: [
         {
           index: 0,
@@ -423,7 +423,7 @@ describe("Chat Processor Worker", () => {
           completion_tokens: 500,
           total_tokens: 1500,
         },
-        model: "gpt-4o",
+        model: "glm-5",
       } as any);
 
       await processChatJob(mockJob as Job);
@@ -551,13 +551,13 @@ describe("Chat Processor Worker", () => {
 
   describe("Model Selection", () => {
     it("should use specified model from job data", async () => {
-      mockJob.data.model = "gpt-4o";
+      mockJob.data.model = "glm-5";
 
       await processChatJob(mockJob as Job);
 
       expect(mockOpenAI.chat.completions.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: "gpt-4o",
+          model: "glm-5",
         }),
       );
     });
@@ -614,3 +614,4 @@ describe("Chat Processor Worker", () => {
     });
   });
 });
+

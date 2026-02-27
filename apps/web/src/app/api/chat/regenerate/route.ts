@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Regenerate Response API
  * Regenerate the last assistant message in a chat
  */
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
 
     // Generate new response
     const completion = await openai.chat.completions.create({
-      model: "openai/gpt-4o-mini",
+      model: "glm-5",
       messages: [
         { role: "system", content: systemPrompt },
         ...conversationMessages,
@@ -156,3 +156,4 @@ export async function POST(req: NextRequest) {
     return errorResponse("Regeneration failed", { status: 500 });
   }
 }
+

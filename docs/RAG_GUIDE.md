@@ -1,4 +1,4 @@
-# RAG (Retrieval Augmented Generation) Feature
+﻿# RAG (Retrieval Augmented Generation) Feature
 
 ## Overview
 
@@ -44,23 +44,23 @@ The RAG feature enables your AI to have access to a knowledge base of documents,
 
 ```
 src/lib/
-├── rag-config.ts          # RAG configuration and settings
-├── chunker.ts             # Document chunking logic
-├── vector-store.ts        # LanceDB vector store operations
-├── rag-retrieval.ts       # Enhanced retrieval with reranking
-└── embeddings.ts          # OpenAI embedding generation
+â”œâ”€â”€ rag-config.ts          # RAG configuration and settings
+â”œâ”€â”€ chunker.ts             # Document chunking logic
+â”œâ”€â”€ vector-store.ts        # LanceDB vector store operations
+â”œâ”€â”€ rag-retrieval.ts       # Enhanced retrieval with reranking
+â””â”€â”€ embeddings.ts          # OpenAI embedding generation
 
 src/app/api/rag/
-├── ingest/route.ts        # Document ingestion endpoint
-├── search/route.ts        # Search endpoint
-├── documents/route.ts     # Delete documents endpoint
-└── stats/route.ts         # Statistics endpoint
+â”œâ”€â”€ ingest/route.ts        # Document ingestion endpoint
+â”œâ”€â”€ search/route.ts        # Search endpoint
+â”œâ”€â”€ documents/route.ts     # Delete documents endpoint
+â””â”€â”€ stats/route.ts         # Statistics endpoint
 
 src/components/rag/
-└── RAGManagement.tsx      # UI for RAG management
+â””â”€â”€ RAGManagement.tsx      # UI for RAG management
 
 src/app/knowledge/
-└── page.tsx               # Knowledge base page
+â””â”€â”€ page.tsx               # Knowledge base page
 ```
 
 ### Data Flow
@@ -68,12 +68,12 @@ src/app/knowledge/
 1. **Ingestion Flow**:
 
    ```
-   File Upload → Extract Text → Chunk Document → Generate Embeddings → Store in LanceDB
+   File Upload â†’ Extract Text â†’ Chunk Document â†’ Generate Embeddings â†’ Store in LanceDB
    ```
 
 2. **Retrieval Flow**:
    ```
-   User Query → Generate Query Embedding → Vector Search → Rerank Results → Inject Context → AI Response
+   User Query â†’ Generate Query Embedding â†’ Vector Search â†’ Rerank Results â†’ Inject Context â†’ AI Response
    ```
 
 ## Configuration
@@ -107,7 +107,7 @@ export const defaultRAGConfig: RAGConfig = {
     extractImages: true,
   },
   embedding: {
-    model: "openai/text-embedding-3-small",
+    model: "glm-5",
     dimensions: 1536,
     batchSize: 100,
   },
@@ -369,3 +369,4 @@ AI: "Based on your company policy document, refunds are available within 30 days
 ## License
 
 Part of Aegis AI - MIT License
+

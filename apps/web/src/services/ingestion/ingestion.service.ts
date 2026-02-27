@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Centralized Ingestion Service
  * Handles all document ingestion with unified pipeline
  */
@@ -525,8 +525,9 @@ async function transcribeAudio(filePath: string): Promise<string> {
 
   const transcription = await openai.audio.transcriptions.create({
     file: audioFile,
-    model: "whisper-1",
+    model: "glm-5",
   });
 
   return transcription.text;
 }
+

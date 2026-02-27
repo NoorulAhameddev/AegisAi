@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Image Generation Service
  * Handles DALL-E image generation and processing
  */
@@ -57,7 +57,7 @@ export async function generateImages(
 
     // Call DALL-E 3 API
     const response = await openai.images.generate({
-      model: "dall-e-3",
+      model: "glm-5",
       prompt: sanitizePrompt(prompt),
       n: Math.min(Math.max(numImages, 1), 10), // Clamp to 1-10
       size: size as any,
@@ -339,3 +339,4 @@ export async function generateImageBatch(
 
   return results;
 }
+

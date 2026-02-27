@@ -1,4 +1,4 @@
-// Test-specific setup for web app
+﻿// Test-specific setup for web app
 
 // Mock Next.js cache and revalidation functions
 jest.mock("next/cache", () => ({
@@ -33,8 +33,8 @@ jest.mock("@/lib/env", () => ({
     DATABASE_POOL_MIN: 2,
     DATABASE_POOL_MAX: 20,
     VECTOR_DB_PROVIDER: "lancedb",
-    EMBEDDING_MODEL: "text-embedding-3-small",
-    CROSS_ENCODER_MODEL: "ms-marco-MiniLM-L-12-v2",
+    EMBEDDING_MODEL: "glm-5",
+    CROSS_ENCODER_MODEL: "glm-5",
     SEMANTIC_CACHE_TTL: 86400,
     ENABLE_SERVERLESS_FUNCTIONS: false,
     FRONTEND_URL: "http://localhost:3000",
@@ -74,3 +74,4 @@ export const createMockResponse = (status: number, data: any) => {
     clone: jest.fn(),
   } as unknown as Response;
 };
+

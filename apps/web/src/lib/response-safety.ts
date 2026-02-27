@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Response Safety Validation
  * Validates AI-generated responses for dangerous content before returning to users
  */
@@ -143,7 +143,7 @@ async function validateWithLLM(
 ): Promise<SafetyCheckResult> {
   try {
     const check = await openai.chat.completions.create({
-      model: "openai/gpt-4o-mini",
+      model: "glm-5",
       temperature: 0,
       max_tokens: 200,
       messages: [
@@ -236,7 +236,7 @@ export function buildSafeResponse(
 
     return {
       content: redacted,
-      warning: `⚠️ This response contained ${validation.category} content. Sensitive areas have been redacted for safety.`,
+      warning: `âš ï¸ This response contained ${validation.category} content. Sensitive areas have been redacted for safety.`,
     };
   }
 
@@ -244,3 +244,4 @@ export function buildSafeResponse(
     content: originalResponse,
   };
 }
+

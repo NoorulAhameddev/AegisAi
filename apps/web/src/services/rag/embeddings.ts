@@ -1,4 +1,4 @@
-import { env } from "@/lib/env";
+﻿import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import crypto from "crypto";
 import {
@@ -67,11 +67,11 @@ export function getEmbeddingModelConfig(): {
 
   const config = {
     "text-embedding-3-small": {
-      model: "openai/text-embedding-3-small",
+      model: "glm-5",
       dimensions: 1536,
     },
     "text-embedding-3-large": {
-      model: "openai/text-embedding-3-large",
+      model: "glm-5",
       dimensions: 3072,
     },
   };
@@ -404,3 +404,4 @@ export async function generateEmbeddingsBatch(
 
   return allEmbeddings;
 }
+

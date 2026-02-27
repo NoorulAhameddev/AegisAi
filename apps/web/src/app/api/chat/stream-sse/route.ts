@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SSE Streaming Chat API
  * Real-time streaming responses using Server-Sent Events
  *
@@ -216,7 +216,7 @@ const handler = async (req: NextRequest) => {
 
           // Stream response from OpenAI with timeout
           const completionPromise = openai.chat.completions.create({
-            model: "openai/gpt-4o-mini",
+            model: "glm-5",
             messages: [
               { role: "system", content: systemPrompt },
               ...conversationMessages,
@@ -444,3 +444,4 @@ const handler = async (req: NextRequest) => {
 };
 
 export const POST = withMetrics(handler);
+

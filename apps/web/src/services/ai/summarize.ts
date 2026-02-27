@@ -1,4 +1,4 @@
-import { openai } from "./openai";
+﻿import { openai } from "./openai";
 
 export async function summarizeConversation(messages: string[]) {
   const prompt = `
@@ -10,10 +10,11 @@ ${messages.join("\n")}
 `;
 
   const completion = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.2,
   });
 
   return completion.choices[0].message.content;
 }
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AI Operations Service
  * Centralized service for all AI-powered transformations
  */
@@ -24,7 +24,7 @@ export async function generateShortSummary(
   const prompt = `Summarize the following content in 5 concise bullet points. Focus on the most important facts and key takeaways.\n\nContent:\n${text.slice(0, 12000)}`;
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.3,
   });
@@ -66,7 +66,7 @@ export async function generateDetailedSummary(
 Content:\n${text.slice(0, 12000)}`;
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.3,
   });
@@ -103,7 +103,7 @@ export async function generateStructuredNotes(
 Content:\n${text.slice(0, 12000)}`;
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.3,
   });
@@ -140,7 +140,7 @@ export async function extractBulletPoints(
 Content:\n${text.slice(0, 12000)}`;
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.2,
   });
@@ -177,7 +177,7 @@ export async function extractKeyConcepts(
 Content:\n${text.slice(0, 12000)}`;
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.3,
   });
@@ -214,7 +214,7 @@ export async function generateGlossary(
 Content:\n${text.slice(0, 12000)}`;
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.2,
   });
@@ -251,7 +251,7 @@ export async function generateExamples(
 Content:\n${text.slice(0, 12000)}`;
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.5,
   });
@@ -288,7 +288,7 @@ export async function generateELI5(
 Content:\n${text.slice(0, 12000)}`;
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.7,
   });
@@ -330,7 +330,7 @@ export async function rewriteContent(
   const prompt = `${stylePrompts[style] || stylePrompts.professional}:\n\n${text.slice(0, 8000)}`;
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.7,
   });
@@ -356,7 +356,7 @@ Make them clear, concise, and focused on key information.
 Content:\n${text.slice(0, 12000)}`;
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.4,
   });
@@ -400,7 +400,7 @@ Correct: [Letter]
 Content:\n${text.slice(0, 12000)}`;
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.4,
   });
@@ -441,7 +441,7 @@ export async function generateQuestions(
 Content:\n${text.slice(0, 12000)}`;
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.4,
   });
@@ -482,7 +482,7 @@ export async function generateExamNotes(
 Content:\n${text.slice(0, 12000)}`;
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o-mini",
+    model: "glm-5",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.3,
   });
@@ -505,3 +505,4 @@ Content:\n${text.slice(0, 12000)}`;
     tokensUsed: response.usage?.total_tokens,
   };
 }
+

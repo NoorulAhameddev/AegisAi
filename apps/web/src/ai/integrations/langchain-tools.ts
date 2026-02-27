@@ -1,4 +1,4 @@
-/**
+﻿/**
  * LangChain Tools Integration
  * Convert existing Aegis AI tools to LangChain format
  */
@@ -100,7 +100,7 @@ export const imageGeneratorTool = new DynamicStructuredTool({
     try {
       const { openai } = await import("@/services/ai/openai");
       const response = await openai.images.generate({
-        model: "dall-e-3",
+        model: "glm-5",
         prompt,
         n: 1,
         size,
@@ -130,3 +130,4 @@ export function getToolByName(name: string) {
   const tools = getLangChainTools();
   return tools.find((tool) => tool.name === name);
 }
+

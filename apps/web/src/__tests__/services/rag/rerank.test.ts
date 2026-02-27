@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Reranking Test Suite
  * Tests cross-encoder and heuristic reranking functionality
  * Run with: npm test -- rerank.test.ts
@@ -140,7 +140,7 @@ describe("Reranking Service", () => {
 
       const query = "machine learning";
       const reranked = await rerankDocumentsCrossEncoder(query, mockDocuments, {
-        model: "openai/gpt-4o-mini",
+        model: "glm-5",
       });
 
       expect(reranked).toHaveLength(4);
@@ -164,7 +164,7 @@ describe("Reranking Service", () => {
         query,
         mockDocuments,
         {
-          model: "openai/gpt-4o-mini",
+          model: "glm-5",
         },
       );
 
@@ -367,7 +367,7 @@ describe("Reranking Service", () => {
       const result = await rerankDocumentsCrossEncoderWithScores(
         "test query",
         mockDocuments,
-        { model: "openai/gpt-4o-mini" },
+        { model: "glm-5" },
       );
 
       // All scores should be clamped to [0, 1]
@@ -416,3 +416,4 @@ describe("Reranking Service", () => {
     });
   });
 });
+
