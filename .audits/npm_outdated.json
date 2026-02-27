@@ -1,0 +1,888 @@
+﻿{
+  "@aws-sdk/client-kms": [
+    {
+      "current": "3.983.0",
+      "wanted": "3.999.0",
+      "latest": "3.999.0",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\@aws-sdk\\client-kms"
+    },
+    {
+      "current": "3.983.0",
+      "wanted": "3.999.0",
+      "latest": "3.999.0",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\@aws-sdk\\client-kms"
+    }
+  ],
+  "@aws-sdk/client-s3": {
+    "current": "3.990.0",
+    "wanted": "3.999.0",
+    "latest": "3.999.0",
+    "dependent": "Aegis-Ai",
+    "location": "D:\\Aegis-Ai\\node_modules\\@aws-sdk\\client-s3"
+  },
+  "@aws-sdk/s3-request-presigner": {
+    "current": "3.990.0",
+    "wanted": "3.999.0",
+    "latest": "3.999.0",
+    "dependent": "Aegis-Ai",
+    "location": "D:\\Aegis-Ai\\node_modules\\@aws-sdk\\s3-request-presigner"
+  },
+  "@expo/vector-icons": {
+    "current": "15.0.3",
+    "wanted": "15.1.1",
+    "latest": "15.1.1",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\@expo\\vector-icons"
+  },
+  "@lancedb/lancedb": [
+    {
+      "current": "0.23.0",
+      "wanted": "0.23.0",
+      "latest": "0.26.2",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\@lancedb\\lancedb"
+    },
+    {
+      "current": "0.23.0",
+      "wanted": "0.23.0",
+      "latest": "0.26.2",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\@lancedb\\lancedb"
+    }
+  ],
+  "@langchain/community": [
+    {
+      "current": "0.2.0",
+      "wanted": "0.2.0",
+      "latest": "1.1.20",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\@langchain\\community"
+    },
+    {
+      "current": "0.2.0",
+      "wanted": "0.2.0",
+      "latest": "1.1.20",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\@langchain\\community"
+    }
+  ],
+  "@langchain/core": [
+    {
+      "current": "0.3.58",
+      "wanted": "0.3.58",
+      "latest": "1.1.29",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\@langchain\\core"
+    },
+    {
+      "current": "0.3.58",
+      "wanted": "0.3.58",
+      "latest": "1.1.29",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\@langchain\\core"
+    }
+  ],
+  "@langchain/openai": [
+    {
+      "current": "0.2.11",
+      "wanted": "0.2.11",
+      "latest": "1.2.11",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\@langchain\\openai"
+    },
+    {
+      "current": "0.2.11",
+      "wanted": "0.2.11",
+      "latest": "1.2.11",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\@langchain\\openai"
+    }
+  ],
+  "@prisma/client": [
+    {
+      "current": "5.22.0",
+      "wanted": "5.22.0",
+      "latest": "7.4.1",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\@prisma\\client"
+    },
+    {
+      "current": "5.22.0",
+      "wanted": "5.22.0",
+      "latest": "7.4.1",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\@prisma\\client"
+    }
+  ],
+  "@react-native-community/netinfo": {
+    "current": "11.5.2",
+    "wanted": "11.5.2",
+    "latest": "12.0.1",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\@react-native-community\\netinfo"
+  },
+  "@react-navigation/bottom-tabs": {
+    "current": "7.13.0",
+    "wanted": "7.15.2",
+    "latest": "7.15.2",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\@react-navigation\\bottom-tabs"
+  },
+  "@react-navigation/elements": {
+    "current": "2.9.5",
+    "wanted": "2.9.8",
+    "latest": "2.9.8",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\@react-navigation\\elements"
+  },
+  "@react-navigation/native": {
+    "current": "7.1.28",
+    "wanted": "7.1.31",
+    "latest": "7.1.31",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\@react-navigation\\native"
+  },
+  "@sentry/nextjs": {
+    "current": "10.38.0",
+    "wanted": "10.40.0",
+    "latest": "10.40.0",
+    "dependent": "web",
+    "location": "D:\\Aegis-Ai\\node_modules\\@sentry\\nextjs"
+  },
+  "@tailwindcss/postcss": [
+    {
+      "current": "4.1.18",
+      "wanted": "4.2.1",
+      "latest": "4.2.1",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\@tailwindcss\\postcss"
+    },
+    {
+      "current": "4.1.18",
+      "wanted": "4.2.1",
+      "latest": "4.2.1",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\@tailwindcss\\postcss"
+    }
+  ],
+  "@types/archiver": [
+    {
+      "current": "6.0.4",
+      "wanted": "6.0.4",
+      "latest": "7.0.0",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\@types\\archiver"
+    },
+    {
+      "current": "6.0.4",
+      "wanted": "6.0.4",
+      "latest": "7.0.0",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\@types\\archiver"
+    }
+  ],
+  "@types/jest": [
+    {
+      "current": "29.5.14",
+      "wanted": "29.5.14",
+      "latest": "30.0.0",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\@types\\jest"
+    },
+    {
+      "current": "29.5.14",
+      "wanted": "29.5.14",
+      "latest": "30.0.0",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\@types\\jest"
+    }
+  ],
+  "@types/node": [
+    {
+      "current": "20.19.31",
+      "wanted": "20.19.35",
+      "latest": "25.3.2",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\@types\\node"
+    },
+    {
+      "current": "20.19.31",
+      "wanted": "20.19.35",
+      "latest": "25.3.2",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\@types\\node"
+    }
+  ],
+  "@types/pdfkit": [
+    {
+      "current": "0.13.9",
+      "wanted": "0.13.9",
+      "latest": "0.17.5",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\@types\\pdfkit"
+    },
+    {
+      "current": "0.13.9",
+      "wanted": "0.13.9",
+      "latest": "0.17.5",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\@types\\pdfkit"
+    }
+  ],
+  "@types/react": [
+    {
+      "current": "19.2.11",
+      "wanted": "19.2.14",
+      "latest": "19.2.14",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\@types\\react"
+    },
+    {
+      "current": "19.1.17",
+      "wanted": "19.1.17",
+      "latest": "19.2.14",
+      "dependent": "mobile",
+      "location": "D:\\Aegis-Ai\\apps\\mobile\\node_modules\\@types\\react"
+    },
+    {
+      "current": "19.2.11",
+      "wanted": "19.2.14",
+      "latest": "19.2.14",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\@types\\react"
+    }
+  ],
+  "apache-arrow": [
+    {
+      "current": "18.1.0",
+      "wanted": "18.1.0",
+      "latest": "21.1.0",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\apache-arrow"
+    },
+    {
+      "current": "18.1.0",
+      "wanted": "18.1.0",
+      "latest": "21.1.0",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\apache-arrow"
+    }
+  ],
+  "axios": [
+    {
+      "current": "1.13.4",
+      "wanted": "1.13.5",
+      "latest": "1.13.5",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\axios"
+    },
+    {
+      "current": "1.13.4",
+      "wanted": "1.13.5",
+      "latest": "1.13.5",
+      "dependent": "mobile",
+      "location": "D:\\Aegis-Ai\\node_modules\\axios"
+    },
+    {
+      "current": "1.13.4",
+      "wanted": "1.13.5",
+      "latest": "1.13.5",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\axios"
+    }
+  ],
+  "bullmq": [
+    {
+      "current": "5.67.2",
+      "wanted": "5.70.1",
+      "latest": "5.70.1",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\bullmq"
+    },
+    {
+      "current": "5.67.2",
+      "wanted": "5.70.1",
+      "latest": "5.70.1",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\bullmq"
+    }
+  ],
+  "docx": [
+    {
+      "current": "9.5.1",
+      "wanted": "9.6.0",
+      "latest": "9.6.0",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\docx"
+    },
+    {
+      "current": "9.5.1",
+      "wanted": "9.6.0",
+      "latest": "9.6.0",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\docx"
+    }
+  ],
+  "dotenv": [
+    {
+      "current": "16.4.5",
+      "wanted": "16.4.5",
+      "latest": "17.3.1",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\dotenv"
+    },
+    {
+      "current": "16.4.5",
+      "wanted": "16.4.5",
+      "latest": "17.3.1",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\dotenv"
+    }
+  ],
+  "eslint": [
+    {
+      "current": "9.39.2",
+      "wanted": "9.39.3",
+      "latest": "10.0.2",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\eslint"
+    },
+    {
+      "current": "9.39.2",
+      "wanted": "9.39.3",
+      "latest": "10.0.2",
+      "dependent": "mobile",
+      "location": "D:\\Aegis-Ai\\node_modules\\eslint"
+    },
+    {
+      "current": "9.39.2",
+      "wanted": "9.39.3",
+      "latest": "10.0.2",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\eslint"
+    }
+  ],
+  "eslint-config-expo": {
+    "current": "10.0.0",
+    "wanted": "10.0.0",
+    "latest": "55.0.0",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\eslint-config-expo"
+  },
+  "eslint-config-next": [
+    {
+      "current": "16.0.1",
+      "wanted": "16.0.1",
+      "latest": "16.1.6",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\eslint-config-next"
+    },
+    {
+      "current": "16.0.1",
+      "wanted": "16.0.1",
+      "latest": "16.1.6",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\eslint-config-next"
+    }
+  ],
+  "expo": {
+    "current": "54.0.33",
+    "wanted": "54.0.33",
+    "latest": "55.0.3",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo"
+  },
+  "expo-application": {
+    "current": "7.0.8",
+    "wanted": "7.0.8",
+    "latest": "55.0.8",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-application"
+  },
+  "expo-constants": {
+    "current": "18.0.13",
+    "wanted": "18.0.13",
+    "latest": "55.0.7",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-constants"
+  },
+  "expo-device": {
+    "current": "8.0.10",
+    "wanted": "8.0.10",
+    "latest": "55.0.9",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-device"
+  },
+  "expo-font": {
+    "current": "14.0.11",
+    "wanted": "14.0.11",
+    "latest": "55.0.4",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-font"
+  },
+  "expo-haptics": {
+    "current": "15.0.8",
+    "wanted": "15.0.8",
+    "latest": "55.0.8",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-haptics"
+  },
+  "expo-image": {
+    "current": "3.0.11",
+    "wanted": "3.0.11",
+    "latest": "55.0.5",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-image"
+  },
+  "expo-linking": {
+    "current": "8.0.11",
+    "wanted": "8.0.11",
+    "latest": "55.0.7",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-linking"
+  },
+  "expo-local-authentication": {
+    "current": "17.0.8",
+    "wanted": "17.0.8",
+    "latest": "55.0.8",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-local-authentication"
+  },
+  "expo-router": {
+    "current": "6.0.23",
+    "wanted": "6.0.23",
+    "latest": "55.0.3",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-router"
+  },
+  "expo-secure-store": {
+    "current": "15.0.8",
+    "wanted": "15.0.8",
+    "latest": "55.0.8",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-secure-store"
+  },
+  "expo-splash-screen": {
+    "current": "31.0.13",
+    "wanted": "31.0.13",
+    "latest": "55.0.10",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-splash-screen"
+  },
+  "expo-status-bar": {
+    "current": "3.0.9",
+    "wanted": "3.0.9",
+    "latest": "55.0.4",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-status-bar"
+  },
+  "expo-symbols": {
+    "current": "1.0.8",
+    "wanted": "1.0.8",
+    "latest": "55.0.4",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-symbols"
+  },
+  "expo-system-ui": {
+    "current": "6.0.9",
+    "wanted": "6.0.9",
+    "latest": "55.0.9",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-system-ui"
+  },
+  "expo-web-browser": {
+    "current": "15.0.10",
+    "wanted": "15.0.10",
+    "latest": "55.0.9",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\expo-web-browser"
+  },
+  "husky": {
+    "current": "8.0.3",
+    "wanted": "8.0.3",
+    "latest": "9.1.7",
+    "dependent": "Aegis-Ai",
+    "location": "D:\\Aegis-Ai\\node_modules\\husky"
+  },
+  "ioredis": [
+    {
+      "current": "5.9.2",
+      "wanted": "5.9.3",
+      "latest": "5.9.3",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\ioredis"
+    },
+    {
+      "current": "5.9.2",
+      "wanted": "5.9.3",
+      "latest": "5.9.3",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\ioredis"
+    }
+  ],
+  "jest": [
+    {
+      "current": "29.7.0",
+      "wanted": "29.7.0",
+      "latest": "30.2.0",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\jest"
+    },
+    {
+      "current": "29.7.0",
+      "wanted": "29.7.0",
+      "latest": "30.2.0",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\jest"
+    }
+  ],
+  "jest-environment-jsdom": [
+    {
+      "current": "29.7.0",
+      "wanted": "29.7.0",
+      "latest": "30.2.0",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\jest-environment-jsdom"
+    },
+    {
+      "current": "29.7.0",
+      "wanted": "29.7.0",
+      "latest": "30.2.0",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\jest-environment-jsdom"
+    }
+  ],
+  "katex": [
+    {
+      "current": "0.16.28",
+      "wanted": "0.16.33",
+      "latest": "0.16.33",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\katex"
+    },
+    {
+      "current": "0.16.28",
+      "wanted": "0.16.33",
+      "latest": "0.16.33",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\katex"
+    }
+  ],
+  "langchain": [
+    {
+      "current": "0.3.37",
+      "wanted": "0.3.37",
+      "latest": "1.2.28",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\langchain"
+    },
+    {
+      "current": "0.3.37",
+      "wanted": "0.3.37",
+      "latest": "1.2.28",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\langchain"
+    }
+  ],
+  "lint-staged": {
+    "current": "14.0.1",
+    "wanted": "14.0.1",
+    "latest": "16.2.7",
+    "dependent": "Aegis-Ai",
+    "location": "D:\\Aegis-Ai\\node_modules\\lint-staged"
+  },
+  "lucide-react": [
+    {
+      "current": "0.562.0",
+      "wanted": "0.562.0",
+      "latest": "0.575.0",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\lucide-react"
+    },
+    {
+      "current": "0.562.0",
+      "wanted": "0.562.0",
+      "latest": "0.575.0",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\lucide-react"
+    }
+  ],
+  "marked": [
+    {
+      "current": "15.0.12",
+      "wanted": "15.0.12",
+      "latest": "17.0.3",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\marked"
+    },
+    {
+      "current": "15.0.12",
+      "wanted": "15.0.12",
+      "latest": "17.0.3",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\marked"
+    }
+  ],
+  "n8n-mcp": [
+    {
+      "current": "2.33.5",
+      "wanted": "2.35.5",
+      "latest": "2.35.5",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\n8n-mcp"
+    },
+    {
+      "current": "2.33.5",
+      "wanted": "2.35.5",
+      "latest": "2.35.5",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\n8n-mcp"
+    }
+  ],
+  "next": {
+    "current": "16.0.1",
+    "wanted": "16.0.1",
+    "latest": "16.1.6",
+    "dependent": "web",
+    "location": "D:\\Aegis-Ai\\apps\\web\\node_modules\\next"
+  },
+  "openai": [
+    {
+      "current": "4.62.1",
+      "wanted": "4.62.1",
+      "latest": "6.25.0",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\openai"
+    },
+    {
+      "current": "4.62.1",
+      "wanted": "4.62.1",
+      "latest": "6.25.0",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\openai"
+    }
+  ],
+  "opossum": {
+    "current": "8.5.0",
+    "wanted": "8.5.0",
+    "latest": "9.0.0",
+    "dependent": "Aegis-Ai",
+    "location": "D:\\Aegis-Ai\\node_modules\\opossum"
+  },
+  "p-retry": {
+    "current": "6.2.1",
+    "wanted": "6.2.1",
+    "latest": "7.1.1",
+    "dependent": "Aegis-Ai",
+    "location": "D:\\Aegis-Ai\\node_modules\\p-retry"
+  },
+  "pdfkit": [
+    {
+      "current": "0.15.2",
+      "wanted": "0.15.2",
+      "latest": "0.17.2",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\pdfkit"
+    },
+    {
+      "current": "0.15.2",
+      "wanted": "0.15.2",
+      "latest": "0.17.2",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\pdfkit"
+    }
+  ],
+  "prisma": [
+    {
+      "current": "5.22.0",
+      "wanted": "5.22.0",
+      "latest": "7.4.1",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\prisma"
+    },
+    {
+      "current": "5.22.0",
+      "wanted": "5.22.0",
+      "latest": "7.4.1",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\prisma"
+    }
+  ],
+  "puppeteer": [
+    {
+      "current": "24.36.1",
+      "wanted": "24.37.5",
+      "latest": "24.37.5",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\puppeteer"
+    },
+    {
+      "current": "24.36.1",
+      "wanted": "24.37.5",
+      "latest": "24.37.5",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\puppeteer"
+    }
+  ],
+  "react": [
+    {
+      "current": "19.2.0",
+      "wanted": "19.2.4",
+      "latest": "19.2.4",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\react"
+    },
+    {
+      "current": "19.1.0",
+      "wanted": "19.1.0",
+      "latest": "19.2.4",
+      "dependent": "mobile",
+      "location": "D:\\Aegis-Ai\\apps\\mobile\\node_modules\\react"
+    },
+    {
+      "current": "19.2.0",
+      "wanted": "19.2.4",
+      "latest": "19.2.4",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\react"
+    }
+  ],
+  "react-dom": [
+    {
+      "current": "19.2.0",
+      "wanted": "19.2.0",
+      "latest": "19.2.4",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\react-dom"
+    },
+    {
+      "current": "19.1.0",
+      "wanted": "19.1.0",
+      "latest": "19.2.4",
+      "dependent": "mobile",
+      "location": "D:\\Aegis-Ai\\apps\\mobile\\node_modules\\react-dom"
+    },
+    {
+      "current": "19.2.0",
+      "wanted": "19.2.0",
+      "latest": "19.2.4",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\react-dom"
+    }
+  ],
+  "react-native": {
+    "current": "0.81.5",
+    "wanted": "0.81.5",
+    "latest": "0.84.0",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\react-native"
+  },
+  "react-native-gesture-handler": {
+    "current": "2.28.0",
+    "wanted": "2.28.0",
+    "latest": "2.30.0",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\react-native-gesture-handler"
+  },
+  "react-native-reanimated": {
+    "current": "4.1.6",
+    "wanted": "4.1.6",
+    "latest": "4.2.2",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\react-native-reanimated"
+  },
+  "react-native-safe-area-context": {
+    "current": "5.6.2",
+    "wanted": "5.6.2",
+    "latest": "5.7.0",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\react-native-safe-area-context"
+  },
+  "react-native-screens": {
+    "current": "4.16.0",
+    "wanted": "4.16.0",
+    "latest": "4.24.0",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\react-native-screens"
+  },
+  "react-native-worklets": {
+    "current": "0.5.1",
+    "wanted": "0.5.1",
+    "latest": "0.7.4",
+    "dependent": "mobile",
+    "location": "D:\\Aegis-Ai\\node_modules\\react-native-worklets"
+  },
+  "react-syntax-highlighter": [
+    {
+      "current": "16.1.0",
+      "wanted": "16.1.1",
+      "latest": "16.1.1",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\react-syntax-highlighter"
+    },
+    {
+      "current": "16.1.0",
+      "wanted": "16.1.1",
+      "latest": "16.1.1",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\react-syntax-highlighter"
+    }
+  ],
+  "stripe": {
+    "current": "14.25.0",
+    "wanted": "14.25.0",
+    "latest": "20.4.0",
+    "dependent": "Aegis-Ai",
+    "location": "D:\\Aegis-Ai\\node_modules\\stripe"
+  },
+  "tailwind-merge": [
+    {
+      "current": "3.4.0",
+      "wanted": "3.5.0",
+      "latest": "3.5.0",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\tailwind-merge"
+    },
+    {
+      "current": "3.4.0",
+      "wanted": "3.5.0",
+      "latest": "3.5.0",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\tailwind-merge"
+    }
+  ],
+  "tailwindcss": [
+    {
+      "current": "4.1.18",
+      "wanted": "4.2.1",
+      "latest": "4.2.1",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\tailwindcss"
+    },
+    {
+      "current": "4.1.18",
+      "wanted": "4.2.1",
+      "latest": "4.2.1",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\tailwindcss"
+    }
+  ],
+  "zod": [
+    {
+      "current": "3.23.8",
+      "wanted": "3.23.8",
+      "latest": "4.3.6",
+      "dependent": "Aegis-Ai",
+      "location": "D:\\Aegis-Ai\\node_modules\\zod"
+    },
+    {
+      "current": "3.23.8",
+      "wanted": "3.23.8",
+      "latest": "4.3.6",
+      "dependent": "web",
+      "location": "D:\\Aegis-Ai\\node_modules\\zod"
+    }
+  ]
+}

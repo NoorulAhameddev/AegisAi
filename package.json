@@ -8,6 +8,7 @@
     "services/*"
   ],
   "scripts": {
+    "test": "jest",
     "dev": "npm run dev --workspace=apps/web",
     "dev:mobile": "npm run start --workspace=apps/mobile",
     "build": "npm run build --workspace=apps/web",
@@ -114,7 +115,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-syntax-highlighter": "^15.5.13",
-    "baseline-browser-mapping": "^2.10.0",
+    "baseline-browser-mapping": "^2.12.0",
     "cross-fetch": "^4.0.0",
     "dotenv": "16.4.5",
     "eslint": "^9",

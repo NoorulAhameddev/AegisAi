@@ -1,0 +1,303 @@
+﻿apps/mobile/app/(protected)/chat/[id].tsx(52,5): error TS2322: Type 'number' is not assignable to type 'Timeout'.
+apps/mobile/src/components/parallax-scroll-view.tsx(10,28): error TS2307: Cannot find module '@/components/themed-view' or its corresponding type declarations.
+apps/mobile/src/components/parallax-scroll-view.tsx(11,32): error TS2307: Cannot find module '@/hooks/use-color-scheme' or its corresponding type declarations.
+apps/mobile/src/components/parallax-scroll-view.tsx(12,31): error TS2307: Cannot find module '@/hooks/use-theme-color' or its corresponding type declarations.
+apps/mobile/src/components/parallax-scroll-view.tsx(60,30): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ dark: string; light: string; }'.
+apps/mobile/src/components/themed-text.tsx(3,31): error TS2307: Cannot find module '@/hooks/use-theme-color' or its corresponding type declarations.
+apps/mobile/src/components/themed-view.tsx(3,31): error TS2307: Cannot find module '@/hooks/use-theme-color' or its corresponding type declarations.
+apps/mobile/src/components/ui/collapsible.tsx(4,28): error TS2307: Cannot find module '@/components/themed-text' or its corresponding type declarations.
+apps/mobile/src/components/ui/collapsible.tsx(5,28): error TS2307: Cannot find module '@/components/themed-view' or its corresponding type declarations.
+apps/mobile/src/components/ui/collapsible.tsx(6,28): error TS2307: Cannot find module '@/components/ui/icon-symbol' or its corresponding type declarations.
+apps/mobile/src/components/ui/collapsible.tsx(7,24): error TS2307: Cannot find module '@/constants/theme' or its corresponding type declarations.
+apps/mobile/src/components/ui/collapsible.tsx(8,32): error TS2307: Cannot find module '@/hooks/use-color-scheme' or its corresponding type declarations.
+apps/mobile/src/hooks/use-theme-color.ts(6,24): error TS2307: Cannot find module '@/constants/theme' or its corresponding type declarations.
+apps/mobile/src/hooks/use-theme-color.ts(7,32): error TS2307: Cannot find module '@/hooks/use-color-scheme' or its corresponding type declarations.
+apps/mobile/src/hooks/use-theme-color.ts(14,26): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ light?: string | undefined; dark?: string | undefined; }'.
+apps/web/src/__tests__/services/character-service.test.ts(49,18): error TS2339: Property 'character' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+apps/web/src/__tests__/services/character-service.test.ts(198,36): error TS2339: Property 'character' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+apps/web/src/__tests__/services/character-service.test.ts(300,18): error TS2339: Property 'character' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+apps/web/src/__tests__/services/character-service.test.ts(349,18): error TS2339: Property 'character' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+apps/web/src/__tests__/services/rag/multi-modal-ingest.test.ts(46,23): error TS2305: Module '"@/ai/rag/vector-store"' has no exported member 'addMultiModalDocument'.
+apps/web/src/__tests__/services/rag/multi-modal-ingest.test.ts(333,9): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'never'.
+apps/web/src/__tests__/services/rag/multi-modal-ingest.test.ts(369,9): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'never'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(49,7): error TS2322: Type '{ source: string; }' is not assignable to type 'string'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(58,7): error TS2322: Type '{ source: string; }' is not assignable to type 'string'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(67,7): error TS2322: Type '{ source: string; }' is not assignable to type 'string'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(76,7): error TS2322: Type '{ source: string; }' is not assignable to type 'string'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(131,71): error TS2345: Argument of type '{ choices: { message: { content: string; }; }[]; }' is not assignable to parameter of type 'never'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(152,71): error TS2345: Argument of type '{ choices: { message: { content: string; }; }[]; }' is not assignable to parameter of type 'never'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(179,9): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'never'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(192,71): error TS2345: Argument of type '{ choices: { message: { content: string; }; }[]; }' is not assignable to parameter of type 'never'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(211,71): error TS2345: Argument of type '{ choices: { message: { content: string; }; }[]; }' is not assignable to parameter of type 'never'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(230,71): error TS2345: Argument of type '{ choices: { message: { content: string; }; }[]; }' is not assignable to parameter of type 'never'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(254,9): error TS2322: Type '{ source: string; }' is not assignable to type 'string'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(261,71): error TS2345: Argument of type '{ choices: { message: { content: string; }; }[]; }' is not assignable to parameter of type 'never'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(304,71): error TS2345: Argument of type '{ choices: { message: { content: string; }; }[]; }' is not assignable to parameter of type 'never'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(325,9): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'never'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(337,71): error TS2345: Argument of type '{ choices: { message: { content: string; }; }[]; }' is not assignable to parameter of type 'never'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(357,71): error TS2345: Argument of type '{ choices: { message: { content: string; }; }[]; }' is not assignable to parameter of type 'never'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(384,71): error TS2345: Argument of type '{ choices: { message: { content: string; }; }[]; }' is not assignable to parameter of type 'never'.
+apps/web/src/__tests__/services/rag/rerank.test.ts(413,63): error TS2345: Argument of type '{ id: string; content: string; text: string; metadata: { source: string; }; score: number; createdAt: number; chunkIndex: number; }[]' is not assignable to parameter of type 'Document[]'.
+  Type '{ id: string; content: string; text: string; metadata: { source: string; }; score: number; createdAt: number; chunkIndex: number; }' is missing the following properties from type 'Document': vector, userId
+apps/web/src/__tests__/services/rag/semantic-cache.test.ts(58,7): error TS2322: Type '{ source: string; }' is not assignable to type 'string'.
+apps/web/src/__tests__/services/rag/semantic-cache.test.ts(64,7): error TS2322: Type '{ source: string; }' is not assignable to type 'string'.
+apps/web/src/__tests__/workers/processor.test.ts(93,36): error TS2345: Argument of type '(text: string) => string' is not assignable to parameter of type '(text: string) => Promise<string>'.
+  Type 'string' is not assignable to type 'Promise<string>'.
+apps/web/src/__tests__/workers/processor.test.ts(94,36): error TS2345: Argument of type '(text: string) => string' is not assignable to parameter of type '(text: string) => Promise<string>'.
+  Type 'string' is not assignable to type 'Promise<string>'.
+apps/web/src/__tests__/workers/processor.test.ts(98,32): error TS2339: Property 'mockResolvedValue' does not exist on type '<T extends UserFindUniqueArgs>(args: SelectSubset<T, UserFindUniqueArgs<DefaultArgs>>) => Prisma__UserClient<GetFindResult<$UserPayload<DefaultArgs>, T, {}> | null, null, DefaultArgs>'.
+apps/web/src/__tests__/workers/processor.test.ts(109,31): error TS2339: Property 'mockResolvedValue' does not exist on type '<T extends ChatFindFirstArgs>(args?: SelectSubset<T, ChatFindFirstArgs<DefaultArgs>> | undefined) => Prisma__ChatClient<GetFindResult<$ChatPayload<DefaultArgs>, T, {}> | null, null, DefaultArgs>'.
+apps/web/src/__tests__/workers/processor.test.ts(120,43): error TS2345: Argument of type '{ context: string; sources: Set<string>; documents: never[]; rerankScores: Map<any, any>; }' is not assignable to parameter of type 'RetrievalResult | Promise<RetrievalResult>'.
+  Property 'tokensUsed' is missing in type '{ context: string; sources: Set<string>; documents: never[]; rerankScores: Map<any, any>; }' but required in type 'RetrievalResult'.
+apps/web/src/__tests__/workers/processor.test.ts(127,61): error TS2740: Type '{}' is missing the following properties from type 'string[]': length, pop, push, concat, and 35 more.
+apps/web/src/__tests__/workers/processor.test.ts(129,7): error TS2353: Object literal may only specify known properties, and 'isValid' does not exist in type 'Promise<SafetyCheckResult>'.
+apps/web/src/__tests__/workers/processor.test.ts(133,7): error TS2353: Object literal may only specify known properties, and 'detected' does not exist in type 'BoundaryCheckResult'.
+apps/web/src/__tests__/workers/processor.test.ts(138,31): error TS2339: Property 'mockResolvedValue' does not exist on type '<T extends MessageCreateArgs>(args: SelectSubset<T, MessageCreateArgs<DefaultArgs>>) => Prisma__MessageClient<GetFindResult<$MessagePayload<DefaultArgs>, T, {}>, never, DefaultArgs>'.
+apps/web/src/__tests__/workers/processor.test.ts(148,35): error TS2339: Property 'mockResolvedValue' does not exist on type '<T extends UsageMetricCreateArgs>(args: SelectSubset<T, UsageMetricCreateArgs<DefaultArgs>>) => Prisma__UsageMetricClient<GetFindResult<$UsageMetricPayload<DefaultArgs>, T, {}>, never, DefaultArgs>'.
+apps/web/src/__tests__/workers/processor.test.ts(185,21): error TS2339: Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; } | { status: string; content: string; chatId: any; error?: undefined; rateLimited?: undefined; } | { status: string; error: string; chatId: any; content?: undefined; rateLimited?: undefined; } | { ...; } | { ...; }'.
+  Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; }'.
+apps/web/src/__tests__/workers/processor.test.ts(186,21): error TS2339: Property 'messageId' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; } | { status: string; content: string; chatId: any; error?: undefined; rateLimited?: undefined; } | { status: string; error: string; chatId: any; content?: undefined; rateLimited?: undefined; } | { ...; } | { ...; }'.
+  Property 'messageId' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; }'.
+apps/web/src/__tests__/workers/processor.test.ts(187,21): error TS2339: Property 'totalTokens' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; } | { status: string; content: string; chatId: any; error?: undefined; rateLimited?: undefined; } | { status: string; error: string; chatId: any; content?: undefined; rateLimited?: undefined; } | { ...; } | { ...; }'.
+  Property 'totalTokens' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; }'.
+apps/web/src/__tests__/workers/processor.test.ts(199,34): error TS2339: Property 'mockResolvedValue' does not exist on type '<T extends UserFindUniqueArgs>(args: SelectSubset<T, UserFindUniqueArgs<DefaultArgs>>) => Prisma__UserClient<GetFindResult<$UserPayload<DefaultArgs>, T, {}> | null, null, DefaultArgs>'.
+apps/web/src/__tests__/workers/processor.test.ts(208,33): error TS2339: Property 'mockResolvedValue' does not exist on type '<T extends ChatFindFirstArgs>(args?: SelectSubset<T, ChatFindFirstArgs<DefaultArgs>> | undefined) => Prisma__ChatClient<GetFindResult<$ChatPayload<DefaultArgs>, T, {}> | null, null, DefaultArgs>'.
+apps/web/src/__tests__/workers/processor.test.ts(220,23): error TS2353: Object literal may only specify known properties, and '"prompt-injection"' does not exist in type 'string[]'.
+apps/web/src/__tests__/workers/processor.test.ts(232,23): error TS2353: Object literal may only specify known properties, and 'jailbreak' does not exist in type 'string[]'.
+apps/web/src/__tests__/workers/processor.test.ts(240,9): error TS2353: Object literal may only specify known properties, and 'isValid' does not exist in type 'Promise<SafetyCheckResult>'.
+apps/web/src/__tests__/workers/processor.test.ts(247,21): error TS2339: Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; } | { status: string; content: string; chatId: any; error?: undefined; rateLimited?: undefined; } | { status: string; error: string; chatId: any; content?: undefined; rateLimited?: undefined; } | { ...; } | { ...; }'.
+  Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; }'.
+apps/web/src/__tests__/workers/processor.test.ts(253,9): error TS2353: Object literal may only specify known properties, and 'detected' does not exist in type 'BoundaryCheckResult'.
+apps/web/src/__tests__/workers/processor.test.ts(261,45): error TS2345: Argument of type '{ context: string; sources: Set<string>; documents: never[]; rerankScores: Map<any, any>; }' is not assignable to parameter of type 'RetrievalResult | Promise<RetrievalResult>'.
+  Property 'tokensUsed' is missing in type '{ context: string; sources: Set<string>; documents: never[]; rerankScores: Map<any, any>; }' but required in type 'RetrievalResult'.
+apps/web/src/__tests__/workers/processor.test.ts(271,21): error TS2339: Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; } | { status: string; content: string; chatId: any; error?: undefined; rateLimited?: undefined; } | { status: string; error: string; chatId: any; content?: undefined; rateLimited?: undefined; } | { ...; } | { ...; }'.
+  Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; }'.
+apps/web/src/__tests__/workers/processor.test.ts(278,45): error TS2345: Argument of type '{ context: string; sources: Set<string>; documents: never[]; rerankScores: Map<any, any>; }' is not assignable to parameter of type 'RetrievalResult | Promise<RetrievalResult>'.
+  Property 'tokensUsed' is missing in type '{ context: string; sources: Set<string>; documents: never[]; rerankScores: Map<any, any>; }' but required in type 'RetrievalResult'.
+apps/web/src/__tests__/workers/processor.test.ts(287,21): error TS2339: Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; } | { status: string; content: string; chatId: any; error?: undefined; rateLimited?: undefined; } | { status: string; error: string; chatId: any; content?: undefined; rateLimited?: undefined; } | { ...; } | { ...; }'.
+  Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; }'.
+apps/web/src/__tests__/workers/processor.test.ts(297,45): error TS2345: Argument of type '{ context: string; sources: Set<string>; documents: never[]; rerankScores: Map<any, any>; }' is not assignable to parameter of type 'RetrievalResult | Promise<RetrievalResult>'.
+  Property 'tokensUsed' is missing in type '{ context: string; sources: Set<string>; documents: never[]; rerankScores: Map<any, any>; }' but required in type 'RetrievalResult'.
+apps/web/src/__tests__/workers/processor.test.ts(306,21): error TS2339: Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; } | { status: string; content: string; chatId: any; error?: undefined; rateLimited?: undefined; } | { status: string; error: string; chatId: any; content?: undefined; rateLimited?: undefined; } | { ...; } | { ...; }'.
+  Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; }'.
+apps/web/src/__tests__/workers/processor.test.ts(318,21): error TS2339: Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; } | { status: string; content: string; chatId: any; error?: undefined; rateLimited?: undefined; } | { status: string; error: string; chatId: any; content?: undefined; rateLimited?: undefined; } | { ...; } | { ...; }'.
+  Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; }'.
+apps/web/src/__tests__/workers/processor.test.ts(344,55): error TS2339: Property 'mock' does not exist on type '<T extends MessageCreateArgs>(args: SelectSubset<T, MessageCreateArgs<DefaultArgs>>) => Prisma__MessageClient<GetFindResult<$MessagePayload<DefaultArgs>, T, {}>, never, DefaultArgs>'.
+apps/web/src/__tests__/workers/processor.test.ts(350,35): error TS2339: Property 'mockResolvedValue' does not exist on type '<T extends MessageFindManyArgs>(args?: SelectSubset<T, MessageFindManyArgs<DefaultArgs>> | undefined) => PrismaPromise<GetFindResult<$MessagePayload<DefaultArgs>, T, {}>[]>'.
+apps/web/src/__tests__/workers/processor.test.ts(369,35): error TS2339: Property 'mockResolvedValue' does not exist on type '<T extends MessageFindManyArgs>(args?: SelectSubset<T, MessageFindManyArgs<DefaultArgs>> | undefined) => PrismaPromise<GetFindResult<$MessagePayload<DefaultArgs>, T, {}>[]>'.
+apps/web/src/__tests__/workers/processor.test.ts(379,21): error TS2339: Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; } | { status: string; content: string; chatId: any; error?: undefined; rateLimited?: undefined; } | { status: string; error: string; chatId: any; content?: undefined; rateLimited?: undefined; } | { ...; } | { ...; }'.
+  Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; }'.
+apps/web/src/__tests__/workers/processor.test.ts(411,35): error TS2339: Property 'mockResolvedValue' does not exist on type '<T extends MessageFindManyArgs>(args?: SelectSubset<T, MessageFindManyArgs<DefaultArgs>> | undefined) => PrismaPromise<GetFindResult<$MessagePayload<DefaultArgs>, T, {}>[]>'.
+apps/web/src/__tests__/workers/processor.test.ts(416,21): error TS2339: Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; } | { status: string; content: string; chatId: any; error?: undefined; rateLimited?: undefined; } | { status: string; error: string; chatId: any; content?: undefined; rateLimited?: undefined; } | { ...; } | { ...; }'.
+  Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; }'.
+apps/web/src/__tests__/workers/processor.test.ts(460,21): error TS2339: Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; } | { status: string; content: string; chatId: any; error?: undefined; rateLimited?: undefined; } | { status: string; error: string; chatId: any; content?: undefined; rateLimited?: undefined; } | { ...; } | { ...; }'.
+  Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; }'.
+apps/web/src/__tests__/workers/processor.test.ts(476,33): error TS2339: Property 'mockRejectedValue' does not exist on type '<T extends MessageCreateArgs>(args: SelectSubset<T, MessageCreateArgs<DefaultArgs>>) => Prisma__MessageClient<GetFindResult<$MessagePayload<DefaultArgs>, T, {}>, never, DefaultArgs>'.
+apps/web/src/__tests__/workers/processor.test.ts(484,35): error TS2339: Property 'mockResolvedValue' does not exist on type '<T extends MessageFindManyArgs>(args?: SelectSubset<T, MessageFindManyArgs<DefaultArgs>> | undefined) => PrismaPromise<GetFindResult<$MessagePayload<DefaultArgs>, T, {}>[]>'.
+apps/web/src/__tests__/workers/processor.test.ts(488,21): error TS2339: Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; } | { status: string; content: string; chatId: any; error?: undefined; rateLimited?: undefined; } | { status: string; error: string; chatId: any; content?: undefined; rateLimited?: undefined; } | { ...; } | { ...; }'.
+  Property 'success' does not exist on type '{ status: string; error: any; content?: undefined; chatId?: undefined; rateLimited?: undefined; }'.
+apps/web/src/__tests__/workers/processor.test.ts(525,32): error TS2339: Property 'mockResolvedValue' does not exist on type '<T extends MessageCountArgs>(args?: Subset<T, MessageCountArgs<DefaultArgs>> | undefined) => PrismaPromise<T extends Record_2<"select", any> ? T["select"] extends true ? number : { [P in keyof T["select"]]: P extends keyof MessageCountAggregateOutputType ? MessageCountAggregateOutputType[P] : never; } : number>'.
+apps/web/src/__tests__/workers/processor.test.ts(540,32): error TS2339: Property 'mockResolvedValue' does not exist on type '<T extends MessageCountArgs>(args?: Subset<T, MessageCountArgs<DefaultArgs>> | undefined) => PrismaPromise<T extends Record_2<"select", any> ? T["select"] extends true ? number : { [P in keyof T["select"]]: P extends keyof MessageCountAggregateOutputType ? MessageCountAggregateOutputType[P] : never; } : number>'.
+apps/web/src/__tests__/workers/processor.test.ts(545,50): error TS2339: Property 'mock' does not exist on type '<T extends ChatUpdateArgs>(args: SelectSubset<T, ChatUpdateArgs<DefaultArgs>>) => Prisma__ChatClient<GetFindResult<$ChatPayload<DefaultArgs>, T, {}>, never, DefaultArgs>'.
+apps/web/src/__tests__/workers/processor.test.ts(546,10): error TS7006: Parameter 'call' implicitly has an 'any' type.
+apps/web/src/__tests__/workers/processor.test.ts(589,9): error TS2353: Object literal may only specify known properties, and 'isValid' does not exist in type 'Promise<SafetyCheckResult>'.
+apps/web/src/__tests__/workers/processor.test.ts(609,9): error TS2353: Object literal may only specify known properties, and 'detected' does not exist in type 'BoundaryCheckResult'.
+apps/web/src/ai/integrations/langchain-chains.ts(23,32): error TS2322: Type 'ChatOpenAI<ChatOpenAICallOptions>' is not assignable to type 'LLMType'.
+  Property 'lc_serializable_keys' is missing in type 'ChatOpenAI<ChatOpenAICallOptions>' but required in type 'Runnable<BaseLanguageModelInput, BaseMessage, RunnableConfig<Record<string, any>>>'.
+apps/web/src/ai/integrations/langchain-chains.ts(39,32): error TS2322: Type 'ChatOpenAI<ChatOpenAICallOptions>' is not assignable to type 'LLMType'.
+  Property 'lc_serializable_keys' is missing in type 'ChatOpenAI<ChatOpenAICallOptions>' but required in type 'Runnable<BaseLanguageModelInput, BaseMessage, RunnableConfig<Record<string, any>>>'.
+apps/web/src/ai/integrations/langchain-chains.ts(55,32): error TS2322: Type 'ChatOpenAI<ChatOpenAICallOptions>' is not assignable to type 'LLMType'.
+  Property 'lc_serializable_keys' is missing in type 'ChatOpenAI<ChatOpenAICallOptions>' but required in type 'Runnable<BaseLanguageModelInput, BaseMessage, RunnableConfig<Record<string, any>>>'.
+apps/web/src/ai/rag/vector-store.ts(102,5): error TS2345: Argument of type 'string' is not assignable to parameter of type 'LogContext'.
+apps/web/src/ai/rag/vector-store.ts(262,9): error TS2345: Argument of type 'string' is not assignable to parameter of type 'LogContext'.
+apps/web/src/app/api/admin/analytics/chat/stream/route.ts(44,11): error TS2322: Type 'number' is not assignable to type 'Timeout'.
+apps/web/src/app/api/admin/analytics/chat/stream/route.ts(71,9): error TS2322: Type 'number' is not assignable to type 'Timeout'.
+apps/web/src/app/api/admin/analytics/traces/route.ts(23,7): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type '{ requestId?: string | undefined; }'.
+apps/web/src/app/api/admin/analytics/traces/route.ts(117,7): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type '{ requestId?: string | undefined; }'.
+apps/web/src/app/api/admin/feature-flags/route.ts(75,11): error TS2488: Type 'unknown' must have a '[Symbol.iterator]()' method that returns an iterator.
+apps/web/src/app/api/admin/feature-flags/route.ts(112,15): error TS2304: Cannot find name 'user'.
+apps/web/src/app/api/admin/users/[id]/role/route.ts(25,3): error TS2353: Object literal may only specify known properties, and 'BANNED' does not exist in type 'Record<Role, number>'.
+apps/web/src/app/api/admin/users/[id]/role/route.ts(75,26): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Record<Role, number>'.
+apps/web/src/app/api/auth/google/callback/route.ts(52,9): error TS2322: Type '{ email: string; name: string; provider: string; providerId: string; picture: string | null | undefined; role: "USER"; }' is not assignable to type '(Without<UserCreateInput, UserUncheckedCreateInput> & UserUncheckedCreateInput) | (Without<...> & UserCreateInput)'.
+  Type '{ email: string; name: string; provider: string; providerId: string; picture: string | null | undefined; role: "USER"; }' is not assignable to type 'Without<UserUncheckedCreateInput, UserCreateInput> & UserCreateInput'.
+    Property 'password' is missing in type '{ email: string; name: string; provider: string; providerId: string; picture: string | null | undefined; role: "USER"; }' but required in type 'UserCreateInput'.
+apps/web/src/app/api/collaboration/[chatId]/permissions/route.ts(80,30): error TS2339: Property 'createdAt' does not exist on type '{ email: string; id: string; name: string; }'.
+apps/web/src/app/api/collaboration/[chatId]/permissions/route.ts(122,9): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type '{ requestId?: string | undefined; }'.
+apps/web/src/app/api/collaboration/[chatId]/permissions/route.ts(199,9): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type '{ requestId?: string | undefined; }'.
+apps/web/src/app/api/collaboration/[chatId]/permissions/route.ts(257,37): error TS18048: 'chat.ChatPermission.length' is possibly 'undefined'.
+apps/web/src/app/api/collaboration/[chatId]/permissions/route.ts(279,3): error TS2322: Type 'boolean | undefined' is not assignable to type 'boolean'.
+  Type 'undefined' is not assignable to type 'boolean'.
+apps/web/src/app/api/collaboration/share/route.ts(74,9): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type '{ requestId?: string | undefined; }'.
+apps/web/src/app/api/files/batch-upload/route.ts(42,32): error TS2339: Property 'get' does not exist on type 'FormData'.
+apps/web/src/app/api/files/batch-upload/route.ts(58,41): error TS2339: Property 'entries' does not exist on type 'FormData'.
+apps/web/src/app/api/files/delete/route.ts(42,7): error TS2322: Type '"FILE_DELETE"' is not assignable to type 'AuditAction'.
+apps/web/src/app/api/files/upload/route.ts(91,27): error TS2339: Property 'get' does not exist on type 'FormData'.
+apps/web/src/app/api/files/upload/route.ts(190,32): error TS2345: Argument of type 'Buffer<ArrayBuffer>' is not assignable to parameter of type 'string'.
+apps/web/src/app/api/health/route.ts(148,13): error TS2339: Property 'getDb' does not exist on type 'typeof import("D:/Aegis-Ai/apps/web/src/ai/rag/vector-store")'.
+apps/web/src/app/api/images/[imageId]/route.ts(44,49): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+apps/web/src/app/api/images/generate/route.ts(56,7): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+apps/web/src/app/api/images/generate/route.ts(70,9): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+apps/web/src/app/api/images/route.ts(69,9): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+apps/web/src/app/api/images/upload/route.ts(25,27): error TS2339: Property 'get' does not exist on type 'FormData'.
+apps/web/src/app/api/images/upload/route.ts(55,9): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+apps/web/src/app/api/ingest/audio/route.ts(24,27): error TS2339: Property 'get' does not exist on type 'FormData'.
+apps/web/src/app/api/ingest/audio/route.ts(25,32): error TS2339: Property 'get' does not exist on type 'FormData'.
+apps/web/src/app/api/rag/multimodal/route.ts(34,37): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+apps/web/src/app/api/rag/multimodal/route.ts(99,9): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+apps/web/src/app/api/rag/multimodal/route.ts(123,37): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+apps/web/src/app/api/rag/multimodal/route.ts(162,9): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+apps/web/src/components/ui/Tooltip.tsx(35,18): error TS2345: Argument of type 'number' is not assignable to parameter of type 'SetStateAction<Timeout | null>'.
+apps/web/src/hooks/websocket/useWebSocket.ts(195,30): error TS2554: Expected 2 arguments, but got 3.
+apps/web/src/lib/db-pool-monitor.ts(55,5): error TS2322: Type 'number' is not assignable to type 'Timeout'.
+apps/web/src/lib/middleware/withRateLimit.ts(81,10): error TS2352: Conversion of type '(req: NextRequest, ...args: any[]) => Promise<NextResponse<unknown>>' to type 'T' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  '(req: NextRequest, ...args: any[]) => Promise<NextResponse<unknown>>' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint '(req: NextRequest, ...args: any[]) => Promise<Response>'.
+apps/web/src/lib/prisma.ts(172,5): error TS2322: Type 'unknown' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'unknown'.
+apps/web/src/lib/queue.ts(12,24): error TS2709: Cannot use namespace 'Redis' as a type.
+apps/web/src/lib/queue.ts(18,19): error TS7006: Parameter 'times' implicitly has an 'any' type.
+apps/web/src/lib/queue.ts(27,27): error TS7006: Parameter 'err' implicitly has an 'any' type.
+apps/web/src/lib/queue.ts(63,5): error TS2353: Object literal may only specify known properties, and 'timeout' does not exist in type 'DefaultJobOptions'.
+apps/web/src/lib/queue.ts(75,14): error TS2345: Argument of type '"duplicated"' is not assignable to parameter of type 'keyof QueueListener<JobBase<DataType, ResultType, NameType>>'.
+apps/web/src/lib/queue.ts(75,31): error TS7031: Binding element 'jobId' implicitly has an 'any' type.
+apps/web/src/lib/queue.ts(95,5): error TS2353: Object literal may only specify known properties, and 'timeout' does not exist in type 'DefaultJobOptions'.
+apps/web/src/lib/queue.ts(105,13): error TS2345: Argument of type '"duplicated"' is not assignable to parameter of type 'keyof QueueListener<JobBase<DataType, ResultType, NameType>>'.
+apps/web/src/lib/queue.ts(105,30): error TS7031: Binding element 'jobId' implicitly has an 'any' type.
+apps/web/src/lib/queue.ts(132,5): error TS2353: Object literal may only specify known properties, and 'timeout' does not exist in type 'DefaultJobOptions'.
+apps/web/src/lib/queue.ts(140,22): error TS2345: Argument of type '"duplicated"' is not assignable to parameter of type 'keyof QueueListener<JobBase<DataType, ResultType, NameType>>'.
+apps/web/src/lib/queue.ts(140,39): error TS7031: Binding element 'jobId' implicitly has an 'any' type.
+apps/web/src/lib/rag-trust-scoring.ts(305,54): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+apps/web/src/lib/request-tracer.ts(251,23): error TS18048: 'a' is possibly 'undefined'.
+apps/web/src/lib/request-tracer.ts(251,27): error TS18048: 'b' is possibly 'undefined'.
+apps/web/src/lib/request-tracer.ts(259,17): error TS2532: Object is possibly 'undefined'.
+apps/web/src/lib/request-tracer.ts(259,44): error TS18048: 'a' is possibly 'undefined'.
+apps/web/src/lib/request-tracer.ts(259,48): error TS18048: 'b' is possibly 'undefined'.
+apps/web/src/lib/request-tracer.ts(267,29): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+apps/web/src/lib/request-tracer.ts(268,29): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+apps/web/src/lib/request-tracer.ts(269,23): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+apps/web/src/lib/request-tracer.ts(270,23): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+apps/web/src/lib/request-tracer.ts(271,23): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+apps/web/src/lib/response-safety.ts(82,7): error TS2322: Type '"unknown_error"' is not assignable to type '"ok" | "dangerous_code" | "weapons" | "drugs" | "malware" | "abuse" | "pii_leaked" | undefined'.
+apps/web/src/lib/secrets.ts(24,39): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(arrayBuffer: WithImplicitCoercion<ArrayBufferLike>, byteOffset?: number | undefined, length?: number | undefined): Buffer<ArrayBufferLike>', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<ArrayBufferLike>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<ArrayBufferLike>'.
+  Overload 2 of 4, '(string: WithImplicitCoercion<string>, encoding?: BufferEncoding | undefined): Buffer<ArrayBuffer>', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'WithImplicitCoercion<string>'.
+      Type 'undefined' is not assignable to type 'WithImplicitCoercion<string>'.
+apps/web/src/lib/storage-adapter.ts(256,31): error TS2504: Type 'Stream' must have a '[Symbol.asyncIterator]()' method that returns an async iterator.
+apps/web/src/lib/storage-adapter.ts(339,41): error TS7006: Parameter 'obj' implicitly has an 'any' type.
+apps/web/src/lib/storage-adapter.ts(403,31): error TS2504: Type 'Stream' must have a '[Symbol.asyncIterator]()' method that returns an async iterator.
+apps/web/src/lib/storage-adapter.ts(470,33): error TS2339: Property 'generateBlobSASUrl' does not exist on type 'typeof import("D:/Aegis-Ai/node_modules/@azure/storage-blob/dist/esm/index")'.
+apps/web/src/lib/storage-adapter.ts(523,31): error TS2504: Type 'Stream' must have a '[Symbol.asyncIterator]()' method that returns an async iterator.
+apps/web/src/lib/storage-adapter.ts(583,23): error TS7006: Parameter 'file' implicitly has an 'any' type.
+apps/web/src/lib/vector-store.ts(56,39): error TS2345: Argument of type 'MultiModalContent' is not assignable to parameter of type 'string'.
+apps/web/src/lib/vector-store.ts(60,5): error TS2322: Type 'number[] | null' is not assignable to type 'number[] | undefined'.
+  Type 'null' is not assignable to type 'number[] | undefined'.
+apps/web/src/lib/vector-store.ts(61,5): error TS2322: Type 'number[] | null' is not assignable to type 'number[] | undefined'.
+  Type 'null' is not assignable to type 'number[] | undefined'.
+apps/web/src/lib/websocket.ts(30,17): error TS2709: Cannot use namespace 'Redis' as a type.
+apps/web/src/lib/websocket.ts(31,16): error TS2709: Cannot use namespace 'Redis' as a type.
+apps/web/src/lib/websocket.ts(52,27): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(srv?: number | TServerInstance | undefined, opts?: Partial<ServerOptions> | undefined): Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>', gave the following error.
+    Argument of type 'Server' is not assignable to parameter of type 'number | TServerInstance | undefined'.
+      Type 'Server' is missing the following properties from type 'Http2Server<typeof IncomingMessage, typeof ServerResponse, typeof Http2ServerRequest, typeof Http2ServerResponse>': setTimeout, updateSettings
+  Overload 2 of 3, '(srv: number | TServerInstance | Partial<ServerOptions> | undefined, opts?: Partial<ServerOptions> | undefined): Server<...>', gave the following error.
+    Argument of type 'Server' is not assignable to parameter of type 'number | TServerInstance | Partial<ServerOptions> | undefined'.
+      Type 'Server' is missing the following properties from type 'Http2Server<typeof IncomingMessage, typeof ServerResponse, typeof Http2ServerRequest, typeof Http2ServerResponse>': setTimeout, updateSettings
+apps/web/src/lib/websocket.ts(118,17): error TS2353: Object literal may only specify known properties, and 'permissions' does not exist in type 'ChatWhereInput'.
+apps/web/src/lib/websocket.ts(267,42): error TS7006: Parameter 'err' implicitly has an 'any' type.
+apps/web/src/lib/websocket.ts(275,31): error TS7006: Parameter 'channel' implicitly has an 'any' type.
+apps/web/src/lib/websocket.ts(275,40): error TS7006: Parameter 'message' implicitly has an 'any' type.
+apps/web/src/services/ai/memory-extractor.ts(48,11): error TS2345: Argument of type '"LEARNED_CONCEPT"' is not assignable to parameter of type 'MemoryType'.
+apps/web/src/services/ai/memory-extractor.ts(58,9): error TS2345: Argument of type '"PREFERENCE"' is not assignable to parameter of type 'MemoryType'.
+apps/web/src/services/ai/memory-extractor.ts(66,34): error TS2345: Argument of type '"LEARNING_GAP"' is not assignable to parameter of type 'MemoryType'.
+apps/web/src/services/ai/memory-extractor.ts(193,20): error TS2367: This comparison appears to be unintentional because the types 'MemoryType' and '"LEARNED_CONCEPT"' have no overlap.
+apps/web/src/services/ai/memory-extractor.ts(198,20): error TS2367: This comparison appears to be unintentional because the types 'MemoryType' and '"LEARNING_GAP"' have no overlap.
+apps/web/src/services/ai/memory-extractor.ts(202,52): error TS2367: This comparison appears to be unintentional because the types 'MemoryType' and '"PREFERENCE"' have no overlap.
+apps/web/src/services/ai/prompt.ts(20,24): error TS2367: This comparison appears to be unintentional because the types 'MemoryType' and '"LEARNED_CONCEPT"' have no overlap.
+apps/web/src/services/ai/student-coding-agent.ts(77,11): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+apps/web/src/services/billing/token-budget.ts(271,9): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'Without<UsageMetricCreateInput, UsageMetricUncheckedCreateInput> & UsageMetricUncheckedCreateInput'.
+apps/web/src/services/billing/token-budget.ts(368,13): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'Without<UsageMetricCreateInput, UsageMetricUncheckedCreateInput> & UsageMetricUncheckedCreateInput'.
+apps/web/src/services/edge/index.ts(104,12): error TS2352: Conversion of type '{ status: string; code: string; id: string; userId: string; createdAt: Date; name: string; updatedAt: Date; slug: string; regions: string[]; environmentVariables: string | null; routes: string[]; cacheControl: string | null; }' to type 'EdgeFunction' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Types of property 'environmentVariables' are incompatible.
+    Type 'string | null' is not comparable to type 'Record<string, string> | undefined'.
+      Type 'string' is not comparable to type 'Record<string, string>'.
+apps/web/src/services/edge/index.ts(143,11): error TS2345: Argument of type 'string' is not assignable to parameter of type 'EdgeRegion'.
+apps/web/src/services/edge/index.ts(339,12): error TS2352: Conversion of type '{ code: string; deployments: { status: string; id: string; url: string; region: string; version: number; functionId: string; deployedAt: Date; }[]; status: string; id: string; userId: string; ... 7 more ...; cacheControl: string | null; }' to type 'EdgeFunction' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Types of property 'environmentVariables' are incompatible.
+    Type 'string | null' is not comparable to type 'Record<string, string> | undefined'.
+      Type 'string' is not comparable to type 'Record<string, string>'.
+apps/web/src/services/files/image-storage.ts(123,9): error TS2322: Type 'ImageMetadata' is not assignable to type 'NullableJsonNullValueInput | InputJsonValue | undefined'.
+  Type 'ImageMetadata' is not assignable to type 'InputJsonObject'.
+    Index signature for type 'string' is missing in type 'ImageMetadata'.
+apps/web/src/services/rag/embeddings.ts(358,16): error TS7006: Parameter 'a' implicitly has an 'any' type.
+apps/web/src/services/rag/embeddings.ts(358,19): error TS7006: Parameter 'b' implicitly has an 'any' type.
+apps/web/src/services/rag/embeddings.ts(359,15): error TS7006: Parameter 'd' implicitly has an 'any' type.
+apps/web/src/services/rag/embeddings.ts(372,32): error TS7006: Parameter 'embedding' implicitly has an 'any' type.
+apps/web/src/services/rag/embeddings.ts(372,43): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+apps/web/src/services/rag/ingest.ts(1,23): error TS2305: Module '"@/ai/rag/vector-store"' has no exported member 'addMultiModalDocument'.
+apps/web/src/services/rag/ingest.ts(24,55): error TS2551: Property 'embeddings' does not exist on type 'RAGConfig'. Did you mean 'embedding'?
+apps/web/src/services/rag/multi-modal-embeddings-v2.ts(86,41): error TS2709: Cannot use namespace 'Redis' as a type.
+apps/web/src/services/rag/multi-modal-rag.ts(72,59): error TS2345: Argument of type 'MultiModalContent' is not assignable to parameter of type 'string'.
+apps/web/src/services/rag/multi-modal-rag.ts(77,9): error TS2345: Argument of type 'MultiModalEmbeddingResult' is not assignable to parameter of type 'number[]'.
+  Type 'MultiModalEmbeddingResult' is missing the following properties from type 'number[]': length, pop, push, concat, and 35 more.
+apps/web/src/services/rag/multi-modal-rag.ts(102,11): error TS2322: Type 'number[] | null' is not assignable to type 'number[] | undefined'.
+  Type 'null' is not assignable to type 'number[] | undefined'.
+apps/web/src/services/rag/multi-modal-rag.ts(103,11): error TS2322: Type 'number[] | null' is not assignable to type 'number[] | undefined'.
+  Type 'null' is not assignable to type 'number[] | undefined'.
+apps/web/src/services/rag/multi-modal-rag.ts(160,60): error TS2345: Argument of type 'MultiModalContent' is not assignable to parameter of type 'string'.
+apps/web/src/services/rag/rag-retrieval.ts(7,8): error TS2724: '"@/lib/rag-trust-scoring"' has no exported member named 'ScoredChunk'. Did you mean 'scoreRAGChunk'?
+apps/web/src/services/rag/rag-retrieval.ts(52,30): error TS2304: Cannot find name 'isSemanticCacheEnabled'.
+apps/web/src/services/rag/rag-retrieval.ts(107,9): error TS2322: Type '{ id: string; text: string; metadata: any; source: string | undefined; chunk_index: number; }[]' is not assignable to type 'RAGChunk[]'.
+  Type '{ id: string; text: string; metadata: any; source: string | undefined; chunk_index: number; }' is not assignable to type 'RAGChunk'.
+    Types of property 'source' are incompatible.
+      Type 'string | undefined' is not assignable to type '"custom" | "official_docs" | "user_upload" | "web"'.
+        Type 'undefined' is not assignable to type '"custom" | "official_docs" | "user_upload" | "web"'.
+apps/web/src/services/rag/rag-retrieval.ts(116,5): error TS2353: Object literal may only specify known properties, and 'includeInjectionDetection' does not exist in type '{ minTrustScore?: number | undefined; topK?: number | undefined; includeScores?: boolean | undefined; }'.
+apps/web/src/services/rag/rag-retrieval.ts(126,38): error TS2339: Property 'score' does not exist on type 'RAGChunk'.
+apps/web/src/services/rag/rag-retrieval.ts(127,18): error TS2339: Property 'riskLevel' does not exist on type 'RAGChunk'.
+apps/web/src/services/rag/rag-retrieval.ts(129,49): error TS2339: Property 'reasons' does not exist on type 'RAGChunk'.
+apps/web/src/services/rag/rag-retrieval.ts(131,23): error TS2339: Property 'score' does not exist on type 'RAGChunk'.
+apps/web/src/services/rag/rag-retrieval.ts(146,7): error TS2304: Cannot find name 'isSemanticCacheEnabled'.
+apps/web/src/services/rag/semantic-cache.ts(341,35): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+apps/web/src/services/rag/semantic-cache.ts(341,40): error TS7006: Parameter 'l' implicitly has an 'any' type.
+apps/web/src/services/rag/semantic-cache.ts(347,37): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+apps/web/src/services/rag/semantic-cache.ts(347,42): error TS7006: Parameter 'l' implicitly has an 'any' type.
+apps/web/src/services/realtime/presence.ts(56,29): error TS2345: Argument of type '"offline" | "online" | "away"' is not assignable to parameter of type '"offline" | "online"'.
+  Type '"away"' is not assignable to type '"offline" | "online"'.
+apps/web/src/services/realtime/presence.ts(87,31): error TS2345: Argument of type '"away"' is not assignable to parameter of type '"offline" | "online"'.
+apps/web/src/services/serverless/index.ts(177,12): error TS2352: Conversion of type '{ status: string; code: string; timeout: number; id: string; userId: string; createdAt: Date; name: string; memory: number; updatedAt: Date; runtime: string; description: string | null; environmentVariables: string | null; }' to type 'ServerlessFunction' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Types of property 'environmentVariables' are incompatible.
+    Type 'string | null' is not comparable to type 'Record<string, string> | undefined'.
+      Type 'string' is not comparable to type 'Record<string, string>'.
+apps/web/src/services/serverless/index.ts(341,12): error TS2352: Conversion of type '{ code: string; status: string; timeout: number; id: string; userId: string; createdAt: Date; name: string; memory: number; updatedAt: Date; runtime: string; description: string | null; environmentVariables: string | null; }' to type 'ServerlessFunction' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Types of property 'environmentVariables' are incompatible.
+    Type 'string | null' is not comparable to type 'Record<string, string> | undefined'.
+      Type 'string' is not comparable to type 'Record<string, string>'.
+apps/web/src/services/serverless/index.ts(410,48): error TS2345: Argument of type 'string' is not assignable to parameter of type 'FunctionRuntime'.
+apps/web/src/workers/chat.worker.ts(82,19): error TS2339: Property 'unref' does not exist on type 'number'.
+apps/web/src/workers/chat.worker.ts(83,16): error TS2345: Argument of type 'number' is not assignable to parameter of type 'Timeout'.
+apps/web/src/workers/chat.worker.ts(98,17): error TS2339: Property 'unref' does not exist on type 'number'.
+apps/web/src/workers/chat.worker.ts(99,16): error TS2345: Argument of type 'number' is not assignable to parameter of type 'Timeout'.
+apps/web/src/workers/chat.worker.ts(105,5): error TS2353: Object literal may only specify known properties, and 'stalledInterval' does not exist in type 'AdvancedOptions'.
+apps/web/src/workers/cleanup.ts(17,19): error TS2339: Property 'unref' does not exist on type 'number'.
+apps/web/src/workers/cleanup.ts(18,3): error TS2322: Type 'number' is not assignable to type 'Timeout'.
+apps/web/src/workers/processor.ts(648,51): error TS18046: 'savedMessage' is of type 'unknown'.
+apps/web/src/workers/rag.worker.ts(35,19): error TS2339: Property 'unref' does not exist on type 'number'.
+apps/web/src/workers/rag.worker.ts(36,16): error TS2345: Argument of type 'number' is not assignable to parameter of type 'Timeout'.
+apps/web/src/workers/rag.worker.ts(105,7): error TS2353: Object literal may only specify known properties, and 'stalledInterval' does not exist in type 'AdvancedOptions'.

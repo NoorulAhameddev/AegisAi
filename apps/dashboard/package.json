@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "worker": "node ../..\\apps\\dashboard\\worker.js"
   },
   "dependencies": {
     "next": "16.1.6",
