@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    console.log("[API] Ingesting multi-modal document", {
+    logger.info("[API] Ingesting multi-modal document", {
       userId: user.id,
       contentLength: content.length,
       strategy: mergeStrategy,
@@ -130,7 +130,7 @@ export async function PUT(req: NextRequest) {
       return errorResponse("Query is required", { status: 400 });
     }
 
-    console.log("[API] Searching multi-modal documents", {
+    logger.info("[API] Searching multi-modal documents", {
       userId: user.id,
       queryLength: query.length,
       topK,

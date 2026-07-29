@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
 
     // Generate new response
     const completion = await openai.chat.completions.create({
-      model: "glm-5",
+      model: "openai/gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
         ...conversationMessages,
@@ -156,4 +156,3 @@ export async function POST(req: NextRequest) {
     return errorResponse("Regeneration failed", { status: 500 });
   }
 }
-

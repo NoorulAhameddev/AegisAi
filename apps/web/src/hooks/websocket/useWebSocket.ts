@@ -50,17 +50,17 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
         setConnected(true);
         setConnecting(false);
         setError(null);
-        console.log("✅ WebSocket connected");
+        logger.info("WebSocket connected");
       });
 
       socketRef.current.on("disconnect", () => {
         setConnected(false);
-        console.log("❌ WebSocket disconnected");
+        logger.info("WebSocket disconnected");
       });
 
       socketRef.current.on("error", (err) => {
         setError(err.message || "WebSocket error");
-        console.error("WebSocket error:", err);
+        logger.error("WebSocket error:", err);
       });
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Failed to connect";
@@ -77,7 +77,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
   const send = useCallback((event: string, data: any) => {
     if (!socketRef.current?.connected) {
-      console.warn("WebSocket not connected");
+      logger.warn("WebSocket not connected");
       return;
     }
     socketRef.current.emit(event, data);

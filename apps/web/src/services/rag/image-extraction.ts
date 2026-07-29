@@ -82,7 +82,7 @@ export async function extractOCRTextFromImage(
     try {
       const Tesseract = (await import("tesseract.js")).default;
 
-      console.log("[ImageExtraction] Starting OCR on image...");
+      logger.info("[ImageExtraction] Starting OCR on image...");
 
       const result = await Tesseract.recognize(
         `data:${mimeType};base64,${base64Image}`,
@@ -90,7 +90,7 @@ export async function extractOCRTextFromImage(
         {
           logger: (m: any) => {
             if (m.status === "recognizing text") {
-              console.log(
+              logger.info(
                 `[ImageExtraction] OCR Progress: ${(m.progress * 100).toFixed(0)}%`,
               );
             }
@@ -106,7 +106,7 @@ export async function extractOCRTextFromImage(
         return null;
       }
 
-      console.log(
+      logger.info(
         `[ImageExtraction] OCR completed with ${confidence.toFixed(0)}% confidence`,
       );
       return text;

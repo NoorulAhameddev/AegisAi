@@ -26,6 +26,8 @@ import { sanitizeRagContext } from "../lib/rag-sanitizer";
 import { retryWithBackoff, RetryStrategies } from "../lib/retry";
 import crypto from "crypto";
 
+const MAX_TOOL_CALLS = 10;
+
 export async function processChatJob(job: Job) {
   const { chatId, message, fileId, userId, requestId } = job.data;
 
@@ -110,10 +112,40 @@ export async function processChatJob(job: Job) {
   }
 
   try {
-    // TOKEN BUDGET CHECK - Use dynamic estimate based on message size
-    // Rough estimate: 1 token â‰ˆ 4 characters, add buffer for history and response
+    // 0.5 Ingest User Message into Vector Store (for conversational memory)
+    try {
+      const { addDocument } = await import("../lib/vector-store");
+      await addDocument(
+        message,
+        { role: "user", chatId, fileId, type: "conversation" },
+        userId,
+      );
+      logger.worker(job.id as string, "vector-store-ingested", { chatId });
+    } catch (e) {
+      logger.warn("Vector store ingestion failed (non-blocking)", {
+        jobId: job.id as string,
+        error: (e as Error).message,
+      });
+    }
+
+    // Ensure chat exists and is not deleted - BEFORE budget reservation
+    const chatRecord = await prisma.chat.findFirst({
+      where: { id: chatId, userId, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (!chatRecord) {
+      logger.warn("Chat not found or deleted", {
+        jobId: job.id as string,
+        userId,
+        chatId,
+      });
+      return { status: "failed", error: "Chat not found", chatId };
+    }
+
+    // TOKEN BUDGET CHECK - AFTER all validation to prevent budget leaks
     const messageTokenEstimate = Math.ceil(message.length / 4) + 100;
-    const estimatedTokens = messageTokenEstimate; // Better estimate based on actual message
+    const estimatedTokens = messageTokenEstimate;
     const budgetCheck = await tokenBudgetManager.reserveBudget(
       userId,
       estimatedTokens,
@@ -131,37 +163,6 @@ export async function processChatJob(job: Job) {
     }
     const budgetReservedAt = budgetCheck.reservedAt;
     logger.worker(job.id as string, "budget-check-passed", { userId });
-
-    // 0.5 Ingest User Message into Vector Store (for conversational memory)
-    try {
-      const { addDocument } = await import("../lib/vector-store");
-      await addDocument(
-        message,
-        { role: "user", chatId, fileId, type: "conversation" },
-        userId,
-      );
-      logger.worker(job.id as string, "vector-store-ingested", { chatId });
-    } catch (e) {
-      logger.warn("Vector store ingestion failed (non-blocking)", {
-        jobId: job.id as string,
-        error: (e as Error).message,
-      });
-    }
-
-    // Ensure chat exists and is not deleted
-    const chatRecord = await prisma.chat.findFirst({
-      where: { id: chatId, userId, deletedAt: null },
-      select: { id: true },
-    });
-
-    if (!chatRecord) {
-      logger.warn("Chat not found or deleted", {
-        jobId: job.id as string,
-        userId,
-        chatId,
-      });
-      return { status: "failed", error: "Chat not found", chatId };
-    }
 
     // 1. Fetch System Prompt
     const systemPrompt = await buildSystemPrompt(userId);
@@ -342,7 +343,9 @@ ${sanitizedRagContext}
     }
 
     // âœ… USE CENTRALIZED OPENAI CLIENT (NOT RAW KEY)
-    logger.worker(job.id as string, "ai-preparation", { model: "glm-5" });
+    logger.worker(job.id as string, "ai-preparation", {
+      model: "openai/gpt-4o-mini",
+    });
 
     // 4. Define Tools (Dynamic)
     const { getOpenAITools, toolsRegistry } = await import("../tools/index");
@@ -357,10 +360,11 @@ ${sanitizedRagContext}
     let response: any;
     let responseMessage: any;
     let finalContent = "";
+    let totalTokensUsed = 0;
 
     try {
       tracer.startStage("openai-api", {
-        model: "glm-5",
+        model: "openai/gpt-4o-mini",
         messageCount: formattedMessages.length,
         toolCount: tools ? tools.length : 0,
       });
@@ -369,7 +373,7 @@ ${sanitizedRagContext}
       response = await retryWithBackoff(
         async () =>
           openai.chat.completions.create({
-            model: "glm-5",
+            model: "openai/gpt-4o-mini",
             messages: formattedMessages,
             tools: tools,
             tool_choice: "auto",
@@ -384,6 +388,8 @@ ${sanitizedRagContext}
         promptTokens: response.usage?.prompt_tokens || 0,
         completionTokens: response.usage?.completion_tokens || 0,
       });
+
+      totalTokensUsed += response.usage?.total_tokens || 0;
 
       logger.worker(job.id as string, "openai-api-success", {
         tokensUsed: response.usage?.total_tokens || 0,
@@ -452,7 +458,20 @@ ${sanitizedRagContext}
     if (responseMessage.tool_calls) {
       formattedMessages.push(responseMessage); // Add assistant's intent
 
+      let toolCallCount = 0;
+
       for (const toolCall of responseMessage.tool_calls) {
+        if (toolCallCount >= MAX_TOOL_CALLS) {
+          logger.warn("Tool call limit exceeded", {
+            jobId: job.id as string,
+            userId,
+            maxToolCalls: MAX_TOOL_CALLS,
+            toolCallCount,
+          });
+          break;
+        }
+        toolCallCount++;
+
         const toolName = (toolCall as any).function.name;
         const tool = toolsRegistry.get(toolName);
 
@@ -497,7 +516,7 @@ ${sanitizedRagContext}
         const secondResponse = await retryWithBackoff(
           async () =>
             openai.chat.completions.create({
-              model: "glm-5",
+              model: "openai/gpt-4o-mini",
               messages: formattedMessages,
             }),
           RetryStrategies.openai,
@@ -505,8 +524,10 @@ ${sanitizedRagContext}
         );
 
         finalContent = secondResponse.choices[0].message.content || "";
+        totalTokensUsed += secondResponse.usage?.total_tokens || 0;
         logger.worker(job.id as string, "openai-api-final-success", {
           tokensUsed: secondResponse.usage?.total_tokens,
+          totalTokensUsed,
         });
       } catch (e: any) {
         const errorStatus = e.status || e.code;
@@ -656,8 +677,8 @@ ${sanitizedRagContext}
       });
     }
 
-    // Save usage
-    const tokensUsed = response.usage?.total_tokens || 0;
+    // Save usage (sum of all API calls: initial + tool calls)
+    const tokensUsed = totalTokensUsed;
     if (userId) {
       await tokenBudgetManager.finalizeUsage(
         userId,
@@ -745,4 +766,3 @@ ${sanitizedRagContext}
     throw err;
   }
 }
-

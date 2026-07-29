@@ -14,6 +14,25 @@ import {
 import { getVectorDBProvider } from "@/lib/vector-db-provider";
 import type { DocumentMetadata } from "@/lib/vector-db-provider";
 import { generateEmbedding } from "./embeddings";
+import { logger } from "@/lib/logger";
+
+/**
+ * Calculate cosine similarity between two vectors
+ * Returns a value between -1 and 1, where 1 means identical
+ */
+function cosineSimilarity(a: number[], b: number[]): number {
+  if (a.length !== b.length) return 0;
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  const denominator = Math.sqrt(normA) * Math.sqrt(normB);
+  return denominator === 0 ? 0 : dotProduct / denominator;
+}
 
 interface MultiModalIngestOptions {
   userId: string;
@@ -40,13 +59,13 @@ export async function ingestMultiModalDocument(
   const chunker = getDocumentChunker();
   const provider = getVectorDBProvider();
 
-  console.log("[MultiModalRAG] Starting multi-modal ingestion");
+  logger.info("[MultiModalRAG] Starting multi-modal ingestion");
 
   // Extract chunks and images from document
   const { chunks, images } = chunker.chunkWithImages(text);
 
   if (chunks.length === 0) {
-    console.warn("[MultiModalRAG] No chunks extracted from document");
+    logger.warn("[MultiModalRAG] No chunks extracted from document");
     return {
       documentIds: [],
       chunksCreated: 0,
@@ -107,11 +126,11 @@ export async function ingestMultiModalDocument(
       );
 
       documentIds.push(docId);
-      console.log(
+      logger.info(
         `[MultiModalRAG] Ingested chunk ${chunk.index} (${chunk.text.length} chars, images: ${embedding.imageEmbedding ? "yes" : "no"})`,
       );
     } catch (error) {
-      console.error(
+      logger.error(
         `[MultiModalRAG] Failed to ingest chunk ${chunk.index}:`,
         error,
       );
@@ -119,7 +138,7 @@ export async function ingestMultiModalDocument(
     }
   }
 
-  console.log(
+  logger.info(
     `[MultiModalRAG] Completed ingestion: ${documentIds.length} chunks, ${images.length} images, ${embeddingsGenerated} embeddings`,
   );
 
@@ -148,7 +167,7 @@ export async function searchMultiModal(
   const topK = options?.topK || 5;
   const strategy = options?.searchStrategy || "text";
 
-  console.log(`[MultiModalRAG] Searching with strategy: ${strategy}`);
+  logger.info(`[MultiModalRAG] Searching with strategy: ${strategy}`);
 
   // Generate query embeddings
   const multiModalQuery: MultiModalContent = {
@@ -164,11 +183,16 @@ export async function searchMultiModal(
   const results = await provider.searchSimilar(query, userId, topK * 2);
 
   // If searching with image and no query text, prioritize by image embedding similarity
-  if (imageBase64 && !query.trim()) {
-    // Sort by image embedding distance (simple scoring)
+  if (imageBase64 && !query.trim() && queryEmbedding.imageEmbedding) {
+    // Calculate actual cosine similarity between query and document image embeddings
+    const queryVec = queryEmbedding.imageEmbedding;
     results.sort((a, b) => {
-      const aImageSim = a.imageEmbedding ? 0.5 : 0; // Simple placeholder
-      const bImageSim = b.imageEmbedding ? 0.5 : 0;
+      const aImageSim = a.imageEmbedding
+        ? cosineSimilarity(queryVec, a.imageEmbedding)
+        : 0;
+      const bImageSim = b.imageEmbedding
+        ? cosineSimilarity(queryVec, b.imageEmbedding)
+        : 0;
       return bImageSim - aImageSim;
     });
   }

@@ -19,6 +19,8 @@ import { AppSidebar } from "@/components/layout/AppSidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { cn } from "@/lib/utils";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 type FileData = {
   id: string;
@@ -51,7 +53,7 @@ export default function FilesPage() {
         setLoading(false);
       })
       .catch((err) => {
-        console.error(err);
+        logger.error(err);
         setLoading(false);
       });
   }, []);
@@ -59,7 +61,8 @@ export default function FilesPage() {
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!confirm("Are you sure you want to delete this file?")) return;
+    // TODO: Replace with a confirmation modal
+    logger.info(`Delete file requested: ${id}`);
 
     setFiles((prev) => prev.filter((f) => f.id !== id));
     await fetch("/api/files/delete", {

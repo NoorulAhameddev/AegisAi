@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest } from "next/server";
 import { verifyAuth } from "@/services/auth/auth";
 import { logger } from "@/lib/logger";
+import { decrypt } from "@/lib/encryption";
 import {
   errorResponse,
   successResponse,
@@ -20,11 +21,30 @@ export async function GET(req: NextRequest) {
     const user = await verifyAuth(req);
     if (!user) return unauthorizedResponse();
 
+    // Only select non-encrypted fields + name (which needs decryption)
     const files = await prisma.file.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        size: true,
+        projectId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
-    return successResponse(files);
+
+    // Decrypt file names (they are stored encrypted)
+    const decryptedFiles = await Promise.all(
+      files.map(async (file) => ({
+        ...file,
+        name: await decrypt(file.name),
+      })),
+    );
+
+    return successResponse(decryptedFiles);
   } catch (error) {
     logger.error("Files list fetch failed", error as Error);
     return errorResponse("Failed to fetch files", { status: 500 });

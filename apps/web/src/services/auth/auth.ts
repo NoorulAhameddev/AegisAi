@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
+import { cacheTokenVersion, invalidateTokenVersion } from "@/lib/token-version-cache";
 
 const ACCESS_SECRET = env.JWT_ACCESS_SECRET;
 const REFRESH_SECRET = env.JWT_REFRESH_SECRET;
@@ -76,11 +77,24 @@ export async function verifyAuth(req: NextRequest) {
 
     // Verify token version matches (for instant session revocation)
     if (!user || user.tokenVersion !== payload.tokenVersion || user.isBanned) {
+      // Immediately invalidate cache for rapid revocation
+      if (user) {
+        await invalidateTokenVersion(user.id).catch(() => {});
+      }
       return null;
     }
 
+    // Cache token version for fast lookups on subsequent requests
+    await cacheTokenVersion(user.id, user.tokenVersion).catch(() => {});
+
     return user;
   } catch (error) {
+    // Differentiate between auth failures and infrastructure failures
+    if (error instanceof Error && error.message === "Invalid Access Token") {
+      return null; // Legitimate auth failure
+    }
+    // Infrastructure failure (DB down, network error) — log it for ops visibility
+    console.error("verifyAuth infrastructure error", error);
     return null;
   }
 }

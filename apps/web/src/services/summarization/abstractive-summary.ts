@@ -25,7 +25,7 @@ export async function summarizeScenesWithTimestamps(
     const sceneText = scene.sentences.join(" ");
     const prompt = `Summarize the following scene in 2-3 sentences. Preserve meaning and narrative arc.\n\nScene Title: ${scene.title}\nScene Content: ${sceneText}`;
     const response = await openai.chat.completions.create({
-      model: "glm-5",
+      model: "openai/gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.2,
     });
@@ -51,4 +51,3 @@ export async function summarizeScenesWithTimestamps(
 
   return summaries;
 }
-

@@ -1,6 +1,9 @@
 /**
  * MCP (Model Context Protocol) Client
  * Provides integration with MCP servers for enhanced AI capabilities
+ * 
+ * STATUS: This feature is not yet implemented.
+ * All methods will throw. Use tools/index.ts for available AI tools.
  */
 
 export interface MCPServerConfig {
@@ -114,14 +117,16 @@ class MCPClient {
    */
   async readFile(path: string): Promise<string | null> {
     if (!this.servers.filesystem) {
-      console.warn("Filesystem server not available");
-      return null;
+      throw new Error(
+        "MCP filesystem integration is not configured. Set MCP_FILESYSTEM_PATH to enable.",
+      );
     }
 
-    // Implementation would call the MCP server
-    // For now, this is a placeholder for the integration
-    console.log(`MCP Filesystem: Reading ${path}`);
-    return null;
+    // Implementation would call the MCP server via stdio transport
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP filesystem server is configured but protocol implementation is pending.",
+    );
   }
 
   /**
@@ -129,13 +134,15 @@ class MCPClient {
    */
   async getRepository(owner: string, repo: string): Promise<any> {
     if (!this.servers.github) {
-      console.warn("GitHub server not available - please set GITHUB_TOKEN");
-      return null;
+      throw new Error(
+        "MCP GitHub integration is not configured. Set GITHUB_TOKEN to enable.",
+      );
     }
 
-    // Implementation would call the MCP server
-    console.log(`MCP GitHub: Getting ${owner}/${repo}`);
-    return null;
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP GitHub server is configured but protocol implementation is pending.",
+    );
   }
 
   /**
@@ -143,13 +150,15 @@ class MCPClient {
    */
   async search(query: string): Promise<any> {
     if (!this.servers.browser) {
-      console.warn("Browser server not available");
-      return null;
+      throw new Error(
+        "MCP browser integration is not configured. Set BROWSER_TYPE to enable.",
+      );
     }
 
-    // Implementation would call the MCP browser server
-    console.log(`MCP Browser: Searching for "${query}"`);
-    return null;
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP browser server is configured but protocol implementation is pending.",
+    );
   }
 
   /**
@@ -157,13 +166,15 @@ class MCPClient {
    */
   async navigateToUrl(url: string): Promise<any> {
     if (!this.servers.browser) {
-      console.warn("Browser server not available");
-      return null;
+      throw new Error(
+        "MCP browser integration is not configured. Set BROWSER_TYPE to enable.",
+      );
     }
 
-    // Implementation would call the MCP browser server
-    console.log(`MCP Browser (Edge): Navigating to ${url}`);
-    return null;
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP browser server is configured but protocol implementation is pending.",
+    );
   }
 
   /**
@@ -171,12 +182,15 @@ class MCPClient {
    */
   async clickElement(selector: string): Promise<any> {
     if (!this.servers.browser) {
-      console.warn("Browser server not available");
-      return null;
+      throw new Error(
+        "MCP browser integration is not configured. Set BROWSER_TYPE to enable.",
+      );
     }
 
-    console.log(`MCP Browser (Edge): Clicking ${selector}`);
-    return null;
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP browser server is configured but protocol implementation is pending.",
+    );
   }
 
   /**
@@ -184,12 +198,15 @@ class MCPClient {
    */
   async fillForm(selector: string, value: string): Promise<any> {
     if (!this.servers.browser) {
-      console.warn("Browser server not available");
-      return null;
+      throw new Error(
+        "MCP browser integration is not configured. Set BROWSER_TYPE to enable.",
+      );
     }
 
-    console.log(`MCP Browser (Edge): Filling ${selector} with value`);
-    return null;
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP browser server is configured but protocol implementation is pending.",
+    );
   }
 
   /**
@@ -197,14 +214,15 @@ class MCPClient {
    */
   async executeWorkflow(workflowId: string, data?: any): Promise<any> {
     if (!this.servers.n8n) {
-      console.warn(
-        "n8n server not available - please set N8N_API_URL and N8N_API_KEY",
+      throw new Error(
+        "MCP n8n integration is not configured. Set N8N_API_URL and N8N_API_KEY to enable.",
       );
-      return null;
     }
 
-    console.log(`MCP n8n: Executing workflow ${workflowId}`);
-    return null;
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP n8n server is configured but protocol implementation is pending.",
+    );
   }
 
   /**
@@ -212,14 +230,15 @@ class MCPClient {
    */
   async listWorkflows(): Promise<any> {
     if (!this.servers.n8n) {
-      console.warn(
-        "n8n server not available - please set N8N_API_URL and N8N_API_KEY",
+      throw new Error(
+        "MCP n8n integration is not configured. Set N8N_API_URL and N8N_API_KEY to enable.",
       );
-      return null;
     }
 
-    console.log("MCP n8n: Listing workflows");
-    return null;
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP n8n server is configured but protocol implementation is pending.",
+    );
   }
 
   /**
@@ -227,14 +246,150 @@ class MCPClient {
    */
   async getWorkflowStatus(workflowId: string): Promise<any> {
     if (!this.servers.n8n) {
-      console.warn(
-        "n8n server not available - please set N8N_API_URL and N8N_API_KEY",
+      throw new Error(
+        "MCP n8n integration is not configured. Set N8N_API_URL and N8N_API_KEY to enable.",
       );
-      return null;
     }
 
-    console.log(`MCP n8n: Getting status for workflow ${workflowId}`);
-    return null;
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP n8n server is configured but protocol implementation is pending.",
+    );
+  }
+
+    // Implementation would call the MCP server via stdio transport
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP filesystem server is configured but protocol implementation is pending.",
+    );
+  }
+
+  /**
+   * GitHub operations
+   */
+  async getRepository(owner: string, repo: string): Promise<any> {
+    if (!this.servers.github) {
+      throw new Error(
+        "MCP GitHub integration is not configured. Set GITHUB_TOKEN to enable.",
+      );
+    }
+
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP GitHub server is configured but protocol implementation is pending.",
+    );
+  }
+
+  /**
+   * Web search operations
+   */
+  async search(query: string): Promise<any> {
+    if (!this.servers.browser) {
+      throw new Error(
+        "MCP browser integration is not configured. Set BROWSER_TYPE to enable.",
+      );
+    }
+
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP browser server is configured but protocol implementation is pending.",
+    );
+  }
+
+  /**
+   * Browser automation - Navigate to URL in Edge
+   */
+  async navigateToUrl(url: string): Promise<any> {
+    if (!this.servers.browser) {
+      throw new Error(
+        "MCP browser integration is not configured. Set BROWSER_TYPE to enable.",
+      );
+    }
+
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP browser server is configured but protocol implementation is pending.",
+    );
+  }
+
+  /**
+   * Browser automation - Click element
+   */
+  async clickElement(selector: string): Promise<any> {
+    if (!this.servers.browser) {
+      throw new Error(
+        "MCP browser integration is not configured. Set BROWSER_TYPE to enable.",
+      );
+    }
+
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP browser server is configured but protocol implementation is pending.",
+    );
+  }
+
+  /**
+   * Browser automation - Fill form
+   */
+  async fillForm(selector: string, value: string): Promise<any> {
+    if (!this.servers.browser) {
+      throw new Error(
+        "MCP browser integration is not configured. Set BROWSER_TYPE to enable.",
+      );
+    }
+
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP browser server is configured but protocol implementation is pending.",
+    );
+  }
+
+  /**
+   * n8n - Execute workflow
+   */
+  async executeWorkflow(workflowId: string, data?: any): Promise<any> {
+    if (!this.servers.n8n) {
+      throw new Error(
+        "MCP n8n integration is not configured. Set N8N_API_URL and N8N_API_KEY to enable.",
+      );
+    }
+
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP n8n server is configured but protocol implementation is pending.",
+    );
+  }
+
+  /**
+   * n8n - List workflows
+   */
+  async listWorkflows(): Promise<any> {
+    if (!this.servers.n8n) {
+      throw new Error(
+        "MCP n8n integration is not configured. Set N8N_API_URL and N8N_API_KEY to enable.",
+      );
+    }
+
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP n8n server is configured but protocol implementation is pending.",
+    );
+  }
+
+  /**
+   * n8n - Get workflow status
+   */
+  async getWorkflowStatus(workflowId: string): Promise<any> {
+    if (!this.servers.n8n) {
+      throw new Error(
+        "MCP n8n integration is not configured. Set N8N_API_URL and N8N_API_KEY to enable.",
+      );
+    }
+
+    // TODO: Implement actual MCP stdio protocol communication
+    throw new Error(
+      "MCP n8n server is configured but protocol implementation is pending.",
+    );
   }
 
   /**

@@ -122,11 +122,18 @@ worker.on("failed", async (job, err) => {
   });
 
   if (job && job.attemptsMade >= (job.opts.attempts || 0)) {
-    await dlqQueue.add("chat-dlq", {
-      jobId: job.id,
-      data: job.data,
-      failedReason: job.failedReason,
-    });
+    try {
+      await dlqQueue.add("chat-dlq", {
+        jobId: job.id,
+        data: job.data,
+        failedReason: job.failedReason,
+      });
+    } catch (dlqError) {
+      logger.error("Failed to add job to DLQ", dlqError as Error, {
+        jobId: job.id,
+        jobType: "chat",
+      });
+    }
   }
 });
 
@@ -136,16 +143,24 @@ worker.on("error", (err) => {
   });
 });
 
-// Graceful shutdown to avoid losing in-flight jobs
+// Graceful shutdown with 30s timeout to avoid hanging processes
 process.on("SIGTERM", async () => {
   logger.warn("Chat worker SIGTERM received - shutting down");
   try {
     // Clear all intervals to allow graceful exit
     intervals.forEach((interval) => clearInterval(interval));
 
+    // Force exit after 30s to prevent hanging
+    const shutdownTimeout = setTimeout(() => {
+      logger.error("Shutdown timeout exceeded - forcing exit");
+      process.exit(1);
+    }, 30000);
+
     await worker.pause(true);
     await worker.close();
     await connection.disconnect();
+
+    clearTimeout(shutdownTimeout);
     logger.info("Chat worker shutdown complete");
     process.exit(0);
   } catch (error) {

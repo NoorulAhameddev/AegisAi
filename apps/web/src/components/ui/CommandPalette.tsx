@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
@@ -59,7 +60,7 @@ export function CommandPalette() {
         setResults(data.results || []);
         setSelectedIndex(0);
       } catch (err) {
-        console.error(err);
+        logger.error(err);
       } finally {
         setLoading(false);
       }

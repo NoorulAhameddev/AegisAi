@@ -143,7 +143,7 @@ async function validateWithLLM(
 ): Promise<SafetyCheckResult> {
   try {
     const check = await openai.chat.completions.create({
-      model: "glm-5",
+      model: "openai/gpt-4o-mini",
       temperature: 0,
       max_tokens: 200,
       messages: [
@@ -244,4 +244,3 @@ export function buildSafeResponse(
     content: originalResponse,
   };
 }
-

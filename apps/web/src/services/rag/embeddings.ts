@@ -67,11 +67,11 @@ export function getEmbeddingModelConfig(): {
 
   const config = {
     "text-embedding-3-small": {
-      model: "glm-5",
+      model: "openai/gpt-4o-mini",
       dimensions: 1536,
     },
     "text-embedding-3-large": {
-      model: "glm-5",
+      model: "openai/gpt-4o-mini",
       dimensions: 3072,
     },
   };
@@ -404,4 +404,3 @@ export async function generateEmbeddingsBatch(
 
   return allEmbeddings;
 }
-

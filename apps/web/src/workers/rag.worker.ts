@@ -43,6 +43,8 @@ const worker = new Worker(
       throw new Error("RAG job missing required fields");
     }
 
+    await job.updateProgress(20);
+
     let contentToIngest = text;
     let fileMetadata: any = metadata || {};
 
@@ -74,11 +76,15 @@ const worker = new Worker(
       };
     }
 
+    await job.updateProgress(40);
+
     const documentIds = await ingestDocument(
       contentToIngest,
       fileMetadata,
       userId,
     );
+
+    await job.updateProgress(80);
 
     if (fileId) {
       await prisma.file.update({
@@ -95,6 +101,8 @@ const worker = new Worker(
         },
       });
     }
+
+    await job.updateProgress(100);
 
     return { documentIds, chunks: documentIds.length };
   },
@@ -122,11 +130,18 @@ worker.on("failed", async (job, err) => {
   });
 
   if (job && job.attemptsMade >= (job.opts.attempts || 0)) {
-    await dlqQueue.add("rag-dlq", {
-      jobId: job.id,
-      data: job.data,
-      failedReason: job.failedReason,
-    });
+    try {
+      await dlqQueue.add("rag-dlq", {
+        jobId: job.id,
+        data: job.data,
+        failedReason: job.failedReason,
+      });
+    } catch (dlqError) {
+      logger.error("Failed to add job to DLQ", dlqError as Error, {
+        jobId: job.id,
+        jobType: "rag",
+      });
+    }
   }
 });
 
@@ -134,16 +149,22 @@ worker.on("error", (err) => {
   logger.error("Worker infrastructure error", err as Error, { jobType: "rag" });
 });
 
-// Graceful shutdown to avoid losing in-flight jobs
+// Graceful shutdown with 30s timeout
 process.on("SIGTERM", async () => {
   logger.warn("RAG worker SIGTERM received - shutting down");
   try {
-    // Clear all intervals to allow graceful exit
     intervals.forEach((interval) => clearInterval(interval));
+
+    const shutdownTimeout = setTimeout(() => {
+      logger.error("Shutdown timeout exceeded - forcing exit");
+      process.exit(1);
+    }, 30000);
 
     await worker.pause(true);
     await worker.close();
     await connection.disconnect();
+
+    clearTimeout(shutdownTimeout);
     logger.info("RAG worker shutdown complete");
     process.exit(0);
   } catch (error) {

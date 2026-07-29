@@ -23,7 +23,7 @@ export async function clusterScenes(
   const prompt = `Group the following transcript sentences into logical scenes or episodes. For each scene, provide a title and the list of sentences. Preserve narrative order. Limit to ${maxScenes} scenes.\n\nTranscript:\n${transcriptText}`;
 
   const response = await openai.chat.completions.create({
-    model: "glm-5",
+    model: "openai/gpt-4o-mini",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.3,
   });
@@ -40,4 +40,3 @@ export async function clusterScenes(
     return [];
   }
 }
-

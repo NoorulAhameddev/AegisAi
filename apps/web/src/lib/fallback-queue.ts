@@ -178,10 +178,13 @@ export async function cleanupFallbackQueue(
   olderThanHours: number = 24,
 ): Promise<number> {
   try {
+    // Use parameterized query to prevent SQL injection
+    const cutoffMs = olderThanHours * 60 * 60 * 1000;
+    const cutoffDate = new Date(Date.now() - cutoffMs);
     const result = await prisma.$executeRaw`
       DELETE FROM fallback_queue
       WHERE status IN ('completed', 'failed')
-        AND processed_at < NOW() - INTERVAL '${olderThanHours} hours'
+        AND processed_at < ${cutoffDate}
     `;
 
     logger.info("Cleaned up fallback queue", { deletedCount: result });
@@ -190,6 +193,7 @@ export async function cleanupFallbackQueue(
     logger.error("Failed to cleanup fallback queue", error as Error);
     return 0;
   }
+}
 }
 
 /**
@@ -200,13 +204,16 @@ export async function migrateFallbackJobsToRedis(
   redisQueue: any,
 ): Promise<number> {
   try {
+    // Step 1: Atomically claim jobs by marking them as "migrating"
+    // This prevents other workers from picking up the same jobs
     const jobs: any = await prisma.$queryRaw`
-      SELECT *
-      FROM fallback_queue
+      UPDATE fallback_queue
+      SET status = 'migrating'
       WHERE queue_name = ${queueName}
         AND status = 'pending'
       ORDER BY created_at ASC
       LIMIT 100
+      RETURNING *
     `;
 
     let migratedCount = 0;
@@ -218,14 +225,37 @@ export async function migrateFallbackJobsToRedis(
           attempts: job.max_attempts - job.attempts,
         });
 
-        // Mark as completed in fallback queue
-        await completeFallbackJob(job.id);
+        // Mark as completed in fallback queue only AFTER Redis confirms
+        await prisma.fallbackQueue.update({
+          where: { id: job.id },
+          data: { status: "completed", processedAt: new Date() },
+        });
         migratedCount++;
       } catch (error) {
+        // If Redis add fails, revert to pending so another attempt can pick it up
+        await prisma.fallbackQueue.update({
+          where: { id: job.id },
+          data: { status: "pending" },
+        });
         logger.error("Failed to migrate job to Redis", error as Error, {
           jobId: job.id,
         });
       }
+    }
+
+    logger.info("Migrated fallback jobs to Redis", {
+      queueName,
+      migratedCount,
+    });
+
+    return migratedCount;
+  } catch (error) {
+    logger.error("Failed to migrate fallback jobs", error as Error, {
+      queueName,
+    });
+    return 0;
+  }
+}
     }
 
     logger.info("Migrated fallback jobs to Redis", {

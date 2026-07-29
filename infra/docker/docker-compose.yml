@@ -7,7 +7,7 @@ services:
       - .env
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       POSTGRES_DB: ${DB_NAME:-aegis_ai}
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
     ports:
@@ -23,6 +23,14 @@ services:
       retries: 5
     networks:
       - aegis-network
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
 
   # Redis Cache and Queue
   redis:
@@ -30,19 +38,34 @@ services:
     container_name: aegis-redis
     env_file:
       - .env
-    command: ["sh", "-c", "redis-server --appendonly yes${REDIS_PASSWORD:+ --requirepass $REDIS_PASSWORD}${REDIS_MAXMEMORY:+ --maxmemory $REDIS_MAXMEMORY}${REDIS_MAXMEMORY_POLICY:+ --maxmemory-policy $REDIS_MAXMEMORY_POLICY}"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    command:
+      [
+        "sh",
+        "-c",
+        "redis-server --appendonly yes --requirepass $REDIS_PASSWORD${REDIS_MAXMEMORY:+ --maxmemory $REDIS_MAXMEMORY}${REDIS_MAXMEMORY_POLICY:+ --maxmemory-policy $REDIS_MAXMEMORY_POLICY}",
+      ]
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis-data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
     networks:
       - aegis-network
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          cpus: "0.25"
+          memory: 256M
 
   # Next.js Application
   app:
@@ -83,6 +106,14 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
 
   # Chat Worker
   worker:
@@ -114,6 +145,14 @@ services:
     restart: unless-stopped
     networks:
       - aegis-network
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          cpus: "0.25"
+          memory: 256M
 
   # RAG Worker
   worker-rag:
@@ -145,6 +184,14 @@ services:
     restart: unless-stopped
     networks:
       - aegis-network
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
 
   # WebSocket Worker
   worker-websocket:
@@ -168,6 +215,14 @@ services:
     restart: unless-stopped
     networks:
       - aegis-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
 
   # Automated Database Backup Service
   postgres-backup:
@@ -199,6 +254,14 @@ services:
       - aegis-network
     profiles:
       - production
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
 
   # Optional: pgAdmin for Database Management
   pgadmin:
@@ -207,8 +270,8 @@ services:
     env_file:
       - .env
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@aegis.local}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:?PGADMIN_EMAIL is required}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?PGADMIN_PASSWORD is required}
     ports:
       - "${PGADMIN_PORT:-5050}:80"
     depends_on:
@@ -218,6 +281,14 @@ services:
       - aegis-network
     profiles:
       - dev
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
+        reservations:
+          cpus: "0.25"
+          memory: 256M
 
 volumes:
   postgres-data:

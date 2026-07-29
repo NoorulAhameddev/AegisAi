@@ -7,6 +7,7 @@
 
 import { useState } from "react";
 import { DownloadIcon } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface ExportButtonProps {
   type: "note" | "chat";
@@ -57,8 +58,7 @@ export default function ExportButton({
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error("Export error:", error);
-      alert("Export failed. Please try again.");
+      logger.error("Export failed:", error);
     } finally {
       setLoading(false);
     }

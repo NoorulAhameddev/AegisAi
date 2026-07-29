@@ -70,7 +70,7 @@ export const defaultRAGConfig: RAGConfig = {
     extractImages: true,
   },
   embedding: {
-    model: "glm-5",
+    model: "openai/gpt-4o-mini",
     dimensions: 1536,
     batchSize: 100,
   },
@@ -122,4 +122,3 @@ export function isSupportedFileType(mimeType: string): boolean {
 export function isValidFileSize(size: number): boolean {
   return size <= getRAGConfig().processing.maxFileSize;
 }
-

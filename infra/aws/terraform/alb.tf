@@ -109,15 +109,12 @@ resource "aws_lb_listener" "http" {
 }
 
 # HTTPS Listener
-# Note: You need to create an ACM certificate manually and reference it here
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.main.arn
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  
-  # TODO: Replace with your ACM certificate ARN
-  # certificate_arn = "arn:aws:acm:region:account-id:certificate/certificate-id"
+  certificate_arn   = var.acm_certificate_arn
   
   default_action {
     type             = "forward"
@@ -125,11 +122,189 @@ resource "aws_lb_listener" "https" {
   }
   
   tags = local.common_tags
+}
+
+# AWS WAF Web ACL
+resource "aws_wafv2_web_acl" "alb" {
+  name        = "${local.name_prefix}-waf"
+  description = "WAF for Application Load Balancer"
+  scope       = "REGIONAL"
   
-  # Temporary self-signed certificate for initial setup
-  lifecycle {
-    ignore_changes = [certificate_arn]
+  default_action {
+    allow {}
   }
+  
+  rule {
+    name     = "AWSManagedRulesCommonRuleSet"
+    priority = 1
+    
+    override_action {
+      none {}
+    }
+    
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesCommonRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+    
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${local.name_prefix}-common-rule-set"
+      sampled_requests_enabled   = true
+    }
+  }
+  
+  rule {
+    name     = "AWSManagedRulesKnownBadInputsRuleSet"
+    priority = 2
+    
+    override_action {
+      none {}
+    }
+    
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+    
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${local.name_prefix}-bad-inputs-rule-set"
+      sampled_requests_enabled   = true
+    }
+  }
+  
+  rule {
+    name     = "RateLimit"
+    priority = 3
+    
+    action {
+      block {}
+    }
+    
+    statement {
+      rate_based_statement {
+        limit              = 2000
+        aggregate_key_type = "IP"
+      }
+    }
+    
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${local.name_prefix}-rate-limit"
+      sampled_requests_enabled   = true
+    }
+  }
+  
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "${local.name_prefix}-waf"
+    sampled_requests_enabled   = true
+  }
+  
+  tags = local.common_tags
+}
+
+resource "aws_wafv2_web_acl_association" "alb" {
+  resource_arn = aws_lb.main.arn
+  web_acl_arn  = aws_wafv2_web_acl.alb.arn
+}
+  
+  tags = local.common_tags
+}
+
+# AWS WAF Web ACL
+resource "aws_wafv2_web_acl" "alb" {
+  name        = "${local.name_prefix}-waf"
+  description = "WAF for Application Load Balancer"
+  scope       = "REGIONAL"
+  
+  default_action {
+    allow {}
+  }
+  
+  rule {
+    name     = "AWSManagedRulesCommonRuleSet"
+    priority = 1
+    
+    override_action {
+      none {}
+    }
+    
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesCommonRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+    
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${local.name_prefix}-common-rule-set"
+      sampled_requests_enabled   = true
+    }
+  }
+  
+  rule {
+    name     = "AWSManagedRulesKnownBadInputsRuleSet"
+    priority = 2
+    
+    override_action {
+      none {}
+    }
+    
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+    
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${local.name_prefix}-bad-inputs-rule-set"
+      sampled_requests_enabled   = true
+    }
+  }
+  
+  rule {
+    name     = "RateLimit"
+    priority = 3
+    
+    action {
+      block {}
+    }
+    
+    statement {
+      rate_based_statement {
+        limit              = 2000
+        aggregate_key_type = "IP"
+      }
+    }
+    
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${local.name_prefix}-rate-limit"
+      sampled_requests_enabled   = true
+    }
+  }
+  
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "${local.name_prefix}-waf"
+    sampled_requests_enabled   = true
+  }
+  
+  tags = local.common_tags
+}
+
+resource "aws_wafv2_web_acl_association" "alb" {
+  resource_arn = aws_lb.main.arn
+  web_acl_arn  = aws_wafv2_web_acl.alb.arn
 }
 
 # CloudWatch Alarms for ALB

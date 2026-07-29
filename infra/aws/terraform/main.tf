@@ -16,14 +16,13 @@ terraform {
   }
   
   # Backend configuration for state storage
-  # Uncomment and configure for production use
-  # backend "s3" {
-  #   bucket         = "aegis-ai-terraform-state"
-  #   key            = "production/terraform.tfstate"
-  #   region         = "us-east-1"
-  #   encrypt        = true
-  #   dynamodb_table = "aegis-ai-terraform-locks"
-  # }
+  backend "s3" {
+    bucket         = "aegis-ai-terraform-state"
+    key            = "production/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+    dynamodb_table = "aegis-ai-terraform-locks"
+  }
 }
 
 provider "aws" {

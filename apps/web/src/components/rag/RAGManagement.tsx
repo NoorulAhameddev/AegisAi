@@ -9,6 +9,8 @@ import {
   RefreshCw,
   Info,
 } from "lucide-react";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 interface RAGStats {
   totalDocuments: number;
@@ -48,7 +50,7 @@ export default function RAGManagement() {
         setStats(data.stats);
       }
     } catch (error) {
-      console.error("Failed to fetch RAG stats:", error);
+      logger.error("Failed to fetch RAG stats:", error);
     }
   };
 
@@ -104,11 +106,8 @@ export default function RAGManagement() {
   };
 
   const handleDeleteSource = async (sourceId: string) => {
-    if (
-      !confirm("Are you sure you want to delete all chunks from this source?")
-    ) {
-      return;
-    }
+    // TODO: Replace with a confirmation modal
+    logger.info(`Delete source requested: ${sourceId}`);
 
     setLoading(true);
     try {

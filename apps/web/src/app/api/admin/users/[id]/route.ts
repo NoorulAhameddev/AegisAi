@@ -31,6 +31,32 @@ export async function DELETE(
   const { id } = params;
 
   try {
+    // SECURITY: Role hierarchy check — prevent deleting users with higher or equal roles
+    const targetUser = await prisma.user.findUnique({
+      where: { id },
+      select: { role: true },
+    });
+
+    if (!targetUser) {
+      return errorResponse("User not found", { status: 404 });
+    }
+
+    const roleHierarchy: Record<string, number> = {
+      USER: 0,
+      SUPPORT: 1,
+      ANALYST: 2,
+      MODERATOR: 3,
+      ADMIN: 4,
+      SUPER_ADMIN: 5,
+    };
+
+    const adminLevel = roleHierarchy[user.role] ?? 0;
+    const targetLevel = roleHierarchy[targetUser.role] ?? 0;
+
+    if (adminLevel <= targetLevel) {
+      return forbiddenResponse("Cannot delete users with equal or higher role");
+    }
+
     await prisma.user.delete({
       where: { id },
     });

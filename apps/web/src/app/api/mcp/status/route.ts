@@ -1,18 +1,15 @@
 import { errorResponse, successResponse } from "@/lib/response";
-import { mcpClient } from "@/lib/mcp-client";
-import { logger } from "@/lib/logger";
 
 /**
  * API Route: GET /api/mcp/status
- * Returns the status of MCP servers
+ * MCP integration is not implemented.
+ * All MCP tool calls return null (placeholder).
+ * This endpoint returns a clear "not available" response.
  */
 export async function GET() {
-  try {
-    const status = mcpClient.getStatus();
-
-    return successResponse({ data: status });
-  } catch (error) {
-    logger.error("MCP status check error", error as Error);
-    return errorResponse("Failed to get MCP status", { status: 500 });
-  }
+  return successResponse({
+    available: false,
+    message: "MCP (Model Context Protocol) integration is not implemented.",
+    servers: [],
+  });
 }

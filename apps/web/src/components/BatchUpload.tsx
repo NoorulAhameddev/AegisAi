@@ -13,6 +13,7 @@ import {
   CheckCircleIcon,
   XCircleIcon,
 } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface BatchUploadProps {
   projectId?: string;
@@ -108,8 +109,7 @@ export default function BatchUpload({
         onUploadComplete(data.results);
       }
     } catch (error) {
-      console.error("Batch upload error:", error);
-      alert("Upload failed. Please try again.");
+      logger.error("Batch upload failed:", error);
     } finally {
       setUploading(false);
     }

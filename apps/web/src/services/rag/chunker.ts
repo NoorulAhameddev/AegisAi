@@ -1,4 +1,6 @@
 import { getRAGConfig } from "./rag-config";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 /**
  * Advanced text chunking strategies for RAG
@@ -143,7 +145,7 @@ export class DocumentChunker {
       });
     }
 
-    console.log(
+    logger.info(
       `[DocumentChunker] Extracted ${images.length} images from content`,
     );
     return images;

@@ -116,7 +116,7 @@ export default function LoginPage() {
               icon={<Lock className="h-5 w-5" />}
               helperText={
                 <Link
-                  href="#"
+                  href="/forgot-password"
                   className="text-xs text-purple-400 hover:text-purple-300 transition-colors float-right"
                 >
                   Forgot password?

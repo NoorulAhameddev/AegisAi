@@ -525,9 +525,8 @@ async function transcribeAudio(filePath: string): Promise<string> {
 
   const transcription = await openai.audio.transcriptions.create({
     file: audioFile,
-    model: "glm-5",
+    model: "openai/gpt-4o-mini",
   });
 
   return transcription.text;
 }
-

@@ -1,29 +1,32 @@
-import { NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
+import { NextResponse } from "next/server";
+import fs from "fs/promises";
+import path from "path";
+import { requireAuth, unauthorizedResponse } from "../../../lib/auth";
 
-const dashboardDir = path.join(process.cwd(), '.dashboard');
-const jobsDir = path.join(dashboardDir, 'jobs');
+const dashboardDir = path.join(process.cwd(), ".dashboard");
+const jobsDir = path.join(dashboardDir, "jobs");
 
-function makeId(){
-  return Date.now().toString() + '-' + Math.random().toString(36).slice(2,8);
+function makeId() {
+  return Date.now().toString() + "-" + Math.random().toString(36).slice(2, 8);
 }
 
-export async function POST(req: Request){
-  await fs.mkdir(jobsDir, { recursive:true });
-  const body = await req.json().catch(()=>({}));
+export async function POST(req: Request) {
+  const user = await requireAuth(req);
+  if (!user) return unauthorizedResponse();
+  await fs.mkdir(jobsDir, { recursive: true });
+  const body = await req.json().catch(() => ({}));
   const id = makeId();
-  const logPath = path.join(jobsDir, id + '.log');
-  const jobType = body.type || 'npm-audit';
+  const logPath = path.join(jobsDir, id + ".log");
+  const jobType = body.type || "npm-audit";
   const job = {
     id,
     type: jobType,
-    status: 'queued',
+    status: "queued",
     created_at: Date.now(),
     logsPath: logPath,
-    payload: body.payload || {}
+    payload: body.payload || {},
   };
-  const p = path.join(jobsDir, id + '.json');
-  await fs.writeFile(p, JSON.stringify(job,null,2),'utf8');
-  return NextResponse.json({ success:true, jobId: id, type: jobType });
+  const p = path.join(jobsDir, id + ".json");
+  await fs.writeFile(p, JSON.stringify(job, null, 2), "utf8");
+  return NextResponse.json({ success: true, jobId: id, type: jobType });
 }

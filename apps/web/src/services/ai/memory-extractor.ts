@@ -109,7 +109,7 @@ Be concise. Maximum 5 concepts, 3 struggles. Return ONLY valid JSON.`;
 
   try {
     const response = await openai.chat.completions.create({
-      model: "glm-5",
+      model: "openai/gpt-4o-mini",
       messages: [{ role: "user", content: extractionPrompt }],
       temperature: 0.3,
       max_tokens: 500,
@@ -248,4 +248,3 @@ export function formatMemoryForPrompt(
 
   return block;
 }
-

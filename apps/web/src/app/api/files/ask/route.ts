@@ -1,4 +1,4 @@
-﻿import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { openai } from "@/services/ai/openai";
 import { NextRequest } from "next/server";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/response";
 import { logger } from "@/lib/logger";
+import { decrypt } from "@/lib/encryption";
 
 export async function POST(req: NextRequest) {
   const user = await verifyAuth(req);
@@ -29,11 +30,12 @@ export async function POST(req: NextRequest) {
   if (!file) return errorResponse("File not found", { status: 404 });
 
   try {
+    const decryptedContent = await decrypt(file.content);
     const completion = await openai.chat.completions.create({
-      model: "glm-5",
+      model: "gpt-4o-mini",
       messages: [
         { role: "system", content: "Answer ONLY using the provided document." },
-        { role: "user", content: file.content.slice(0, 12000) },
+        { role: "user", content: decryptedContent.slice(0, 12000) },
         { role: "user", content: data.question },
       ],
     });
@@ -49,4 +51,3 @@ export async function POST(req: NextRequest) {
     return errorResponse("Failed to answer question", { status: 500 });
   }
 }
-

@@ -135,13 +135,8 @@ export function CharacterCard({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (
-                  confirm(
-                    "Are you sure you want to delete this character? Chats using it will revert to default.",
-                  )
-                ) {
-                  onDelete(id);
-                }
+                // TODO: Replace with a confirmation modal
+                onDelete(id);
               }}
               className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-300 rounded text-sm transition-colors"
             >

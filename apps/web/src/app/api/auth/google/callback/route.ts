@@ -15,11 +15,29 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const code = searchParams.get("code");
     const error = searchParams.get("error");
+    const state = searchParams.get("state");
 
     if (error || !code) {
       logger.security("Google OAuth callback error", { error });
       return NextResponse.redirect(`${SITE_URL}/login?error=oauth_denied`);
     }
+
+    // Validate state parameter to prevent CSRF attacks
+    const storedState = req.cookies.get("oauth_state")?.value;
+    if (!storedState || !state || storedState !== state) {
+      logger.security("Google OAuth state mismatch - possible CSRF attack");
+      return NextResponse.redirect(`${SITE_URL}/login?error=invalid_state`);
+    }
+
+    // Clear the state cookie after validation
+    const response = NextResponse.redirect(`${SITE_URL}/dashboard`);
+    response.cookies.set("oauth_state", "", {
+      httpOnly: true,
+      secure: env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0, // Expire immediately
+    });
 
     // Get user info from Google
     const googleUser = await getGoogleUserInfo(code);
@@ -89,7 +107,6 @@ export async function GET(req: NextRequest) {
     });
 
     // Set cookies and redirect
-    const response = NextResponse.redirect(`${SITE_URL}/dashboard`);
     const isProd = env.NODE_ENV === "production";
 
     response.cookies.set("auth_access", accessToken, {

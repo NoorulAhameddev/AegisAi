@@ -33,6 +33,37 @@ Closes #
 - Database:
 - Browser (if applicable):
 
+## Security Review
+
+<!-- Security checklist - all items must be addressed -->
+
+- [ ] No secrets, API keys, or credentials committed
+- [ ] Input validation added for all user inputs
+- [ ] SQL injection prevention verified (Prisma parameterized queries)
+- [ ] XSS prevention in place (output encoding, CSP headers)
+- [ ] Authentication/authorization checks added where needed
+- [ ] Sensitive data encrypted at rest (ENCRYPTION_KEY used)
+- [ ] CORS configuration updated if new origins added
+- [ ] Dependencies reviewed for known vulnerabilities (`npm audit`)
+
+## Test Coverage
+
+- [ ] Unit tests added/updated for new functionality
+- [ ] Integration tests added for API changes
+- [ ] Test coverage meets minimum thresholds (Lines: 60%, Branches: 50%, Functions: 60%, Statements: 60%)
+- [ ] Edge cases and error paths tested
+- [ ] CI pipeline passes (lint, typecheck, test, build)
+
+## Environment Variables
+
+<!-- Check if any environment variables are added, modified, or removed -->
+
+- [ ] New environment variables documented in `.env.example`
+- [ ] Staging values added to `.env.staging`
+- [ ] Production values communicated to ops team
+- [ ] No hardcoded secrets in code
+- [ ] Feature flags added if toggling new behavior
+
 ## Checklist
 
 <!-- Ensure all items are checked before submitting -->
@@ -45,8 +76,6 @@ Closes #
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Any dependent changes have been merged and published
-- [ ] I have checked my code for security issues
-- [ ] I have verified the changes work in the target environment
 
 ## Screenshots (if applicable)
 
@@ -70,6 +99,11 @@ Closes #
 - [ ] Breaking changes (describe below)
 
 **Details:**
+
+<!-- If breaking changes, include: -->
+<!-- - What breaks -->
+<!-- - Migration steps for users -->
+<!-- - Timeline for deprecation (if applicable) -->
 
 ## Additional Context
 

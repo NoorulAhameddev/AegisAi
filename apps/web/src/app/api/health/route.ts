@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getReplicaLag } from "@/lib/read-replicas";
 import Redis from "ioredis";
 import { env } from "@/lib/env";
-import { successResponse } from "@/lib/response";
+import { successResponse, errorResponse } from "@/lib/response";
 import {
   openaiCircuitBreaker,
   moderationCircuitBreaker,
@@ -11,8 +11,23 @@ import {
   getCircuitStats,
 } from "@/lib/circuit-breaker";
 import { getRedisHealth } from "@/lib/redis-fallback";
+import { rateLimit } from "@/lib/rate-limit";
 
-export async function GET() {
+export async function GET(req: Request) {
+  // Rate limit health checks to prevent abuse (10 per minute)
+  const rateLimitResult = await rateLimit(req as any, {
+    limit: 10,
+    window: 60,
+  });
+  if (!rateLimitResult.success) {
+    return errorResponse("Rate limit exceeded", { status: 429 });
+  }
+
+  // Basic health (public) — just status and timestamp
+  // Detailed health (authenticated) — requires HEALTH_CHECK_SECRET query param
+  const url = new URL(req.url);
+  const secret = url.searchParams.get("secret");
+  const isDetailed = secret === process.env.HEALTH_CHECK_SECRET;
   const checks: any = {
     status: "healthy",
     timestamp: new Date().toISOString(),
@@ -232,6 +247,21 @@ export async function GET() {
       status: getCircuitState(ragCircuitBreaker) === "OPEN" ? "degraded" : "ok",
     },
   };
+
+  // 9. External Audit Logging Check
+  if (env.EXTERNAL_AUDIT_URL && env.EXTERNAL_AUDIT_API_KEY) {
+    checks.checks.externalAudit = {
+      status: "ok",
+      message: "External audit logging configured",
+      url: env.EXTERNAL_AUDIT_URL,
+    };
+  } else {
+    checks.checks.externalAudit = {
+      status: "warning",
+      message: "External audit logging not configured",
+      note: "Audit logs only stored locally",
+    };
+  }
 
   // Mark as degraded (not unhealthy) if circuit breakers are open
   if (openaiState === "OPEN") {

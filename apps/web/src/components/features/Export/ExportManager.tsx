@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Download, FileText, Loader2 } from "lucide-react";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 type ExportFormat = "pdf" | "markdown" | "docx" | "json" | "txt";
 
@@ -87,7 +89,7 @@ export function ExportManager({
       setExported(selectedFormat);
       setTimeout(() => setExported(null), 3000);
     } catch (error) {
-      console.error("Export failed:", error);
+      logger.error("Export failed:", error);
     } finally {
       setExporting(false);
     }

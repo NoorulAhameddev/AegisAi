@@ -127,7 +127,7 @@ export function mergeEmbeddings(
 
   // Both missing
   if (!textEmbedding && !imageEmbedding) {
-    console.warn(
+    logger.warn(
       "[MultiModalEmbeddings] No embeddings available, returning zero vector",
     );
     return Array(outputDims).fill(0);
@@ -174,7 +174,7 @@ export async function generateMultiModalEmbedding(
   } = options;
 
   if (!content || content.trim().length === 0) {
-    console.warn("[MultiModalEmbeddings] Empty content provided");
+    logger.warn("[MultiModalEmbeddings] Empty content provided");
     return {
       textEmbedding: null,
       imageEmbedding: null,
@@ -270,7 +270,7 @@ export async function generateMultiModalEmbeddingsBatch(
     return [];
   }
 
-  console.log(
+  logger.info(
     `[MultiModalEmbeddings] Batch processing ${contents.length} items (strategy: ${options.mergeStrategy || "text-only"})`,
   );
 
@@ -292,7 +292,7 @@ export async function generateMultiModalEmbeddingsBatch(
       (progress % batchSize === 0 && progress > 0) ||
       progress === contents.length
     ) {
-      console.log(
+      logger.info(
         `[MultiModalEmbeddings] Processed ${progress}/${contents.length} items`,
       );
     }

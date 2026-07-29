@@ -104,7 +104,7 @@ export class StudentCodingAgent {
       });
 
       const response = await openai.chat.completions.create({
-        model: "glm-5",
+        model: "openai/gpt-4o-mini",
         messages: [
           { role: "system" as const, content: systemPrompt },
           ...messages,
@@ -408,4 +408,3 @@ FORMATTING:
     };
   }
 }
-

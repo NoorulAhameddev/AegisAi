@@ -1,397 +1,499 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 
 type StatusPayload = {
   branch?: string;
   uncommitted?: number;
-  queueMode?: string;
+  mode?: string;
   jobs?: { success: number; failed: number; queued: number };
   lastAudit?: string | null;
 };
 
-function Card({ children, style = {} }: any) {
+interface VulnData {
+  counts?: {
+    critical: number;
+    high: number;
+    moderate: number;
+    low: number;
+  };
+}
+
+function StatCard({
+  label,
+  value,
+  severity,
+  delay = 0,
+}: {
+  label: string;
+  value: number;
+  severity: string;
+  delay?: number;
+}) {
+  const colorMap: Record<string, { text: string; bg: string; glow: string }> = {
+    critical: {
+      text: "#ef4444",
+      bg: "rgba(239, 68, 68, 0.1)",
+      glow: "glow-danger",
+    },
+    high: { text: "#f97316", bg: "rgba(249, 115, 22, 0.1)", glow: "" },
+    moderate: { text: "#eab308", bg: "rgba(234, 179, 8, 0.1)", glow: "" },
+    low: { text: "#3b82f6", bg: "rgba(59, 130, 246, 0.1)", glow: "glow-info" },
+  };
+
+  const c = colorMap[severity] || {
+    text: "#71717a",
+    bg: "rgba(113, 113, 122, 0.1)",
+    glow: "",
+  };
+
   return (
     <div
+      className="rounded-xl border p-5 card-hover opacity-0 animate-fade-in-up"
       style={{
-        background: "#0f1724",
-        color: "#e6eef8",
-        padding: 16,
-        borderRadius: 8,
-        minWidth: 200,
-        boxShadow: "0 1px 3px rgba(2,6,23,0.6)",
-        ...style,
+        backgroundColor: "var(--color-bg-secondary)",
+        borderColor: "var(--color-border)",
+        animationDelay: `${delay}ms`,
       }}
     >
-      {children}
+      <div className="flex items-center justify-between mb-3">
+        <span
+          className="text-xs font-semibold uppercase tracking-wider"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
+          {label}
+        </span>
+        {value > 0 && (
+          <div
+            className={`w-2 h-2 rounded-full ${c.glow}`}
+            style={{ backgroundColor: c.text }}
+          />
+        )}
+      </div>
+      <div className="text-3xl font-bold" style={{ color: c.text }}>
+        {value}
+      </div>
     </div>
   );
 }
 
-function Indicator({ level }: { level: "clean" | "warning" | "critical" }) {
-  const color =
-    level === "clean" ? "#16a34a" : level === "warning" ? "#f59e0b" : "#ef4444";
+function InfoCard({
+  title,
+  icon,
+  children,
+  delay = 0,
+  action,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  delay?: number;
+  action?: React.ReactNode;
+}) {
   return (
-    <span
+    <div
+      className="rounded-xl border overflow-hidden opacity-0 animate-fade-in-up"
       style={{
-        display: "inline-block",
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        background: color,
-        marginRight: 8,
-        boxShadow: "0 0 0 4px rgba(0,0,0,0.25) inset",
+        backgroundColor: "var(--color-bg-secondary)",
+        borderColor: "var(--color-border)",
+        animationDelay: `${delay}ms`,
       }}
-    />
+    >
+      <div
+        className="px-5 py-4 border-b flex items-center justify-between"
+        style={{ borderColor: "var(--color-border-muted)" }}
+      >
+        <div className="flex items-center gap-3">
+          <div style={{ color: "var(--color-info)" }}>{icon}</div>
+          <h3 className="font-semibold">{title}</h3>
+        </div>
+        {action}
+      </div>
+      <div className="p-5">{children}</div>
+    </div>
   );
 }
 
 export default function OverviewPage() {
-  const [status, setStatus] = useState<"loading" | "ready" | "error">(
-    "loading",
-  );
-  const [payload, setPayload] = useState<StatusPayload | null>(null);
-  const [vulns, setVulns] = useState<any | null>(null);
-  const [secretCheck, setSecretCheck] = useState<any | null>(null);
-  const [actionBusy, setActionBusy] = useState<string | null>(null);
+  const [status, setStatus] = useState<StatusPayload | null>(null);
+  const [vulns, setVulns] = useState<VulnData>({
+    counts: { critical: 0, high: 0, moderate: 0, low: 0 },
+  });
+  const [scanning, setScanning] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-    async function load() {
-      setStatus("loading");
+    const fetchData = async () => {
       try {
-        const [sres, vres] = await Promise.all([
+        const [statusRes, vulnsRes] = await Promise.all([
           fetch("/api/status"),
           fetch("/api/vulns"),
         ]);
-        const sjson = sres.ok ? await sres.json() : null;
-        const vjson = vres.ok ? await vres.json() : null;
-        if (!mounted) return;
-        setPayload(sjson);
-        setVulns(vjson);
-        setStatus("ready");
-      } catch (e) {
-        setStatus("error");
+        const statusData = statusRes.ok ? await statusRes.json() : null;
+        const vulnsData = vulnsRes.ok ? await vulnsRes.json() : null;
+        setStatus(statusData);
+        if (vulnsData?.counts) setVulns(vulnsData);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
       }
-    }
-    load();
-    return () => {
-      mounted = false;
     };
+    fetchData();
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  async function runJob(type: string, extra: any = {}) {
-    setActionBusy(type);
+  const handleScan = async () => {
+    setScanning(true);
     try {
-      const res = await fetch("/api/jobs", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(Object.assign({ type }, extra)),
-      });
-      if (res.ok) {
-        const j = await res.json();
-        try {
-          const s = await fetch("/api/status");
-          if (s.ok) setPayload(await s.json());
-        } catch (e) {}
-        alert("Enqueued: " + (j.jobId || JSON.stringify(j)));
-      } else {
-        const txt = await res.text();
-        alert("Failed: " + txt);
-      }
-    } catch (e) {
-      alert(String(e));
-    } finally {
-      setActionBusy(null);
+      await fetch("/api/vulns/scan", { method: "POST" });
+      setTimeout(() => setScanning(false), 3000);
+    } catch (error) {
+      console.error("Scan failed:", error);
+      setScanning(false);
     }
-  }
+  };
 
-  async function runSecretCheck() {
-    setActionBusy("secret-check");
-    try {
-      const res = await fetch("/api/security-check");
-      if (!res.ok) {
-        const t = await res.text();
-        setSecretCheck({ passed: false, issues: [{ message: t }] });
-      } else {
-        const j = await res.json();
-        setSecretCheck(j);
-      }
-    } catch (e) {
-      setSecretCheck({ passed: false, issues: [{ message: String(e) }] });
-    } finally {
-      setActionBusy(null);
-    }
-  }
-
-  function copyToClipboard(text: string) {
-    navigator.clipboard?.writeText(text).then(
-      () => alert("Copied to clipboard"),
-      () => alert("Copy failed"),
-    );
-  }
+  const counts = vulns?.counts || { critical: 0, high: 0, moderate: 0, low: 0 };
 
   return (
-    <main
-      style={{
-        padding: 20,
-        fontFamily:
-          'Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
-      }}
-    >
-      <h1 style={{ margin: 0 }}>Overview</h1>
-      <div style={{ color: "#9aa7b8", marginTop: 6 }}>
-        System health and quick actions
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="opacity-0 animate-fade-in">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+            <svg
+              className="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              />
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold">ZedBoard</h1>
+            <p className="text-sm text-zinc-500">Security Operations Center</p>
+          </div>
+        </div>
+        <p className="text-zinc-400 mt-2">
+          Local-first security operations for developers
+        </p>
       </div>
 
-      {status === "loading" && (
-        <div style={{ marginTop: 20 }}>Loading status…</div>
-      )}
-      {status === "error" && (
-        <div style={{ marginTop: 20, color: "#f43f5e" }}>
-          Failed to load status
-        </div>
-      )}
-
-      {status === "ready" && (
+      {/* Critical Alert */}
+      {counts.critical > 0 && (
         <div
-          style={{ display: "flex", gap: 16, marginTop: 20, flexWrap: "wrap" }}
+          className="rounded-xl border p-4 flex items-center justify-between opacity-0 animate-fade-in-up"
+          style={{
+            backgroundColor: "rgba(239, 68, 68, 0.05)",
+            borderColor: "#ef4444",
+            animationDelay: "50ms",
+          }}
         >
-          <Card>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <div>
-                <div style={{ fontSize: 12, color: "#90a4b6" }}>
-                  Vulnerabilities
-                </div>
-                <div style={{ fontSize: 20, fontWeight: 600 }}>
-                  {vulns?.summary?.total || 0}
-                </div>
-                <div style={{ fontSize: 12, color: "#90a4b6" }}>
-                  {vulns?.summary?.critical || 0} critical
-                </div>
-              </div>
-              <div>
-                <Indicator
-                  level={
-                    (vulns?.summary?.critical || 0) > 0
-                      ? "critical"
-                      : (vulns?.summary?.high || 0) > 0
-                        ? "warning"
-                        : "clean"
-                  }
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
+              <svg
+                className="w-5 h-5 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                 />
-              </div>
-            </div>
-            <div style={{ marginTop: 12 }}>
-              <button
-                disabled={!!actionBusy}
-                onClick={() => runJob("npm-audit")}
-              >
-                {actionBusy === "npm-audit" ? "Enqueuing…" : "Run audit"}
-              </button>
-            </div>
-          </Card>
-
-          <Card>
-            <div style={{ fontSize: 12, color: "#90a4b6" }}>Jobs</div>
-            <div style={{ display: "flex", gap: 12, marginTop: 6 }}>
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 700 }}>
-                  {payload?.jobs?.queued ?? 0}
-                </div>
-                <div style={{ fontSize: 11, color: "#90a4b6" }}>Queued</div>
-              </div>
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 700 }}>
-                  {payload?.jobs?.failed ?? 0}
-                </div>
-                <div style={{ fontSize: 11, color: "#90a4b6" }}>Failed</div>
-              </div>
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 700 }}>
-                  {payload?.jobs?.success ?? 0}
-                </div>
-                <div style={{ fontSize: 11, color: "#90a4b6" }}>Succeeded</div>
-              </div>
-            </div>
-            <div style={{ marginTop: 12 }}>
-              <button
-                disabled={!!actionBusy}
-                onClick={() => runJob("test-run")}
-              >
-                {actionBusy === "test-run" ? "Enqueuing…" : "Run tests"}
-              </button>
-              <button
-                style={{ marginLeft: 8 }}
-                disabled={!!actionBusy}
-                onClick={() => runJob("format")}
-              >
-                {actionBusy === "format" ? "Enqueuing…" : "Run format"}
-              </button>
-            </div>
-          </Card>
-
-          <Card>
-            <div style={{ fontSize: 12, color: "#90a4b6" }}>Audit</div>
-            <div style={{ marginTop: 8, fontWeight: 700 }}>
-              {payload?.lastAudit
-                ? new Date(payload.lastAudit).toLocaleString()
-                : "never"}
-            </div>
-            <div style={{ marginTop: 12 }}>
-              <button
-                disabled={!!actionBusy}
-                onClick={() => runJob("npm-audit")}
-              >
-                {actionBusy === "npm-audit" ? "Enqueuing…" : "Run audit"}
-              </button>
-            </div>
-          </Card>
-
-          <Card style={{ minWidth: 280 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <div>
-                <div style={{ fontSize: 12, color: "#90a4b6" }}>Repository</div>
-                <div style={{ fontSize: 16, fontWeight: 700 }}>
-                  {payload?.branch || "unknown"}
-                </div>
-                <div style={{ fontSize: 12, color: "#90a4b6" }}>
-                  {payload?.uncommitted
-                    ? `${payload.uncommitted} uncommitted changes`
-                    : "clean"}
-                </div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 12, color: "#90a4b6" }}>Queue</div>
-                <div style={{ fontWeight: 700 }}>{payload?.queueMode}</div>
-              </div>
-            </div>
-
-            <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-              <button onClick={() => copyToClipboard("code .")}>
-                Copy `code .`
-              </button>
-              <button
-                onClick={() =>
-                  window.open(
-                    "https://marketplace.visualstudio.com/items?itemName=MS-vsliveshare.vsliveshare",
-                    "_blank",
-                  )
-                }
-              >
-                Live Share
-              </button>
-            </div>
-          </Card>
-
-          <Card
-            style={{
-              flexBasis: "100%",
-              display: "flex",
-              gap: 12,
-              alignItems: "center",
-            }}
-          >
-            <div style={{ flex: "1 1 0" }}>
-              <div style={{ fontSize: 12, color: "#90a4b6" }}>Secret Check</div>
-              <div style={{ marginTop: 6 }}>
-                {secretCheck
-                  ? secretCheck.passed
-                    ? "Passed"
-                    : "Issues found"
-                  : "Not run"}
-              </div>
+              </svg>
             </div>
             <div>
-              <button disabled={!!actionBusy} onClick={runSecretCheck}>
-                {actionBusy === "secret-check"
-                  ? "Running…"
-                  : "Run secret-check"}
-              </button>
+              <p className="font-semibold text-red-400">
+                {counts.critical} Critical Vulnerabilit
+                {counts.critical === 1 ? "y" : "ies"}
+              </p>
+              <p className="text-xs text-zinc-500">Immediate action required</p>
             </div>
-          </Card>
+          </div>
+          <Link
+            href="/vulnerabilities"
+            className="text-sm text-red-400 hover:text-red-300 font-medium"
+          >
+            Review →
+          </Link>
         </div>
       )}
 
-      <section style={{ marginTop: 28 }}>
-        <h2 style={{ marginBottom: 8 }}>Quick Actions</h2>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button disabled={!!actionBusy} onClick={() => runJob("npm-audit")}>
-            Run audit
-          </button>
-          <button
-            disabled={!!actionBusy}
-            onClick={() => {
-              runSecretCheck();
-            }}
-          >
-            Run secret-check
-          </button>
-          <button disabled={!!actionBusy} onClick={() => runJob("test-run")}>
-            Run tests
-          </button>
-          <button disabled={!!actionBusy} onClick={() => runJob("format")}>
-            Run format
-          </button>
-          <button onClick={() => copyToClipboard("code .")}>
-            Open VS Code (copy cmd)
-          </button>
-          <button
-            onClick={() =>
-              window.open(
-                "vscode://vscode.microsoft.com/extension/ms-vsliveshare.vsliveshare",
-                "_blank",
-              )
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          label="Critical"
+          value={counts.critical}
+          severity="critical"
+          delay={100}
+        />
+        <StatCard
+          label="High"
+          value={counts.high}
+          severity="high"
+          delay={150}
+        />
+        <StatCard
+          label="Moderate"
+          value={counts.moderate}
+          severity="moderate"
+          delay={200}
+        />
+        <StatCard label="Low" value={counts.low} severity="low" delay={250} />
+      </div>
+
+      {/* Main Content */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Left */}
+        <div className="lg:col-span-2 space-y-6">
+          <InfoCard
+            title="Quick Scan"
+            delay={300}
+            icon={
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
             }
           >
-            Start Live Share
-          </button>
-        </div>
-      </section>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={handleScan}
+                disabled={scanning}
+                className={`
+                  px-4 py-2.5 rounded-lg font-medium text-sm
+                  flex items-center gap-2
+                  transition-all duration-200
+                  ${scanning ? "bg-zinc-800 text-zinc-500 cursor-not-allowed" : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"}
+                `}
+              >
+                {scanning ? (
+                  <svg
+                    className="w-4 h-4 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                )}
+                {scanning ? "Scanning..." : "Run Security Scan"}
+              </button>
+              <Link
+                href="/vulnerabilities"
+                className="px-4 py-2.5 rounded-lg font-medium text-sm bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+              >
+                View All
+              </Link>
+            </div>
+          </InfoCard>
 
-      <section style={{ marginTop: 28 }}>
-        <h2 style={{ marginBottom: 8 }}>Metrics</h2>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <Card>
-            <div style={{ fontSize: 12, color: "#90a4b6" }}>Total jobs</div>
-            <div style={{ fontSize: 20, fontWeight: 700 }}>
-              {(payload?.jobs?.queued || 0) +
-                (payload?.jobs?.failed || 0) +
-                (payload?.jobs?.success || 0)}
+          <InfoCard
+            title="Repository"
+            delay={350}
+            icon={
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                />
+              </svg>
+            }
+          >
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-zinc-500">Branch</span>
+                <span className="px-2.5 py-1 rounded-md text-xs font-mono bg-zinc-800 text-zinc-300">
+                  {status?.branch || "—"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-zinc-500">Uncommitted</span>
+                <span
+                  className={`font-semibold ${status?.uncommitted ? "text-amber-500" : "text-emerald-500"}`}
+                >
+                  {status?.uncommitted || 0} files
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-zinc-500">Queue Mode</span>
+                <span className="px-2.5 py-1 rounded-md text-xs font-mono bg-emerald-500/10 text-emerald-500">
+                  {status?.mode || "local"}
+                </span>
+              </div>
             </div>
-          </Card>
-          <Card>
-            <div style={{ fontSize: 12, color: "#90a4b6" }}>Failed jobs</div>
-            <div style={{ fontSize: 20, fontWeight: 700 }}>
-              {payload?.jobs?.failed ?? 0}
-            </div>
-          </Card>
-          <Card>
-            <div style={{ fontSize: 12, color: "#90a4b6" }}>
-              Upgrade success rate
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700 }}>
-              {(() => {
-                const s = payload?.jobs?.success ?? 0;
-                const f = payload?.jobs?.failed ?? 0;
-                const tot = s + f;
-                return tot === 0 ? "—" : Math.round((s / tot) * 100) + "%";
-              })()}
-            </div>
-          </Card>
+          </InfoCard>
         </div>
-      </section>
-    </main>
+
+        {/* Right */}
+        <div className="space-y-6">
+          <InfoCard
+            title="Job Statistics"
+            delay={400}
+            icon={
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </svg>
+            }
+            action={
+              <Link
+                href="/jobs"
+                className="text-xs text-zinc-500 hover:text-zinc-300"
+              >
+                View →
+              </Link>
+            }
+          >
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-emerald-500">
+                  {status?.jobs?.success || 0}
+                </div>
+                <div className="text-xs text-zinc-500">Success</div>
+              </div>
+              <div className="text-center">
+                <div
+                  className={`text-2xl font-bold ${(status?.jobs?.failed || 0) > 0 ? "text-red-500" : "text-zinc-500"}`}
+                >
+                  {status?.jobs?.failed || 0}
+                </div>
+                <div className="text-xs text-zinc-500">Failed</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-500">
+                  {status?.jobs?.queued || 0}
+                </div>
+                <div className="text-xs text-zinc-500">Queued</div>
+              </div>
+            </div>
+          </InfoCard>
+
+          <InfoCard
+            title="Navigation"
+            delay={450}
+            icon={
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            }
+          >
+            <div className="space-y-2">
+              {[
+                {
+                  label: "Vulnerabilities",
+                  href: "/vulnerabilities",
+                  color: "text-red-400",
+                },
+                { label: "Tasks", href: "/tasks", color: "text-amber-400" },
+                { label: "Jobs", href: "/jobs", color: "text-blue-400" },
+                {
+                  label: "Activity",
+                  href: "/activity",
+                  color: "text-purple-400",
+                },
+                {
+                  label: "Security",
+                  href: "/security",
+                  color: "text-emerald-400",
+                },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center justify-between p-2.5 rounded-lg transition-colors hover:bg-zinc-800/50 group"
+                >
+                  <span className="text-sm text-zinc-400 group-hover:text-zinc-200">
+                    {item.label}
+                  </span>
+                  <svg
+                    className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          </InfoCard>
+        </div>
+      </div>
+    </div>
   );
 }

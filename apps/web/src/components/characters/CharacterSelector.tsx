@@ -7,6 +7,8 @@
 
 import { useState, useEffect } from "react";
 import { Sparkles, ChevronDown } from "lucide-react";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 interface CharacterPreset {
   id: string;
@@ -53,7 +55,7 @@ export function CharacterSelector({
         setCharacters(allCharacters);
       }
     } catch (error) {
-      console.error("Failed to load characters:", error);
+      logger.error("Failed to load characters:", error);
     } finally {
       setLoading(false);
     }

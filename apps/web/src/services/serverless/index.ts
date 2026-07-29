@@ -307,16 +307,14 @@ export async function executeServerlessFunction(
 
 /**
  * Validate function code syntax
+ * Returns error since serverless execution is disabled
  */
 async function validateFunctionCode(code: string, runtime: FunctionRuntime) {
-  try {
-    if (runtime === "javascript" || runtime === "typescript") {
-      // Basic syntax check
-      new Function(code);
-    }
-  } catch (error) {
-    throw new Error(`Code syntax error: ${(error as Error).message}`);
-  }
+  // Serverless is disabled due to vm2 CVE-2023-37466
+  // Any validation attempt should fail
+  throw new Error(
+    "Serverless functions are disabled due to security vulnerabilities. This feature is unavailable.",
+  );
 }
 
 /**

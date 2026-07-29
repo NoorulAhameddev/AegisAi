@@ -14,6 +14,8 @@ import {
   EditIcon,
 } from "lucide-react";
 import ExportButton from "./ExportButton";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 interface Note {
   id: string;
@@ -61,14 +63,15 @@ export default function NotesViewer({
         setNotes(data.notes || []);
       }
     } catch (error) {
-      console.error("Failed to fetch notes:", error);
+      logger.error("Failed to fetch notes:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const deleteNote = async (noteId: string) => {
-    if (!confirm("Delete this note?")) return;
+    // TODO: Replace with a confirmation modal
+    if (!selectedNote) return;
 
     try {
       const response = await fetch(`/api/notes?id=${noteId}`, {
@@ -83,8 +86,7 @@ export default function NotesViewer({
         if (onRefresh) onRefresh();
       }
     } catch (error) {
-      console.error("Failed to delete note:", error);
-      alert("Failed to delete note");
+      logger.error("Failed to delete note:", error);
     }
   };
 

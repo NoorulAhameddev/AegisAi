@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from "react";
 import { FolderIcon, PlusIcon, XIcon } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface Project {
   id: string;
@@ -42,7 +43,7 @@ export default function ProjectSelector({
         setProjects(data.projects || []);
       }
     } catch (error) {
-      console.error("Failed to fetch projects:", error);
+      logger.error("Failed to fetch projects:", error);
     }
   };
 
@@ -69,7 +70,7 @@ export default function ProjectSelector({
         setNewProjectDescription("");
       }
     } catch (error) {
-      console.error("Failed to create project:", error);
+      logger.error("Failed to create project:", error);
     } finally {
       setLoading(false);
     }

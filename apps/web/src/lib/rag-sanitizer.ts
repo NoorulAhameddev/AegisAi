@@ -105,7 +105,7 @@ export async function detectInjectionViaLLM(
   try {
     // Use fast model (Haiku) for quick check
     const response = await openai.chat.completions.create({
-      model: "glm-5",
+      model: "openai/gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -200,4 +200,3 @@ export async function sanitizeRagDocuments(
   // Filter out empty results
   return results.filter((text) => text.length > 0);
 }
-

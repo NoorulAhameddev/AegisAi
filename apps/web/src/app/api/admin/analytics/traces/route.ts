@@ -6,6 +6,7 @@ import {
   unauthorizedResponse,
   forbiddenResponse,
 } from "@/lib/response";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/admin/analytics/traces
@@ -17,8 +18,8 @@ export async function GET(req: NextRequest) {
   const user = await verifyAuth(req);
   if (!user) return unauthorizedResponse();
 
-  // Check admin role
-  if (user.role !== "ADMIN") {
+  // Check admin role (includes SUPER_ADMIN)
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") {
     return forbiddenResponse({
       message: "Only admins can view trace analytics",
     });
@@ -58,7 +59,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Failed to get trace analytics:", error);
+    logger.error("Failed to get trace analytics:", error);
     return successResponse({
       message: "No trace data available yet",
       summary: {
@@ -112,7 +113,7 @@ export async function POST(req: NextRequest) {
   const user = await verifyAuth(req);
   if (!user) return unauthorizedResponse();
 
-  if (user.role !== "ADMIN") {
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") {
     return forbiddenResponse({
       message: "Only admins can reset traces",
     });

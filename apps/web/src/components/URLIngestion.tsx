@@ -7,6 +7,8 @@
 
 import { useState } from "react";
 import { LinkIcon, YoutubeIcon, GlobeIcon } from "lucide-react";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 interface URLIngestionProps {
   projectId?: string;
@@ -41,7 +43,7 @@ export default function URLIngestion({
   const ingestURL = async () => {
     const urlType = detectURLType(url);
     if (!urlType) {
-      alert("Please enter a valid URL");
+      logger.warn("Invalid URL entered for ingestion");
       return;
     }
 
@@ -70,8 +72,8 @@ export default function URLIngestion({
         onComplete(data);
       }
     } catch (error) {
-      console.error("URL ingestion error:", error);
-      alert(
+      logger.error(
+        "URL ingestion failed:",
         error instanceof Error ? error.message : "Failed to import from URL",
       );
     } finally {

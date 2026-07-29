@@ -277,3 +277,17 @@ mobile/node_modules/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+################################################################################
+# AUDIT ADDITIONS
+################################################################################
+
+# AI Session logs
+session-*.md
+
+# Graphify analysis outputs
+**/graphify-out/
+.graphify_*
+
+# Windows artifacts
+nul

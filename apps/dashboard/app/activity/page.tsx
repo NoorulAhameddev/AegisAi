@@ -1,190 +1,155 @@
 "use client";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 
-interface ActivityItem {
-  timestamp: number;
-  kind?: string;
-  type?: string;
-  jobId?: string;
-  taskId?: string;
-  [key: string]: any;
+interface ActivityEvent {
+  id: string;
+  type: string;
+  action: string;
+  timestamp: string;
+  user?: string;
+  details?: string;
 }
 
-const TypeColors: Record<string, string> = {
-  "job-created": "bg-blue-900/20 border-blue-700 text-blue-300",
-  "job-started": "bg-purple-900/20 border-purple-700 text-purple-300",
-  "job-completed": "bg-green-900/20 border-green-700 text-green-300",
-  "job-failed": "bg-red-900/20 border-red-700 text-red-300",
-  "task-created": "bg-cyan-900/20 border-cyan-700 text-cyan-300",
-  "task-updated": "bg-cyan-900/20 border-cyan-700 text-cyan-300",
-  "task-deleted": "bg-red-900/20 border-red-700 text-red-300",
-  "scan-started": "bg-yellow-900/20 border-yellow-700 text-yellow-300",
-  "scan-completed": "bg-green-900/20 border-green-700 text-green-300",
-};
-
-const TypeBadges: Record<string, string> = {
-  "job-created": "bg-blue-900 text-blue-200",
-  "job-started": "bg-purple-900 text-purple-200",
-  "job-completed": "bg-green-900 text-green-200",
-  "job-failed": "bg-red-900 text-red-200",
-  "task-created": "bg-cyan-900 text-cyan-200",
-  "task-updated": "bg-cyan-900 text-cyan-200",
-  "task-deleted": "bg-red-900 text-red-200",
-  "scan-started": "bg-yellow-900 text-yellow-200",
-  "scan-completed": "bg-green-900 text-green-200",
-};
-
 export default function ActivityPage() {
-  const [items, setItems] = useState<ActivityItem[]>([]);
+  const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    fetchItems();
-    const interval = setInterval(fetchItems, 5000);
+    async function fetchActivity() {
+      try {
+        const res = await fetch("/api/activity");
+        if (res.ok) {
+          const data = await res.json();
+          setEvents(data || []);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchActivity();
+    const interval = setInterval(fetchActivity, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  async function fetchItems() {
-    try {
-      const res = await fetch("/api/activity");
-      const data = await res.json();
-      setItems(Array.isArray(data) ? data.reverse() : []);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  }
+  return (
+    <div className="space-y-6">
+      <div className="opacity-0 animate-fade-in">
+        <h1 className="text-3xl font-bold mb-2">Activity</h1>
+        <p className="text-zinc-500">
+          Recent security events and system activity
+        </p>
+      </div>
 
-  const eventTypes = useMemo(() => {
-    const types = new Set<string>();
-    items.forEach((it) => {
-      const key = it.kind || it.type || "other";
-      types.add(key);
-    });
-    return Array.from(types).sort();
-  }, [items]);
+      {/* Timeline */}
+      <div className="relative">
+        <div
+          className="absolute left-[11px] top-6 bottom-6 w-0.5"
+          style={{ backgroundColor: "var(--color-border)" }}
+        />
 
-  const filteredItems = useMemo(() => {
-    if (filter === "all") return items;
-    return items.filter((it) => (it.kind || it.type || "other") === filter);
-  }, [items, filter]);
+        <div className="space-y-4">
+          {loading ? (
+            <div
+              className="rounded-xl border p-6"
+              style={{
+                backgroundColor: "var(--color-bg-secondary)",
+                borderColor: "var(--color-border)",
+              }}
+            >
+              <div className="skeleton h-24 w-full" />
+            </div>
+          ) : events.length === 0 ? (
+            <div
+              className="rounded-xl border p-8 text-center ml-8 opacity-0 animate-fade-in-up"
+              style={{
+                backgroundColor: "var(--color-bg-secondary)",
+                borderColor: "var(--color-border)",
+                animationDelay: "75ms",
+              }}
+            >
+              <p className="text-zinc-500">No activity recorded yet</p>
+            </div>
+          ) : (
+            events.map((event, i) => (
+              <ActivityEvent key={event.id} event={event} delay={75 + i * 50} />
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ActivityEvent({
+  event,
+  delay,
+}: {
+  event: ActivityEvent;
+  delay: number;
+}) {
+  const typeColors: Record<string, { color: string; bg: string }> = {
+    security: { color: "#ef4444", bg: "rgba(239, 68, 68, 0.1)" },
+    scan: { color: "#3b82f6", bg: "rgba(59, 130, 246, 0.1)" },
+    task: { color: "#eab308", bg: "rgba(234, 179, 8, 0.1)" },
+    job: { color: "#22c55e", bg: "rgba(34, 197, 94, 0.1)" },
+  };
+
+  const dotColor = typeColors[event.type]?.color || "#71717a";
 
   return (
-    <main className="max-w-7xl mx-auto px-6 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">Activity Log</h1>
-          <p className="text-slate-400">{items.length} events recorded</p>
-        </div>
-        <button
-          onClick={fetchItems}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition"
+    <div
+      className="relative flex items-start gap-6 pl-0 opacity-0 animate-slide-in-left"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className="relative z-10 mt-1">
+        <div
+          className="w-6 h-6 rounded-full flex items-center justify-center"
+          style={{
+            backgroundColor: dotColor,
+            boxShadow: `0 0 0 4px var(--color-bg-primary)`,
+          }}
         >
-          Refresh
-        </button>
+          <div
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: "var(--color-bg-primary)" }}
+          />
+        </div>
       </div>
 
-      {/* Filter Buttons */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        <button
-          onClick={() => setFilter("all")}
-          className={`px-4 py-2 rounded font-medium transition ${
-            filter === "all"
-              ? "bg-blue-600 text-white"
-              : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-          }`}
-        >
-          All Events
-        </button>
-        {eventTypes.map((type) => (
-          <button
-            key={type}
-            onClick={() => setFilter(type)}
-            className={`px-4 py-2 rounded font-medium transition ${
-              filter === type
-                ? "bg-blue-600 text-white"
-                : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-            }`}
+      <div
+        className="flex-1 rounded-xl border p-4 card-hover"
+        style={{
+          backgroundColor: "var(--color-bg-secondary)",
+          borderColor: "var(--color-border)",
+        }}
+      >
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex-1">
+            <h4 className="font-medium text-sm text-zinc-200 mb-1">
+              {event.action}
+            </h4>
+            {event.details && (
+              <p className="text-xs text-zinc-500">{event.details}</p>
+            )}
+          </div>
+          <span
+            style={{
+              backgroundColor:
+                typeColors[event.type]?.bg || "rgba(113, 113, 122, 0.1)",
+              color: typeColors[event.type]?.color || "#71717a",
+            }}
+            className="px-2 py-1 rounded-md text-xs font-medium capitalize"
           >
-            {type}
-          </button>
-        ))}
+            {event.type}
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-zinc-600">
+          <span>{new Date(event.timestamp).toLocaleString()}</span>
+          {event.user && <span>by {event.user}</span>}
+        </div>
       </div>
-
-      {/* Activity Timeline */}
-      {loading ? (
-        <div className="text-slate-400">Loading activity...</div>
-      ) : filteredItems.length === 0 ? (
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-8 text-center text-slate-400">
-          <p>No activity found</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {filteredItems.map((it, i) => {
-            const type = it.kind || it.type || "other";
-            const colorClass = TypeColors[type] || "bg-slate-700";
-            const badgeClass = TypeBadges[type];
-            const time = new Date(it.timestamp || 0);
-            const now = new Date();
-            const isToday = time.toDateString() === now.toDateString();
-            const isYesterday =
-              time.toDateString() ===
-              new Date(now.getTime() - 86400000).toDateString();
-
-            return (
-              <div key={i} className={`border rounded-lg p-4 ${colorClass}`}>
-                <div className="flex justify-between items-start gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span
-                        className={`text-xs font-semibold px-3 py-1 rounded ${badgeClass}`}
-                      >
-                        {type}
-                      </span>
-                      <span className="text-xs text-slate-400">
-                        {isToday
-                          ? time.toLocaleTimeString()
-                          : isYesterday
-                            ? "Yesterday " + time.toLocaleTimeString()
-                            : time.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="space-y-1 text-sm">
-                      {it.jobId && (
-                        <div className="text-slate-300">
-                          Job: <span className="font-mono">{it.jobId}</span>
-                        </div>
-                      )}
-                      {it.taskId && (
-                        <div className="text-slate-300">
-                          Task: <span className="font-mono">{it.taskId}</span>
-                        </div>
-                      )}
-                      {Object.entries(it).map(
-                        ([k, v]) =>
-                          ![
-                            "timestamp",
-                            "kind",
-                            "type",
-                            "jobId",
-                            "taskId",
-                          ].includes(k) &&
-                          typeof v === "string" && (
-                            <div key={k} className="text-slate-400">
-                              <span className="opacity-75">{k}:</span> {v}
-                            </div>
-                          ),
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </main>
+    </div>
   );
 }

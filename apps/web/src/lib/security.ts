@@ -181,12 +181,33 @@ export function detectLeaks(content: string): boolean {
 }
 
 /**
- * Validate email format (RFC 5322 basic pattern)
+ * Sanitize user input by removing dangerous HTML/JavaScript
+ * Uses iterative stripping to handle nested/bypass attempts like <scr<script>ipt>
  */
-export function isValidEmail(email: string): boolean {
-  if (!email) return false;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+export function sanitizeUserInput(input: string): string {
+  if (!input) return "";
+
+  // Trim whitespace
+  let cleaned = input.trim();
+
+  // Limit input length to 10000 characters
+  if (cleaned.length > 10000) {
+    cleaned = cleaned.substring(0, 10000);
+  }
+
+  // Iteratively strip HTML tags to handle bypass attempts like <scr<script>ipt>
+  let prev;
+  do {
+    prev = cleaned;
+    cleaned = cleaned.replace(/<[^>]*>/g, "");
+  } while (cleaned !== prev);
+
+  // Remove common XSS patterns
+  cleaned = cleaned.replace(/javascript:/gi, "");
+  cleaned = cleaned.replace(/on\w+\s*=/gi, "");
+
+  // HTML entity encode
+  return sanitize(cleaned);
 }
 
 /**
@@ -201,31 +222,6 @@ export function isStrongPassword(password: string): boolean {
   const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
 
   return hasUppercase && hasLowercase && hasNumber && hasSpecialChar;
-}
-
-/**
- * Sanitize user input by removing dangerous HTML/JavaScript
- */
-export function sanitizeUserInput(input: string): string {
-  if (!input) return "";
-
-  // Trim whitespace
-  let cleaned = input.trim();
-
-  // Limit input length to 10000 characters
-  if (cleaned.length > 10000) {
-    cleaned = cleaned.substring(0, 10000);
-  }
-
-  // Remove HTML tags
-  cleaned = cleaned.replace(/<[^>]*>/g, "");
-
-  // Remove common XSS patterns
-  cleaned = cleaned.replace(/javascript:/gi, "");
-  cleaned = cleaned.replace(/on\w+\s*=/gi, "");
-
-  // HTML entity encode
-  return sanitize(cleaned);
 }
 
 /**

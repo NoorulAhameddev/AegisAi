@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation";
 import { Plus, Search, Filter, Sparkles } from "lucide-react";
 import { CharacterCard } from "./CharacterCard";
 import { CreateCharacterModal } from "./CreateCharacterModal";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 interface CharacterPreset {
   id: string;
@@ -77,7 +79,7 @@ export function CharacterManager() {
 
       setError(data?.error || "Failed to fetch characters");
     } catch (error) {
-      console.error("Failed to load characters:", error);
+      logger.error("Failed to load characters:", error);
       setError("Failed to fetch characters");
     } finally {
       setLoading(false);
@@ -95,14 +97,16 @@ export function CharacterManager() {
       // Refresh list
       fetchCharacters();
     } catch (error) {
-      console.error("Failed to delete character:", error);
-      alert("Failed to delete character. Please try again.");
+      logger.error("Failed to delete character:", error);
     }
   };
 
   const handleEdit = (id: string) => {
-    // TODO: Implement edit modal
-    alert(`Edit character ${id} - Coming soon!`);
+    logger.info(`Edit character ${id} - modal not yet implemented`);
+  };
+
+  const handleEdit = (id: string) => {
+    logger.info(`Edit character ${id} - modal not yet implemented`);
   };
 
   if (loading) {

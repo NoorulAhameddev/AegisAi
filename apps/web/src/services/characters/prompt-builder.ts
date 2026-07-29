@@ -91,7 +91,7 @@ export async function getCharacterConfig(
   try {
     if (!characterId) {
       return {
-        model: "glm-5",
+        model: "openai/gpt-4o-mini",
         temperature: 0.7,
       };
     }
@@ -103,7 +103,7 @@ export async function getCharacterConfig(
 
     if (!character) {
       return {
-        model: "glm-5",
+        model: "openai/gpt-4o-mini",
         temperature: 0.7,
       };
     }
@@ -118,7 +118,7 @@ export async function getCharacterConfig(
       characterId,
     });
     return {
-      model: "glm-5",
+      model: "openai/gpt-4o-mini",
       temperature: 0.7,
     };
   }
@@ -150,4 +150,3 @@ export async function canUserAccessCharacter(
     return false;
   }
 }
-

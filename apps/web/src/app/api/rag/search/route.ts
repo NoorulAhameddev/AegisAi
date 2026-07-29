@@ -60,12 +60,13 @@ export async function POST(req: NextRequest) {
     }));
 
     // Fallback to DB keyword search if no results
+    // NOTE: File content is encrypted, so we can only search by name
     if (formattedResults.length === 0) {
       const fileResults = await readPrisma.file.findMany({
         where: {
           userId: user.id,
           deletedAt: null,
-          content: {
+          name: {
             contains: query,
             mode: "insensitive",
           },
@@ -76,7 +77,6 @@ export async function POST(req: NextRequest) {
           id: true,
           name: true,
           type: true,
-          content: true,
           createdAt: true,
           projectId: true,
           metadata: true,
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
 
       formattedResults = fileResults.map((file) => ({
         id: file.id,
-        text: file.content || "",
+        text: `[File: ${file.name}]`,
         metadata: {
           ...(typeof file.metadata === "object" && file.metadata
             ? file.metadata

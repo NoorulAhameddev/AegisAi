@@ -53,37 +53,36 @@ export const prisma =
   });
 
 // Validate connection pool configuration on startup
-if (env.NODE_ENV === "production") {
-  const dbUrl = env.DATABASE_URL;
-  if (!dbUrl.includes("connection_limit=")) {
-    logger.warn(
-      "[Prisma] WARNING: connection_limit not set in DATABASE_URL. Using default pool size.",
-    );
-    logger.warn(
-      "[Prisma] Recommended: Add ?connection_limit=75&pool_timeout=30&connect_timeout=10 to DATABASE_URL",
-    );
-  } else {
-    const limitMatch = dbUrl.match(/connection_limit=(\d+)/);
-    if (limitMatch) {
-      const limit = parseInt(limitMatch[1]);
-      logger.debug(`[Prisma] Connection pool configured: ${limit} connections`);
-      if (limit < 50) {
-        logger.warn(
-          `[Prisma] WARNING: Connection pool size (${limit}) may be too small for production (recommended: 75+)`,
-        );
+if (process.env.SKIP_PROD_VALIDATION !== '1') {
+  if (env.NODE_ENV === "production") {
+    const dbUrl = env.DATABASE_URL;
+    if (!dbUrl.includes("connection_limit=")) {
+      throw new Error(
+        "[Prisma] FATAL: connection_limit not set in DATABASE_URL. Add ?connection_limit=75&pool_timeout=30&connect_timeout=10",
+      );
+    } else {
+      const limitMatch = dbUrl.match(/connection_limit=(\d+)/);
+      if (limitMatch) {
+        const limit = parseInt(limitMatch[1], 10);
+        logger.debug(`[Prisma] Connection pool configured: ${limit} connections`);
+        if (limit < 50) {
+          throw new Error(
+            `[Prisma] FATAL: Connection pool size (${limit}) too small for production (minimum: 75)`,
+          );
+        }
       }
     }
   }
-}
 
-// Log connection pool info on startup (development only)
-if (env.NODE_ENV === "development") {
-  logger.debug(
-    `[Prisma] Connected to: ${env.DATABASE_URL.split("://")[0]}://...`,
-  );
-  logger.debug(
-    "[Prisma] Development mode: Add ?connection_limit=10 for local testing",
-  );
+  // Log connection pool info on startup (development only)
+  if (env.NODE_ENV === "development") {
+    logger.debug(
+      `[Prisma] Connected to: ${env.DATABASE_URL.split("://")[0]}://...`,
+    );
+    logger.debug(
+      "[Prisma] Development mode: Add ?connection_limit=10 for local testing",
+    );
+  }
 }
 
 // Start connection pool monitoring

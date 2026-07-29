@@ -38,7 +38,7 @@ export function DocumentStorage({
 
   const handleSave = async () => {
     if (!saveTitle.trim()) {
-      alert("Please enter a title");
+      console.warn("Document save attempted without title");
       return;
     }
 
@@ -53,8 +53,9 @@ export function DocumentStorage({
       setSaveTags("");
       setShowSaveDialog(false);
     } catch (error) {
-      alert(
-        `Failed to save: ${error instanceof Error ? error.message : "Unknown error"}`,
+      console.error(
+        "Document save failed:",
+        error instanceof Error ? error.message : "Unknown error",
       );
     } finally {
       setSaving(false);
@@ -62,14 +63,14 @@ export function DocumentStorage({
   };
 
   const handleDelete = async (docId: string) => {
-    if (confirm("Are you sure you want to delete this document?")) {
-      try {
-        await onDelete(docId);
-      } catch (error) {
-        alert(
-          `Failed to delete: ${error instanceof Error ? error.message : "Unknown error"}`,
-        );
-      }
+    // TODO: Replace with a confirmation modal
+    try {
+      await onDelete(docId);
+    } catch (error) {
+      console.error(
+        "Document delete failed:",
+        error instanceof Error ? error.message : "Unknown error",
+      );
     }
   };
 

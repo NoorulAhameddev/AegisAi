@@ -35,23 +35,22 @@ try {
 const worker = new Worker(
   videoSummaryQueue.name,
   async (job: Job) => {
-    try {
-      const { youtubeUrl, userId, projectId } = job.data;
-      const result = await generateVideoSummary(youtubeUrl, userId, projectId);
-      logger.worker(job.id as string, "completed", {
-        jobType: "video-summary",
-      });
-      return { success: true, result };
-    } catch (error) {
-      logger.error("Video summary job failed", error as Error, {
-        jobId: job.id,
-      });
-      return { success: false, error: (error as Error).message };
-    }
+    // NOTE: Do NOT catch and return {success:false} here.
+    // Let errors propagate so BullMQ marks the job as failed and retries.
+    // Returning {success:false} makes BullMQ treat it as COMPLETED.
+    const { youtubeUrl, userId, projectId } = job.data;
+    const result = await generateVideoSummary(youtubeUrl, userId, projectId);
+    logger.worker(job.id as string, "completed", {
+      jobType: "video-summary",
+    });
+    return { success: true, result };
   },
   {
     connection,
     concurrency: env.WORKER_CONCURRENCY,
+    lockDuration: 60000, // 60s lock to prevent stalled jobs
+    stalledInterval: 30000,
+    maxStalledCount: 2,
   },
 );
 

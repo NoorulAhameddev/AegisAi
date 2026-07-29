@@ -13,6 +13,8 @@ import {
   Volume2,
   Lightbulb,
 } from "lucide-react";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 interface Message {
   id: string;
@@ -108,7 +110,7 @@ export function AdvancedChat({
         };
         setMessages((prev) => [...prev, assistantMessage]);
       } catch (error) {
-        console.error("Regeneration failed:", error);
+        logger.error("Regeneration failed:", error);
       }
     }
   };

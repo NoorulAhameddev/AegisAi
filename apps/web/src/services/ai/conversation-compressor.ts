@@ -67,7 +67,7 @@ async function summarizeMessages(
       .join("\n");
 
     const response = await openai.chat.completions.create({
-      model: "glm-5", // Use faster/cheaper model for summarization
+      model: "openai/gpt-4o-mini", // Use faster/cheaper model for summarization
       messages: [
         {
           role: "user",
@@ -311,4 +311,3 @@ export async function getCompressionStats(chatId: string) {
     })),
   };
 }
-

@@ -120,7 +120,7 @@ export default async function DashboardPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-slide-up">
               <div>
                 <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white via-white to-zinc-400">
-                  Welcome back, {user.name.split(" ")[0]}
+                  Welcome back, {(user.name || "User").split(" ")[0]}
                 </h1>
                 <p className="text-zinc-400 mt-2 text-lg">
                   Your AI workspace is ready.
@@ -290,8 +290,7 @@ export default async function DashboardPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium text-zinc-200 group-hover:text-white transition-colors truncate">
-                            {chat.Message[0]?.content.slice(0, 80) ||
-                              "New Conversation"}
+                            {chat.title || "Untitled Chat"}
                           </h4>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-xs text-zinc-500 font-mono">

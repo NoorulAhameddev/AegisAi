@@ -1,4 +1,6 @@
 import fs from "fs";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 export async function searchWeb(query: string) {
   try {
@@ -48,7 +50,7 @@ export async function searchWeb(query: string) {
     return simpleResults;
   } catch (error: any) {
     fs.appendFileSync("server_debug.log", `[SEARCH ERROR] ${error.message}\n`);
-    console.error("Search failed:", error);
+    logger.error("Search failed:", error);
     return { error: "Search failed", details: error.message };
   }
 }

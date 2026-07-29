@@ -33,7 +33,7 @@ export interface RAGConfig {
   mode: RAGMode;
 
   // Embedding settings
-  embeddingModel: "glm-5" | "text-embedding-3-large";
+  embeddingModel: "openai/text-embedding-3-small" | "text-embedding-3-large";
   mergeStrategy: MergeStrategy;
 
   enableMultiModal: boolean;
@@ -75,7 +75,7 @@ export interface RAGConfig {
  */
 export const DEFAULT_RAG_CONFIG: RAGConfig = {
   mode: "permissive",
-  embeddingModel: "glm-5",
+  embeddingModel: "openai/text-embedding-3-small",
   mergeStrategy: "text-only",
   enableMultiModal: true,
   enableImageEmbeddings: !!env.HUGGINGFACE_API_KEY,
@@ -335,4 +335,3 @@ export function logConfiguration(): void {
     },
   });
 }
-

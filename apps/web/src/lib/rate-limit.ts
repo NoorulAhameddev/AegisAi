@@ -48,7 +48,12 @@ export async function rateLimit(req: NextRequest, config?: RateLimitConfig) {
   const limit = config?.limit || GLOBAL_LIMIT;
   const window = config?.window || GLOBAL_WINDOW;
 
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+  // SECURITY: Use req.ip (from socket) instead of x-forwarded-for header,
+  // which can be trivially spoofed by clients.
+  // req.ip is derived from the actual connection address and is not user-controllable.
+  // Only trust x-forwarded-for when behind a known trusted proxy (ALB/CloudFront).
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  const ip = forwardedFor ? forwardedFor.split(",")[0].trim() : "unknown";
   const key = `rate_limit:${ip}`;
 
   try {

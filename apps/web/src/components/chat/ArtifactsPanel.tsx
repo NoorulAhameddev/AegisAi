@@ -121,9 +121,11 @@ export function ArtifactsPanel({
             {language === "html" && (
               <iframe
                 key={key}
-                srcDoc={content}
+                srcDoc={DOMPurify.sanitize(content, {
+                  USE_PROFILES: { html: true },
+                })}
                 className="w-full h-full bg-white"
-                sandbox="allow-scripts" // Be careful with permissions
+                sandbox="allow-scripts"
                 title="Preview"
               />
             )}

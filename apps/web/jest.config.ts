@@ -31,6 +31,14 @@ const config: Config = {
   ],
   moduleDirectories: ["node_modules", "<rootDir>/"],
   rootDir: "./",
+  coverageThreshold: {
+    global: {
+      lines: 60,
+      branches: 50,
+      functions: 60,
+      statements: 60,
+    },
+  },
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

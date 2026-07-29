@@ -7,6 +7,8 @@ import { prisma } from "@/lib/prisma";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
 import PDFDocument from "pdfkit";
 import { marked } from "marked";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 export interface ExportResult {
   buffer: Buffer;
@@ -337,7 +339,7 @@ export async function exportNotesAsZip(
       }
       return result;
     } catch (error) {
-      console.error(`Failed to export note ${noteId}:`, error);
+      logger.error(`Failed to export note ${noteId}:`, error);
       return null;
     }
   });

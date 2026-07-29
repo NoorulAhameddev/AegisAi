@@ -107,6 +107,13 @@ const envSchema = z.object({
   SENTRY_RELEASE: z.string().optional(),
   SENTRY_AUTH_TOKEN: z.string().optional(), // For source maps upload
 
+  // External Audit Logging (Datadog, Axiom, etc.)
+  EXTERNAL_AUDIT_URL: z.string().url().optional(),
+  EXTERNAL_AUDIT_API_KEY: z.string().optional(),
+
+  // Stripe Webhook Secret (for signature verification)
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+
   // Google OAuth Configuration (optional)
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),

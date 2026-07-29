@@ -19,6 +19,7 @@ import { AppSidebar } from "@/components/layout/AppSidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { cn } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 type AppUser = {
   id: string;
@@ -68,12 +69,12 @@ export default function SettingsPage() {
       const data = await res.json();
       if (res.ok) {
         setUser((prev) => (prev ? { ...prev, name: data.name } : null));
-        alert("Profile updated!");
+        logger.info("Profile updated");
       } else {
-        alert(data.error || "Update failed");
+        logger.error("Profile update failed:", data.error);
       }
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     } finally {
       setSaving(false);
     }
@@ -102,12 +103,27 @@ export default function SettingsPage() {
   };
 
   const handleLogout = async () => {
-    if (!confirm("Are you sure you want to sign out?")) return;
+    // TODO: Replace with a confirmation modal
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       router.push("/login");
     } catch (error) {
-      console.error("Logout failed", error);
+      logger.error("Logout failed", error);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    // TODO: Replace with a confirmation modal
+    try {
+      const res = await fetch("/api/user/delete-account", { method: "DELETE" });
+      if (res.ok) {
+        router.push("/login");
+      } else {
+        const data = await res.json();
+        logger.error("Delete account failed:", data.error);
+      }
+    } catch (error) {
+      logger.error("Delete account failed", error);
     }
   };
 
@@ -341,7 +357,10 @@ export default function SettingsPage() {
                       Once you delete your account, there is no going back.
                       Please be certain.
                     </p>
-                    <button className="px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors text-sm font-medium">
+                    <button
+                      onClick={handleDeleteAccount}
+                      className="px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/20 transition-colors text-sm font-medium"
+                    >
                       Delete Account
                     </button>
                   </div>

@@ -3,11 +3,8 @@ const { withSentryConfig } = require("@sentry/nextjs");
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
-    // PRODUCTION BUILD: Allow build to proceed despite TS errors in experimental features
-    // Core chat functionality is type-safe; experimental features (collaboration,
-    // Google OAuth, analytics) have schema drift and need refactoring
-    // TODO: Fix experimental feature types before enabling strict mode
-    ignoreBuildErrors: process.env.STRICT_TS_BUILD === "true" ? false : true,
+    // Production builds must be type-safe. No more ignoring errors.
+    ignoreBuildErrors: false,
   },
   turbopack: {
     root: require("path").resolve(__dirname, "../.."), // Set to monorepo root
@@ -25,7 +22,15 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "**",
+        hostname: "*.openrouter.ai",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
       },
     ],
   },
@@ -61,7 +66,7 @@ const nextConfig = {
           {
             key: "Content-Security-Policy",
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.openrouter.io; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+              "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.openrouter.io; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
           },
         ],
       },

@@ -31,21 +31,17 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    // NOTE: Message.content is encrypted and cannot be searched with SQL LIKE.
+    // Search is limited to chat titles and file names only.
+    // For full-text search of message content, use the RAG search endpoint.
     const [chats, files] = await Promise.all([
       readPrisma.chat.findMany({
         where: {
           userId: user.id,
           deletedAt: null,
-          OR: [
-            { title: { contains: query, mode: "insensitive" } },
-            {
-              Message: {
-                some: { content: { contains: query, mode: "insensitive" } },
-              },
-            },
-          ],
+          title: { contains: query, mode: "insensitive" },
         },
-        take: 5,
+        take: 10,
         select: { id: true, title: true, createdAt: true },
       }),
       readPrisma.file.findMany({
@@ -54,7 +50,7 @@ export async function GET(req: NextRequest) {
           deletedAt: null,
           name: { contains: query, mode: "insensitive" },
         },
-        take: 5,
+        take: 10,
         select: { id: true, name: true, type: true },
       }),
     ]);

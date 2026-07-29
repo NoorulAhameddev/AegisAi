@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Shield, Eye, EyeOff, AlertTriangle, CheckCircle } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface SecurityInfo {
   encryption: "enabled" | "disabled";
@@ -45,7 +46,7 @@ export function SecuritySettings({
     try {
       await onChangeDataPrivacy(level);
     } catch (error) {
-      console.error("Failed to change privacy level:", error);
+      logger.error("Failed to change privacy level:", error);
     }
   };
 
@@ -54,7 +55,7 @@ export function SecuritySettings({
       await onRevokeAllSessions();
       setRevokeConfirm(false);
     } catch (error) {
-      console.error("Failed to revoke sessions:", error);
+      logger.error("Failed to revoke sessions:", error);
     }
   };
 

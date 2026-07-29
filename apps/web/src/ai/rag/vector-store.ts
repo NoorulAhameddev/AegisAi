@@ -267,7 +267,7 @@ export async function searchSimilar(
           `[VectorStore] Sample doc has vector with ${allDocsForUser[0].vector.length} dimensions`,
         );
       } else {
-        console.warn(`[VectorStore] ⚠️ Sample document has NO vector field!`);
+        logger.warn(`[VectorStore] Sample document has NO vector field!`);
       }
     } else if (allDocs.length > 0) {
       logger.debug(

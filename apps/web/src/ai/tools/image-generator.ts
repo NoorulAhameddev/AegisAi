@@ -1,5 +1,7 @@
 ﻿import { Tool } from "./index";
 import { openai } from "@/services/ai/openai";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 export const ImageGeneratorTool: Tool = {
   name: "generate_image",
@@ -28,7 +30,7 @@ export const ImageGeneratorTool: Tool = {
       // - stability-ai/stable-diffusion-xl
       // - openai/dall-e-3 (if OpenRouter adds support)
       const response = await openai.images.generate({
-        model: "glm-5",
+        model: "openai/gpt-4o-mini",
         prompt,
         n: 1,
         size: "1024x1024",
@@ -40,9 +42,8 @@ export const ImageGeneratorTool: Tool = {
         throw new Error("No image generated.");
       return response.data[0].url;
     } catch (e: any) {
-      console.error("Image generation failed:", e);
+      logger.error("Image generation failed:", e);
       return `Error generating image: ${e.message}`;
     }
   },
 };
-

@@ -11,6 +11,8 @@ import {
 import { createLangChainClient } from "./langchain-client";
 import { getLangChainTools } from "./langchain-tools";
 import { createChatMemory } from "./langchain-memory";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 /**
  * Create a LangChain agent with tools
@@ -74,7 +76,7 @@ export async function runAgent(executor: AgentExecutor, input: string) {
         const memoryVariables = await memory.loadMemoryVariables({});
         chat_history = memoryVariables.chat_history || [];
       } catch (e) {
-        console.warn("Failed to load memory variables:", e);
+        logger.warn("Failed to load memory variables:", e);
       }
     }
 
@@ -89,7 +91,7 @@ export async function runAgent(executor: AgentExecutor, input: string) {
       intermediateSteps: result.intermediateSteps || [],
     };
   } catch (error: any) {
-    console.error("[LangChain Agent] Error:", error);
+    logger.error("[LangChain Agent] Error:", error);
     return {
       success: false,
       error: error.message,

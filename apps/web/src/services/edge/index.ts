@@ -309,8 +309,9 @@ async function validateEdgeFunctionCode(code: string) {
       }
     }
 
-    // Validate JavaScript syntax
-    new Function(code);
+    // NOTE: Syntax validation via new Function() was removed due to RCE risk.
+    // Syntax errors will be caught during actual execution in the sandbox.
+    // The forbidden pattern checks above (fs., eval(), etc.) provide the primary safety layer.
   } catch (error) {
     throw new Error(`Code validation failed: ${(error as Error).message}`);
   }

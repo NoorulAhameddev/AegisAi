@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { logger } from "./src/lib/logger";
 import { env } from "./src/lib/env";
 import { isAdminRole } from "./src/services/auth/permissions";
+import { validateCSRFToken } from "./src/lib/csrf";
 
 // Define JWT payload type for type safety
 interface JWTPayload {
@@ -104,13 +105,17 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Verify JWT for API routes
-  if (
-    path.startsWith("/api/chat") ||
-    path.startsWith("/api/files") ||
-    path.startsWith("/api/admin") ||
-    path.startsWith("/api/ai")
-  ) {
+  // Verify JWT for ALL authenticated API routes
+  // Public routes (auth, webhooks, health, ping, pricing) are excluded below
+  const isPublicApiRoute =
+    path.startsWith("/api/auth/") ||
+    path.startsWith("/api/billing/webhooks") ||
+    path.startsWith("/api/health") ||
+    path.startsWith("/api/ping") ||
+    path.startsWith("/api/billing/pricing") ||
+    path.startsWith("/api/mcp/");
+
+  if (path.startsWith("/api/") && !isPublicApiRoute) {
     // Support both cookie and Bearer token authentication
     let token = req.cookies.get("auth_access")?.value;
 
@@ -161,7 +166,9 @@ export async function middleware(req: NextRequest) {
         );
       }
 
-      // Check token version hasn't been revoked (will verify in route handler against DB)
+      // SECURITY: Verify tokenVersion against DB/Redis to reject revoked sessions
+      // Using Redis cache for fast lookups with short TTL (30s)
+      // This catches password changes and forced logouts immediately
       const requestHeaders = new Headers(req.headers);
       requestHeaders.set("x-user-id", payload.userId);
       requestHeaders.set(
@@ -169,6 +176,51 @@ export async function middleware(req: NextRequest) {
         payload.tokenVersion?.toString() || "0",
       );
       requestHeaders.set("x-request-id", requestId);
+
+      // Fast token version check via Redis cache for immediate revocation
+      const { getCachedTokenVersion } = await import("./src/lib/token-version-cache");
+      const cachedVersion = await getCachedTokenVersion(payload.userId);
+      
+      if (cachedVersion !== null && cachedVersion !== payload.tokenVersion) {
+        logger.security("Token revoked via cache check", {
+          path,
+          ip,
+          requestId,
+          cachedVersion,
+          tokenVersion: payload.tokenVersion,
+        });
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Session revoked",
+            timestamp: new Date().toISOString(),
+            requestId,
+          },
+          { status: 401 },
+        );
+      }
+
+      // CSRF validation for mutating requests
+      if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
+        const csrfValid = validateCSRFToken(req);
+        if (!csrfValid) {
+          logger.security("CSRF validation failed", {
+            path,
+            ip,
+            requestId,
+            method: req.method,
+          });
+          return NextResponse.json(
+            {
+              success: false,
+              error: "CSRF validation failed",
+              timestamp: new Date().toISOString(),
+              requestId,
+            },
+            { status: 403 },
+          );
+        }
+      }
 
       return NextResponse.next({
         request: {

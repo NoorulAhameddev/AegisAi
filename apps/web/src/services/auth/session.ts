@@ -64,6 +64,8 @@ export async function createSession(
 
 /**
  * Rotate tokens - issue new access/refresh token pair
+ * ATOMIC: deletes old session and creates new one in a transaction
+ * to prevent stale tokens if the process crashes mid-way.
  */
 export async function rotateTokens(
   userId: string,
@@ -93,11 +95,45 @@ export async function rotateTokens(
       throw new Error("Invalid or expired session");
     }
 
-    // Create new session
-    const { accessToken, refreshToken } = await createSession(
-      userId,
-      userAgent,
-      ip,
+    // ATOMIC: Delete old session and create new one in a single transaction
+    const { withTransaction } = await import("@/lib/prisma");
+    const { accessToken, refreshToken } = await withTransaction(
+      async (tx: any) => {
+        // Delete old session first
+        await tx.session.deleteMany({
+          where: { token: tokenHash, userId },
+        });
+
+        // Generate new tokens
+        const sessionId = crypto.randomUUID();
+        const refreshPayload = {
+          userId,
+          role: payload.role,
+          tokenVersion: payload.tokenVersion,
+          tokenId: sessionId,
+        };
+        const newRefreshToken = signRefreshToken(refreshPayload);
+        const newAccessToken = signAccessToken({
+          userId,
+          role: payload.role,
+          tokenVersion: payload.tokenVersion,
+        });
+
+        // Create new session
+        await tx.session.create({
+          data: {
+            userId,
+            token: hashToken(newRefreshToken),
+            userAgent,
+            ipAddress: ip,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          },
+        });
+
+        return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+      },
+      { userId, action: "token-rotation" },
+      10000,
     );
 
     logger.auth("Tokens rotated", { userId, sessionId: session.id });

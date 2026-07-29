@@ -1,6 +1,19 @@
+import readline from "readline";
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+function ask(question: string): Promise<string> {
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => resolve(answer));
+  });
+}
+
 async function testLogin() {
-  const email = "superadmin@aegis.ai";
-  const password = "SuperAdmin@123";
+  const email = await ask("Enter email: ");
+  const password = await ask("Enter password: ");
 
   console.log(`🌐 Testing API Login for ${email}...`);
 
@@ -24,6 +37,8 @@ async function testLogin() {
     }
   } catch (error) {
     console.error("❌ Error hitting API:", error);
+  } finally {
+    rl.close();
   }
 }
 

@@ -173,15 +173,30 @@ resource "aws_ecs_task_definition" "api" {
     
     environment = [
       { name = "NODE_ENV", value = var.environment },
-      { name = "PORT", value = "3000" },
-      { name = "DATABASE_URL", value = "postgresql://${var.db_username}:${random_password.db_password.result}@${aws_db_instance.postgres.endpoint}/${var.db_name}" },
-      { name = "REDIS_URL", value = "rediss://:${random_password.redis_auth_token.result}@${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379" },
-      { name = "DB_POOL_SIZE", value = "40" },
-      { name = "DB_POOL_TIMEOUT", value = "30" },
-      { name = "DB_STATEMENT_TIMEOUT", value = "60000" }
+      { name = "WORKER_CONCURRENCY", value = "2" },
+      { name = "DB_POOL_SIZE", value = "10" },
+      { name = "VECTOR_PROVIDER", value = "pgvector" }
     ]
     
     secrets = [
+      { name = "DATABASE_URL", valueFrom = "${aws_secretsmanager_secret.db_password.arn}:DATABASE_URL::" },
+      { name = "REDIS_URL", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:REDIS_URL::" },
+      { name = "ENCRYPTION_KEY", valueFrom = aws_secretsmanager_secret.encryption_key.arn },
+      { name = "OPENROUTER_API_KEY", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:OPENROUTER_API_KEY::" }
+    ]
+    
+    secrets = [
+      { name = "DATABASE_URL", valueFrom = "${aws_secretsmanager_secret.db_password.arn}:DATABASE_URL::" },
+      { name = "REDIS_URL", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:REDIS_URL::" },
+      { name = "JWT_SECRET", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:JWT_SECRET::" },
+      { name = "JWT_REFRESH_SECRET", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:JWT_REFRESH_SECRET::" },
+      { name = "ENCRYPTION_KEY", valueFrom = aws_secretsmanager_secret.encryption_key.arn },
+      { name = "OPENROUTER_API_KEY", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:OPENROUTER_API_KEY::" }
+    ]
+    
+    secrets = [
+      { name = "DATABASE_URL", valueFrom = "${aws_secretsmanager_secret.db_password.arn}:DATABASE_URL::" },
+      { name = "REDIS_URL", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:REDIS_URL::" },
       { name = "JWT_SECRET", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:JWT_SECRET::" },
       { name = "JWT_REFRESH_SECRET", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:JWT_REFRESH_SECRET::" },
       { name = "ENCRYPTION_KEY", valueFrom = aws_secretsmanager_secret.encryption_key.arn },
@@ -227,13 +242,13 @@ resource "aws_ecs_task_definition" "worker" {
     
     environment = [
       { name = "NODE_ENV", value = var.environment },
-      { name = "DATABASE_URL", value = "postgresql://${var.db_username}:${random_password.db_password.result}@${aws_db_instance.postgres.endpoint}/${var.db_name}" },
-      { name = "REDIS_URL", value = "rediss://:${random_password.redis_auth_token.result}@${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379" },
       { name = "WORKER_CONCURRENCY", value = "5" },
       { name = "DB_POOL_SIZE", value = "15" }
     ]
     
     secrets = [
+      { name = "DATABASE_URL", valueFrom = "${aws_secretsmanager_secret.db_password.arn}:DATABASE_URL::" },
+      { name = "REDIS_URL", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:REDIS_URL::" },
       { name = "ENCRYPTION_KEY", valueFrom = aws_secretsmanager_secret.encryption_key.arn },
       { name = "OPENROUTER_API_KEY", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:OPENROUTER_API_KEY::" }
     ]
@@ -269,11 +284,15 @@ resource "aws_ecs_task_definition" "rag_worker" {
     
     environment = [
       { name = "NODE_ENV", value = var.environment },
-      { name = "DATABASE_URL", value = "postgresql://${var.db_username}:${random_password.db_password.result}@${aws_db_instance.postgres.endpoint}/${var.db_name}" },
-      { name = "REDIS_URL", value = "rediss://:${random_password.redis_auth_token.result}@${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379" },
-      { name = "WORKER_CONCURRENCY", value = "2" },
-      { name = "DB_POOL_SIZE", value = "10" },
-      { name = "VECTOR_PROVIDER", value = "pgvector" }
+      { name = "WORKER_CONCURRENCY", value = "5" },
+      { name = "DB_POOL_SIZE", value = "15" }
+    ]
+    
+    secrets = [
+      { name = "DATABASE_URL", valueFrom = "${aws_secretsmanager_secret.db_password.arn}:DATABASE_URL::" },
+      { name = "REDIS_URL", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:REDIS_URL::" },
+      { name = "ENCRYPTION_KEY", valueFrom = aws_secretsmanager_secret.encryption_key.arn },
+      { name = "OPENROUTER_API_KEY", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:OPENROUTER_API_KEY::" }
     ]
     
     secrets = [
@@ -312,9 +331,12 @@ resource "aws_ecs_task_definition" "websocket_worker" {
 
     environment = [
       { name = "NODE_ENV", value = var.environment },
-      { name = "REDIS_URL", value = "rediss://:${random_password.redis_auth_token.result}@${aws_elasticache_replication_group.redis.primary_endpoint_address}:6379" },
       { name = "WEBSOCKET_PORT", value = "3001" },
       { name = "FRONTEND_URL", value = var.frontend_url }
+    ]
+
+    secrets = [
+      { name = "REDIS_URL", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:REDIS_URL::" }
     ]
 
     logConfiguration = {

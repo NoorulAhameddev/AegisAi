@@ -83,20 +83,34 @@ function setupSocketHandlers() {
     const socketId = socket.id;
     logger.worker("websocket", "client_connected", { socketId });
 
-    // Join user's personal room
-    socket.on("auth", (userId: string) => {
-      socket.join(`user:${userId}`);
-      socket.data.userId = userId;
+    // Join user's personal room - validates JWT token
+    socket.on("auth", async (token: string) => {
+      try {
+        const { verifyAccessToken } = await import("@/services/auth/auth");
+        const payload = verifyAccessToken(token);
+        const userId = payload.userId;
 
-      // Track connection
-      if (!userSockets.has(userId)) {
-        userSockets.set(userId, new Set());
+        socket.join(`user:${userId}`);
+        socket.data.userId = userId;
+        socket.data.tokenVersion = payload.tokenVersion;
+
+        // Track connection
+        if (!userSockets.has(userId)) {
+          userSockets.set(userId, new Set());
+        }
+        userSockets.get(userId)!.add(socketId);
+
+        // Broadcast user online
+        broadcastPresence(userId, "online");
+        logger.worker("websocket", "user_authenticated", { userId, socketId });
+      } catch (error) {
+        socket.emit("error", { message: "Invalid authentication token" });
+        socket.disconnect(true);
+        logger.worker("websocket", "auth_failed", {
+          socketId,
+          error: (error as Error).message,
+        });
       }
-      userSockets.get(userId)!.add(socketId);
-
-      // Broadcast user online
-      broadcastPresence(userId, "online");
-      logger.worker("websocket", "user_authenticated", { userId, socketId });
     });
 
     // Join chat room

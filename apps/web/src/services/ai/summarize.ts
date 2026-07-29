@@ -10,11 +10,10 @@ ${messages.join("\n")}
 `;
 
   const completion = await openai.chat.completions.create({
-    model: "glm-5",
+    model: "openai/gpt-4o-mini",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.2,
   });
 
   return completion.choices[0].message.content;
 }
-

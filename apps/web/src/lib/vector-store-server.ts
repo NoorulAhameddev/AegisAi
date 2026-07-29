@@ -2,6 +2,7 @@
 // This file is only meant to be used on the server side
 import path from "path";
 import fs from "fs";
+import { logger } from "@/lib/logger";
 
 const DB_DIR = path.join(process.cwd(), "data", "lancedb");
 
@@ -16,7 +17,7 @@ async function getLanceDBModule() {
         return await import("@lancedb/lancedb");
       })();
     } catch (error) {
-      console.error("Failed to load LanceDB:", error);
+      logger.error("Failed to load LanceDB:", error);
       throw error;
     }
   }

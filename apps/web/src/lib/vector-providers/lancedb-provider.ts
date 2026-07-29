@@ -16,6 +16,8 @@ import {
 import { generateEmbedding } from "@/services/rag/embeddings";
 import { getDocumentChunker } from "@/services/rag/chunker";
 import { getRAGConfig } from "@/services/rag/rag-config";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 let lancedb: any = null;
 
@@ -63,7 +65,7 @@ export class LanceDBProvider implements IVectorDBProvider {
     const db = await getDb();
     const tableNames = await db.tableNames();
     if (!tableNames.includes("documents")) {
-      console.log(
+      logger.info(
         "[LanceDBProvider] Initializing documents table on first use",
       );
     }
@@ -126,7 +128,7 @@ export class LanceDBProvider implements IVectorDBProvider {
       record.sourceId = sourceId;
     }
 
-    console.log(
+    logger.info(
       `[LanceDBProvider] Adding document ${docId.substring(0, 8)} for userId ${userId.substring(0, 8)}`,
     );
 
@@ -153,9 +155,7 @@ export class LanceDBProvider implements IVectorDBProvider {
       metadata.sourceId || metadata.fileId || crypto.randomUUID();
     const documentIds: string[] = [];
 
-    console.log(
-      `[LanceDBProvider] Ingesting document with ${chunks.length} chunks`,
-    );
+    logger.info("[LanceDBProvider] Initializing documents table on first use");
 
     for (const chunk of chunks) {
       const chunkMetadata: DocumentMetadata = {
@@ -177,8 +177,8 @@ export class LanceDBProvider implements IVectorDBProvider {
       documentIds.push(docId);
     }
 
-    console.log(
-      `[LanceDBProvider] Successfully ingested ${documentIds.length} chunks`,
+    logger.info(
+      `[LanceDBProvider] Ingesting document with ${chunks.length} chunks`,
     );
     return documentIds;
   }
@@ -207,17 +207,17 @@ export class LanceDBProvider implements IVectorDBProvider {
     const tableNames = await db.tableNames();
 
     if (!tableNames.includes("documents")) {
-      console.log("[LanceDBProvider] No documents table found");
+      logger.info("[LanceDBProvider] No documents table found");
       return [];
     }
 
     if (!validateUUID(userId)) {
-      console.error(`[LanceDBProvider] Invalid userId format: ${userId}`);
+      logger.error(`[LanceDBProvider] Invalid userId format: ${userId}`);
       throw new Error("Invalid userId format");
     }
 
-    console.log(
-      `[LanceDBProvider] Searching for: "${query.substring(0, 50)}..."`,
+    logger.info(
+      `[LanceDBProvider] Successfully ingested ${documentIds.length} chunks`,
     );
     const vector = await generateEmbedding(query);
 
@@ -228,7 +228,7 @@ export class LanceDBProvider implements IVectorDBProvider {
       filterQuery += ` AND "sourceId" = '${filters.sourceId}'`;
     }
 
-    console.log(`[LanceDBProvider] Running search with filter: ${filterQuery}`);
+    logger.info(`[LanceDBProvider] Running search with filter: ${filterQuery}`);
 
     try {
       const results = await table
@@ -237,14 +237,14 @@ export class LanceDBProvider implements IVectorDBProvider {
         .limit(limit * 2)
         .toArray();
 
-      console.log(
-        `[LanceDBProvider] Found ${results.length} results (before dedup)`,
+      logger.info(
+        `[LanceDBProvider] Searching for: "${query.substring(0, 50)}..."`,
       );
 
       const uniqueResults = deduplicateResults(results as VectorDocument[]);
       return uniqueResults.slice(0, limit);
     } catch (error) {
-      console.error(`[LanceDBProvider] Search failed:`, error);
+      logger.error(`[LanceDBProvider] Search failed:`, error);
       return [];
     }
   }
@@ -275,8 +275,8 @@ export class LanceDBProvider implements IVectorDBProvider {
       await table.delete(
         `"userId" = '${userId}' AND "sourceId" = '${sourceId}'`,
       );
-      console.log(
-        `[LanceDBProvider] Deleted ${count} documents for source ${sourceId}`,
+      logger.info(
+        `[LanceDBProvider] Ingesting document with ${chunks.length} chunks`,
       );
     }
 

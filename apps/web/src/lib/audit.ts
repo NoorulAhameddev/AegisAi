@@ -1,6 +1,7 @@
 /**
  * Audit Logging Service
  * Implements immutable audit trails for all admin actions
+ * Supports external logging for compliance (Datadog, Axiom, Splunk, etc.)
  */
 
 import { prisma } from "./prisma";
@@ -75,14 +76,62 @@ export async function createAuditLog(entry: AuditLogEntry): Promise<void> {
       },
     });
 
-    // TODO: Send to external logging service (Datadog, Axiom, etc.)
-    // This ensures local DB tampering is detectable
-    if (process.env.NODE_ENV === "production") {
-      // await sendToExternalLogger(entry, integrityHash);
+    // Send to external logging service for compliance
+    if (process.env.NODE_ENV === "production" && env.EXTERNAL_AUDIT_URL) {
+      sendToExternalLogger(entry, integrityHash).catch((err) => {
+        logger.error("[AUDIT] External logging failed", err as Error);
+      });
     }
   } catch (error) {
     logger.error("[CRITICAL] Failed to create audit log:", error as Error);
     // In production, this should trigger an alert
+    throw error;
+  }
+}
+
+/**
+ * Send audit log to external service (Datadog, Axiom, Splunk, etc.)
+ */
+async function sendToExternalLogger(
+  entry: AuditLogEntry,
+  integrityHash: string,
+): Promise<void> {
+  if (!env.EXTERNAL_AUDIT_URL || !env.EXTERNAL_AUDIT_API_KEY) {
+    return;
+  }
+
+  const payload = {
+    timestamp: new Date().toISOString(),
+    event: "aegis_audit",
+    action: entry.action,
+    admin_user_id: entry.userId,
+    admin_role: entry.adminRole,
+    target_type: entry.targetType,
+    target_id: entry.targetId,
+    reason: entry.reason,
+    ip_address: entry.ipAddress,
+    mfa_verified: entry.mfaVerified || false,
+    integrity_hash: integrityHash,
+  };
+
+  try {
+    const response = await fetch(env.EXTERNAL_AUDIT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.EXTERNAL_AUDIT_API_KEY}`,
+        "X-Integrity-Hash": integrityHash,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      logger.warn("[AUDIT] External logging returned non-OK status", {
+        status: response.status,
+      });
+    }
+  } catch (error) {
+    logger.error("[AUDIT] Failed to send to external logger", error as Error);
     throw error;
   }
 }

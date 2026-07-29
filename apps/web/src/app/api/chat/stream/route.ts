@@ -26,8 +26,6 @@ const handler = async (req: NextRequest) => {
       logger.warn("Unauthorized chat request");
       return unauthorizedResponse();
     }
-    // const user = { userId: "fe8036b1-afc1-4626-a567-1ebf4ff27f23" };
-    // const user = { userId: "fe8036b1-afc1-4626-a567-1ebf4ff27f23" };
 
     const limit = await rateLimit(req, { limit: 20, window: 60 });
     if (!limit.success) {

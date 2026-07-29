@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 export type PresenceData = {
   userId: string;
@@ -66,7 +68,7 @@ export const useCollaboration = ({
       });
 
       socketRef.current.on("connect", () => {
-        console.log("[Collaboration] Connected to WebSocket");
+        logger.info("[Collaboration] Connected to WebSocket");
         setState((prev: CollaborationState) => ({
           ...prev,
           isConnected: true,
@@ -82,7 +84,7 @@ export const useCollaboration = ({
       });
 
       socketRef.current.on("disconnect", (reason: string) => {
-        console.log("[Collaboration] Disconnected:", reason);
+        logger.info("[Collaboration] Disconnected:", reason);
         setState((prev: CollaborationState) => ({
           ...prev,
           isConnected: false,
@@ -91,12 +93,12 @@ export const useCollaboration = ({
       });
 
       socketRef.current.on("connect_error", (error: Error) => {
-        console.error("[Collaboration] Connection error:", error);
+        logger.error("[Collaboration] Connection error:", error);
         setError("Failed to connect to collaboration server");
       });
 
       socketRef.current.on("error", (error: Error) => {
-        console.error("[Collaboration] Socket error:", error);
+        logger.error("[Collaboration] Socket error:", error);
         setError("Collaboration error");
       });
 
@@ -138,7 +140,7 @@ export const useCollaboration = ({
       });
 
       socketRef.current.on("user-joined", (user: PresenceWireData) => {
-        console.log(`[Collaboration] ${user.userName} joined`);
+        logger.info(`[Collaboration] ${user.userName} joined`);
         setState((prev: CollaborationState) => {
           const updated = prev.activeUsers.filter(
             (u: PresenceData) => u.userId !== user.userId,
@@ -179,7 +181,7 @@ export const useCollaboration = ({
         socketRef.current = null;
       };
     } catch (err) {
-      console.error("[Collaboration] Setup error:", err);
+      logger.error("[Collaboration] Setup error:", err);
       setError("Failed to initialize collaboration");
     }
   }, [chatId, jwt, userId, userName, enabled]);

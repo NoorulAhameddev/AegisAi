@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 
 const CSRF_COOKIE_NAME = "csrf-token";
 const CSRF_HEADER_NAME = "x-csrf-token";
@@ -13,14 +14,7 @@ const CSRF_HEADER_NAME = "x-csrf-token";
  */
 export function generateCSRFToken(): string {
   const array = new Uint8Array(32);
-  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-    crypto.getRandomValues(array);
-  } else {
-    // Fallback for older environments
-    for (let i = 0; i < 32; i++) {
-      array[i] = Math.floor(Math.random() * 256);
-    }
-  }
+  crypto.getRandomValues(array);
   return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
     "",
   );
@@ -54,13 +48,21 @@ export function validateCSRFToken(request: NextRequest): boolean {
     return false;
   }
 
-  // Compare using timing-safe comparison
+  // Compare using timing-safe comparison to prevent timing attacks
   if (headerToken.length !== cookieToken.length) {
     return false;
   }
 
-  // Simple comparison (the real security comes from origin checking)
-  return headerToken === cookieToken;
+  // Use timing-safe comparison to prevent timing attacks
+  const headerBuffer = Buffer.from(headerToken);
+  const cookieBuffer = Buffer.from(cookieToken);
+  
+  try {
+    return crypto.timingSafeEqual(headerBuffer, cookieBuffer);
+  } catch (e) {
+    // If buffers are invalid, reject
+    return false;
+  }
 }
 
 /**
@@ -78,8 +80,10 @@ export function createCSRFResponse(
     csrfToken = generateCSRFToken();
 
     // Set cookie with secure flags
+    // NOTE: httpOnly MUST be false for double-submit CSRF pattern to work
+    // The client JS needs to read this cookie and send it in the X-CSRF-Token header
     response.cookies.set(CSRF_COOKIE_NAME, csrfToken, {
-      httpOnly: true,
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",

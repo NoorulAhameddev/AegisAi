@@ -215,3 +215,13 @@ variable "slack_webhook_url" {
   default     = ""
   sensitive   = true
 }
+
+variable "acm_certificate_arn" {
+  description = "ARN of the ACM certificate for HTTPS listener"
+  type        = string
+}
+
+variable "acm_certificate_arn" {
+  description = "ARN of the ACM certificate for HTTPS listener"
+  type        = string
+}

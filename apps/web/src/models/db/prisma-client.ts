@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -21,5 +22,5 @@ if (process.env.NODE_ENV !== "production") {
 // Graceful shutdown
 process.on("beforeExit", async () => {
   await prisma.$disconnect();
-  console.log("[Prisma] Database connection closed");
+  logger.info("[Prisma] Database connection closed");
 });

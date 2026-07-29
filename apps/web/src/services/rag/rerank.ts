@@ -33,7 +33,7 @@ export type RerankerStatus = {
   reason?: string;
 };
 
-const DEFAULT_MODEL = "glm-5";
+const DEFAULT_MODEL = "openai/gpt-4o-mini";
 const DEFAULT_MAX_DOCS = 20;
 const DEFAULT_MAX_CHARS = 1200;
 const DEFAULT_CACHE_TTL_SECONDS = 900;
@@ -464,4 +464,3 @@ function extractKeyTerms(text: string): string[] {
 
   return [...new Set(words)];
 }
-

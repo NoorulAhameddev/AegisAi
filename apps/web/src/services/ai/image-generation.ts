@@ -57,7 +57,7 @@ export async function generateImages(
 
     // Call DALL-E 3 API
     const response = await openai.images.generate({
-      model: "glm-5",
+      model: "openai/gpt-4o-mini",
       prompt: sanitizePrompt(prompt),
       n: Math.min(Math.max(numImages, 1), 10), // Clamp to 1-10
       size: size as any,
@@ -339,4 +339,3 @@ export async function generateImageBatch(
 
   return results;
 }
-

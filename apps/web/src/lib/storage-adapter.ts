@@ -115,7 +115,14 @@ export class LocalStorageAdapter extends StorageAdapter {
     const { dirname } = await import("path");
 
     const startTime = performance.now();
-    const fullPath = `${this.basePath}/${path}`;
+    // SECURITY: Validate path to prevent directory traversal attacks
+    const normalizedPath = path.replace(/\.\./g, "");
+    const fullPath = `${this.basePath}/${normalizedPath}`;
+    const resolvedPath = require("path").resolve(fullPath);
+    const resolvedBase = require("path").resolve(this.basePath);
+    if (!resolvedPath.startsWith(resolvedBase)) {
+      throw new Error("Invalid path: directory traversal detected");
+    }
 
     // Create directories if needed
     await fs.mkdir(dirname(fullPath), { recursive: true });

@@ -14,9 +14,11 @@ import { logger } from "./logger";
 
 /**
  * In-memory LRU cache with TTL support
+ * Uses access-order tracking for true LRU eviction
  */
 class MemoryCache<T> {
-  private cache: Map<string, { value: T; expiry: number }> = new Map();
+  private cache: Map<string, { value: T; expiry: number; lastAccess: number }> =
+    new Map();
   private readonly maxSize: number;
 
   constructor(maxSize: number = 1000) {
@@ -24,17 +26,25 @@ class MemoryCache<T> {
   }
 
   set(key: string, value: T, ttlSeconds: number): void {
-    // Evict oldest if at capacity
+    // Evict LRU item if at capacity
     if (this.cache.size >= this.maxSize) {
-      const firstKey = this.cache.keys().next().value;
-      if (firstKey) {
-        this.cache.delete(firstKey);
+      let oldestKey: string | undefined;
+      let oldestTime = Infinity;
+      for (const [k, entry] of this.cache.entries()) {
+        if (entry.lastAccess < oldestTime) {
+          oldestTime = entry.lastAccess;
+          oldestKey = k;
+        }
+      }
+      if (oldestKey) {
+        this.cache.delete(oldestKey);
       }
     }
 
     this.cache.set(key, {
       value,
       expiry: Date.now() + ttlSeconds * 1000,
+      lastAccess: Date.now(),
     });
   }
 
@@ -48,6 +58,8 @@ class MemoryCache<T> {
       return null;
     }
 
+    // Update access time for LRU tracking
+    entry.lastAccess = Date.now();
     return entry.value;
   }
 
@@ -59,8 +71,18 @@ class MemoryCache<T> {
     this.cache.clear();
   }
 
+  /**
+   * Returns current size WITHOUT side effects (no cleanup)
+   * Use cleanupExpired() separately if you need to purge expired entries
+   */
   size(): number {
-    // Remove expired entries
+    return this.cache.size;
+  }
+
+  /**
+   * Remove expired entries and return count of remaining items
+   */
+  cleanupExpired(): number {
     const now = Date.now();
     for (const [key, entry] of this.cache.entries()) {
       if (now > entry.expiry) {
@@ -79,6 +101,7 @@ class MemoryRateLimiter {
   private requests: Map<string, { count: number; resetAt: number }> = new Map();
   private readonly windowMs: number;
   private readonly maxRequests: number;
+  private lastCleanup: number = 0;
 
   constructor(maxRequests: number = 100, windowSeconds: number = 60) {
     this.maxRequests = maxRequests;
@@ -87,6 +110,13 @@ class MemoryRateLimiter {
 
   async check(key: string): Promise<{ allowed: boolean; remaining: number }> {
     const now = Date.now();
+
+    // Periodically clean up expired entries (every 60s)
+    if (now - this.lastCleanup > 60000) {
+      this.cleanupExpired();
+      this.lastCleanup = now;
+    }
+
     const entry = this.requests.get(key);
 
     // Reset window if expired
@@ -106,6 +136,15 @@ class MemoryRateLimiter {
     }
 
     return { allowed: true, remaining: this.maxRequests - entry.count };
+  }
+
+  private cleanupExpired(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.requests.entries()) {
+      if (now > entry.resetAt) {
+        this.requests.delete(key);
+      }
+    }
   }
 
   reset(key: string): void {
@@ -140,11 +179,14 @@ export class RedisHealthTracker {
   private isHealthy: boolean = true;
   private lastFailure: number | null = null;
   private failureCount: number = 0;
+  private consecutiveSuccesses: number = 0;
+  private readonly recoveryThreshold: number = 3; // Require 3 consecutive successes before marking healthy
 
   markFailure(): void {
     this.isHealthy = false;
     this.lastFailure = Date.now();
     this.failureCount++;
+    this.consecutiveSuccesses = 0; // Reset on failure
 
     logger.warn("Redis connection failed", {
       failureCount: this.failureCount,
@@ -153,12 +195,19 @@ export class RedisHealthTracker {
   }
 
   markSuccess(): void {
-    const wasUnhealthy = !this.isHealthy;
-    this.isHealthy = true;
-    this.failureCount = 0;
+    this.consecutiveSuccesses++;
 
-    if (wasUnhealthy) {
-      logger.info("Redis connection recovered");
+    // Only mark as healthy after consecutiveSuccesses reaches threshold
+    // This prevents flapping when Redis is intermittently available
+    if (this.consecutiveSuccesses >= this.recoveryThreshold) {
+      const wasUnhealthy = !this.isHealthy;
+      this.isHealthy = true;
+      this.failureCount = 0;
+      this.consecutiveSuccesses = 0;
+
+      if (wasUnhealthy) {
+        logger.info("Redis connection recovered");
+      }
     }
   }
 

@@ -12,6 +12,7 @@ import { MetricCard } from "@/components/admin/charts/MetricCard";
 import { TimeSeriesChart } from "@/components/admin/charts/TimeSeriesChart";
 import { LiveIndicator } from "@/components/admin/charts/LiveIndicator";
 import { PieChart } from "@/components/admin/charts/PieChart";
+import { logger } from "@/lib/logger";
 
 interface LiveMetrics {
   activeChats: number;
@@ -74,7 +75,7 @@ export function AnalyticsTab() {
           setHistoricalStats(historyData.data);
         }
       } catch (error) {
-        console.error("Failed to fetch analytics data:", error);
+        logger.error("Failed to fetch analytics data:", error);
       } finally {
         setLoading(false);
       }
@@ -96,13 +97,13 @@ export function AnalyticsTab() {
         const data = JSON.parse(event.data) as LiveMetrics;
         setLiveMetrics(data);
       } catch (error) {
-        console.error("Failed to parse SSE data:", error);
+        logger.error("Failed to parse SSE data:", error);
       }
     };
 
     eventSource.onerror = () => {
       setSseConnected(false);
-      console.error("SSE connection error");
+      logger.error("SSE connection error");
     };
 
     return () => {

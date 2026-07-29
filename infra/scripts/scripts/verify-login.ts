@@ -1,11 +1,22 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import readline from "readline";
 
 const prisma = new PrismaClient();
 
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+function ask(question: string): Promise<string> {
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => resolve(answer));
+  });
+}
+
 async function verifyLogin() {
-  const email = "superadmin@aegis.ai";
-  const password = "SuperAdmin@123";
+  const email = await ask("Enter email to verify: ");
 
   try {
     console.log(`🔍 Verifying login for ${email}...`);
@@ -18,8 +29,8 @@ async function verifyLogin() {
 
     console.log("✅ User found in database.");
     console.log("User Role:", user.role);
-    console.log("Stored Hash:", user.password);
 
+    const password = await ask("Enter password to verify: ");
     console.log("🔐 Comparing password...");
     const isValid = await bcrypt.compare(password, user.password);
 
@@ -27,14 +38,11 @@ async function verifyLogin() {
       console.log("✅ Password Match! Login should work.");
     } else {
       console.error("❌ Password Mismatch!");
-
-      // Debug: Hash the password again and compare
-      const newHash = await bcrypt.hash(password, 10);
-      console.log("New Hash (for reference):", newHash);
     }
   } catch (error) {
     console.error("❌ Error verifying login:", error);
   } finally {
+    rl.close();
     await prisma.$disconnect();
   }
 }

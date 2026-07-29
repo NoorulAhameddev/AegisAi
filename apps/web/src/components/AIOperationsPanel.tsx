@@ -16,6 +16,8 @@ import {
   SmileIcon,
   LayoutListIcon,
 } from "lucide-react";
+import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 interface AIOperationsPanelProps {
   selectedText: string;
@@ -109,7 +111,7 @@ export default function AIOperationsPanel({
 
   const executeOperation = async (operationId: string) => {
     if (!selectedText.trim()) {
-      alert("Please select or enter text first");
+      logger.warn("No text selected for AI operation");
       return;
     }
 
@@ -139,8 +141,8 @@ export default function AIOperationsPanel({
         onOperationComplete(data);
       }
     } catch (error) {
-      console.error("Operation error:", error);
-      alert("Operation failed. Please try again.");
+      logger.error("Operation error:", error);
+      logger.error("Operation failed:", error);
     } finally {
       setLoading(false);
     }

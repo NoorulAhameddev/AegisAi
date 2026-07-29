@@ -23,6 +23,7 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { MobileNav } from "@/components/layout/MobileNav";
 import Link from "next/link";
 import { ArtifactsPanel } from "@/components/chat/ArtifactsPanel";
+import { logger } from "@/lib/logger";
 
 type Message = {
   role: "USER" | "ASSISTANT" | "SYSTEM";
@@ -35,8 +36,14 @@ type ChatSession = {
   createdAt: string;
 };
 
+type User = {
+  id: string;
+  name: string;
+  email: string;
+};
+
 interface ChatClientProps {
-  user: any;
+  user: User;
 }
 
 export default function ChatClient({ user }: ChatClientProps) {
@@ -52,13 +59,13 @@ export default function ChatClient({ user }: ChatClientProps) {
   const [isTyping, setIsTyping] = useState(false);
   const [lastTyped, setLastTyped] = useState<number>(0);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
-  // Collaboration hook
+  // Collaboration hook (disabled until proper auth token is available)
   const collab = useCollaboration({
     chatId: urlChatId || "",
-    jwt: user?.jwt || "",
+    jwt: "",
     userId: user?.id || "",
     userName: user?.name || "",
-    enabled: !!urlChatId && !!user?.jwt,
+    enabled: false,
   });
   // Collaborators for dropdown
   const collaborators =
@@ -83,7 +90,7 @@ export default function ChatClient({ user }: ChatClientProps) {
         messageCacheRef.current = new Map(Object.entries(parsed));
       }
     } catch (err) {
-      console.warn(
+      logger.warn(
         "[ChatClient] Failed to load message cache from localStorage:",
         err,
       );
@@ -150,7 +157,7 @@ export default function ChatClient({ user }: ChatClientProps) {
       .then((data) => {
         if (Array.isArray(data)) setChatList(data);
       })
-      .catch((err) => console.error(err));
+      .catch((err) => logger.error(err));
   }, [urlChatId, generating]);
 
   useEffect(() => {
@@ -187,14 +194,14 @@ export default function ChatClient({ user }: ChatClientProps) {
                 JSON.stringify(cacheObj),
               );
             } catch (err) {
-              console.warn(
-                "[ChatClient] Failed to save cache to localStorage:",
+              logger.warn(
+                "[ChatClient] Failed to load message cache from localStorage:",
                 err,
               );
             }
           }
         })
-        .catch((err) => console.error("Failed to load history", err));
+        .catch((err) => logger.error("Failed to load history", err));
     } else {
       setMessages([]);
     }
@@ -219,7 +226,7 @@ export default function ChatClient({ user }: ChatClientProps) {
     } catch {
       setFile(null);
       setUploadedFileId(null);
-      alert("Failed to upload");
+      logger.error("File upload failed");
     } finally {
       setUploading(false);
     }
@@ -241,11 +248,11 @@ export default function ChatClient({ user }: ChatClientProps) {
     collab.updatePresence?.({ typing: false });
     setGenerating(true);
     setMessages((prev) => {
-      const next: Message[] = [...prev, { role: "USER", content: userMsg }];
-      return next;
-    });
-    setMessages((prev) => {
-      const next: Message[] = [...prev, { role: "ASSISTANT", content: "..." }];
+      const next: Message[] = [
+        ...prev,
+        { role: "USER", content: userMsg },
+        { role: "ASSISTANT", content: "..." },
+      ];
       // Update cache for current chat
       if (urlChatId) {
         messageCacheRef.current.set(urlChatId, next);
@@ -254,7 +261,7 @@ export default function ChatClient({ user }: ChatClientProps) {
           const cacheObj = Object.fromEntries(messageCacheRef.current);
           localStorage.setItem("aegis_message_cache", JSON.stringify(cacheObj));
         } catch (err) {
-          console.warn("[ChatClient] Failed to save cache:", err);
+          logger.warn("[ChatClient] Failed to save cache:", err);
         }
       }
       return next;
@@ -301,7 +308,7 @@ export default function ChatClient({ user }: ChatClientProps) {
           // ✅ CRITICAL FIX: Validate HTTP response before parsing
           if (!sRes.ok) {
             const errorData = await sRes.json().catch(() => ({}));
-            console.error(
+            logger.error(
               `[Chat] Status endpoint returned ${sRes.status}:`,
               errorData,
             );
@@ -334,7 +341,7 @@ export default function ChatClient({ user }: ChatClientProps) {
                     JSON.stringify(cacheObj),
                   );
                 } catch (err) {
-                  console.warn("[ChatClient] Failed to save cache:", err);
+                  logger.warn("[ChatClient] Failed to save cache:", err);
                 }
               }
               return n;
@@ -346,9 +353,9 @@ export default function ChatClient({ user }: ChatClientProps) {
           await new Promise((r) => setTimeout(r, 1000));
           attempts++;
         } catch (pollErr: any) {
-          console.error(
-            `[Chat] Polling error on attempt ${attempts}:`,
-            pollErr.message,
+          logger.error(
+            `[Chat] Status endpoint returned ${sRes.status}:`,
+            errorData,
           );
 
           // If it's a rate limit error, show it and stop polling
@@ -390,7 +397,7 @@ export default function ChatClient({ user }: ChatClientProps) {
                 JSON.stringify(cacheObj),
               );
             } catch (err) {
-              console.warn("[ChatClient] Failed to save cache:", err);
+              logger.warn("[ChatClient] Failed to save cache:", err);
             }
           }
           return n;
