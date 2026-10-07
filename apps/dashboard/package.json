@@ -9,7 +9,7 @@
     "worker": "node ../..\\apps\\dashboard\\worker.js"
   },
   "dependencies": {
-    "next": "16.1.6",
+    "next": "16.3.8",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "tailwindcss": "^4.0.0"
