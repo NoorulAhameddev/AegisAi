@@ -39,6 +39,21 @@ else
 end
 `;
 
+// Resolve a client IP only from a deployment-configured trusted proxy chain.
+// The edge/load balancer must overwrite or append X-Forwarded-For correctly.
+export function getTrustedClientIp(req: NextRequest): string {
+  const trustedProxyHops = env.TRUSTED_PROXY_HOPS;
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  const chain = forwardedFor?.split(",").map((part) => part.trim()).filter(Boolean) ?? [];
+  const clientIndex = chain.length - trustedProxyHops;
+
+  if (trustedProxyHops < 1 || clientIndex < 0) {
+    return "untrusted-client";
+  }
+
+  return chain[clientIndex];
+}
+
 export async function rateLimit(req: NextRequest, config?: RateLimitConfig) {
   // Disable rate limiting in test mode to allow rapid consecutive requests
   if (process.env.NODE_ENV === "test") {
@@ -47,16 +62,7 @@ export async function rateLimit(req: NextRequest, config?: RateLimitConfig) {
 
   const limit = config?.limit || GLOBAL_LIMIT;
   const window = config?.window || GLOBAL_WINDOW;
-
-  // NextRequest does not expose a portable socket IP in every deployment.
-  // Trust forwarded headers only when the deployment explicitly declares its
-  // trusted proxy hop count. Select the address immediately before those proxies.
-  const trustedProxyHops = Number.parseInt(process.env.TRUSTED_PROXY_HOPS || "0", 10);
-  const forwardedFor = req.headers.get("x-forwarded-for");
-  const chain = forwardedFor?.split(",").map((part) => part.trim()).filter(Boolean) ?? [];
-  const validHopConfig = Number.isInteger(trustedProxyHops) && trustedProxyHops > 0;
-  const clientIndex = chain.length - trustedProxyHops;
-  const ip = validHopConfig && clientIndex >= 0 ? chain[clientIndex] : "untrusted-client";
+  const ip = getTrustedClientIp(req);
   const key = `rate_limit:${ip}`;
 
   try {
