@@ -25,7 +25,13 @@ jobs:
           node-version: 20
       - name: Apply semver-compatible security fixes
         run: |
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund && npm update --package-lock-only --ignore-scripts --no-audit --no-fund
+          cp package-lock.json /tmp/package-lock.backup.json
+          rm package-lock.json
+          if ! npm install --package-lock-only --ignore-scripts --no-audit --no-fund; then
+            cp /tmp/package-lock.backup.json package-lock.json
+            exit 1
+          fi
+          npm audit --omit=dev --audit-level=high || true
       - name: Commit updated dependency lockfile
         env:
           HEAD_BRANCH: ${{ github.ref_name }}
