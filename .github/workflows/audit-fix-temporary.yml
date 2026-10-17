@@ -1,26 +1,24 @@
 name: Apply compatible dependency security updates (temporary)
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
+  push:
+    branches: [fix/security-workflow-audit-gate]
 
 permissions:
   contents: write
 
 concurrency:
-  group: aegis-audit-fix-${{ github.event.pull_request.number }}
+  group: aegis-audit-fix-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
   audit-fix:
-    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.ref_name }}
           persist-credentials: true
       - uses: actions/setup-node@v4
         with:
@@ -31,7 +29,7 @@ jobs:
           npm audit --omit=dev --audit-level=high || true
       - name: Commit updated dependency lockfile
         env:
-          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          HEAD_BRANCH: ${{ github.ref_name }}
         run: |
           git add package-lock.json package.json apps/*/package.json packages/*/package.json services/*/package.json 2>/dev/null || true
           if git diff --cached --quiet; then
