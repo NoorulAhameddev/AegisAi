@@ -53,7 +53,7 @@ export function getTrustedClientIp(req: NextRequest): string {
   }
 
   const candidate = chain[clientIndex];
-  return isIP(candidate) ? candidate : "untrusted-client";
+  return typeof candidate === "string" && isIP(candidate) ? candidate : "untrusted-client";
 }
 
 export async function rateLimit(req: NextRequest, config?: RateLimitConfig) {
