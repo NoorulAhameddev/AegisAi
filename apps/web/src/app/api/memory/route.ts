@@ -16,9 +16,3 @@ export async function GET(req: Request) {
   }
 }
 
-    const memory = await getUserMemory(authResult.userId);
-    return successResponse(memory);
-  } catch (error) {
-    return errorResponse("Authentication required", { status: 401 });
-  }
-}
