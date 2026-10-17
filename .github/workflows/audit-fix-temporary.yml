@@ -1,0 +1,39 @@
+name: Remediate vulnerable locked dependencies (temporary)
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dependency-remediation
+  cancel-in-progress: false
+
+jobs:
+  audit-fix:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Apply non-breaking npm audit fixes
+        run: npm audit fix --ignore-scripts --no-fund
+      - name: Commit updated lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json package.json apps/*/package.json
+          if git diff --cached --quiet; then
+            echo "No safe dependency updates available."
+            exit 0
+          fi
+          git commit -m "Apply compatible dependency security updates"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
