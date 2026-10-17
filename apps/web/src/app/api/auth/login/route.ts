@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const limit = await rateLimit(req, { limit: 5, window: 300 });
     if (!limit.success) {
       logger.security("Login rate limit exceeded", {
-        ip: req.headers.get("x-forwarded-for"),
+        ip: getTrustedClientIp(req),
       });
       return rateLimitResponse();
     }
@@ -83,10 +83,8 @@ export async function POST(req: NextRequest) {
 
     return res;
   } catch (error) {
-    const err = error as Error;
-    console.error("[LOGIN] Full error:", err.message, err.stack);
-    logger.error("Login route error", err);
-    return errorResponse("Internal server error: " + err.message, {
+    logger.error("Login route error", error as Error);
+    return errorResponse("Internal server error", {
       status: 500,
     });
   }
