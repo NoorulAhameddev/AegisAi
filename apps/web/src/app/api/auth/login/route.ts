@@ -9,7 +9,7 @@ import {
   successResponse,
   rateLimitResponse,
 } from "@/lib/response";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, getTrustedClientIp } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    const ip = getTrustedClientIp(req);
     const userAgent = req.headers.get("user-agent") || "unknown";
 
     const { createSession } = await import("@/services/auth/session");
