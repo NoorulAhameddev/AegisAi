@@ -194,7 +194,6 @@ export async function cleanupFallbackQueue(
     return 0;
   }
 }
-}
 
 /**
  * Migrate fallback jobs back to Redis when it recovers
@@ -241,21 +240,6 @@ export async function migrateFallbackJobsToRedis(
           jobId: job.id,
         });
       }
-    }
-
-    logger.info("Migrated fallback jobs to Redis", {
-      queueName,
-      migratedCount,
-    });
-
-    return migratedCount;
-  } catch (error) {
-    logger.error("Failed to migrate fallback jobs", error as Error, {
-      queueName,
-    });
-    return 0;
-  }
-}
     }
 
     logger.info("Migrated fallback jobs to Redis", {
