@@ -255,7 +255,9 @@ describe("Auth Endpoints Integration Tests", () => {
   });
 
   describe("POST /api/auth/refresh", () => {
-    const { rotateTokens } = require("@/services/auth/auth");
+    const { prisma } = require("@/lib/prisma");
+    const { verifyRefreshToken } = require("@/services/auth/auth");
+    const { createSession } = require("@/services/auth/session");
     const { POST: Refresh } = require("@/app/api/auth/refresh/route");
 
     function makeRequest(refreshToken?: string): Request {
@@ -263,49 +265,54 @@ describe("Auth Endpoints Integration Tests", () => {
         "content-type": "application/json",
         "x-request-id": "test-request-id",
       });
-
-      if (refreshToken) {
-        headers.set("cookie", `refreshToken=${refreshToken}`);
-      }
-
       return {
         method: "POST",
         headers,
         cookies: {
           get: (name: string) =>
-            name === "refreshToken" ? { value: refreshToken } : null,
+            name === "auth_refresh" && refreshToken ? { value: refreshToken } : undefined,
         },
       } as unknown as Request;
     }
 
-    it("successfully refreshes tokens", async () => {
-      rotateTokens.mockResolvedValue({
+    it("successfully refreshes tokens using HTTP-only cookies", async () => {
+      const { hashToken } = require("@/services/auth/session");
+      verifyRefreshToken.mockReturnValue({ userId: "user-1", tokenVersion: 1 });
+      hashToken.mockReturnValue("hashed-refresh-token");
+      prisma.session.findUnique.mockResolvedValue({
+        id: "session-1",
+        userId: "user-1",
+        expiresAt: new Date(Date.now() + 60_000),
+      });
+      prisma.user.findUnique.mockResolvedValue({
+        id: "user-1",
+        tokenVersion: 1,
+        isBanned: false,
+      });
+      createSession.mockResolvedValue({
         accessToken: "new-access-token",
         refreshToken: "new-refresh-token",
       });
+      prisma.$transaction.mockResolvedValue([]);
 
-      const req = makeRequest("valid-refresh-token");
-      const res = await Refresh(req);
-
+      const res = await Refresh(makeRequest("valid-refresh-token"));
       expect(res.status).toBe(200);
       const json = await res.json();
       expect(json.success).toBe(true);
-      expect(json.data.accessToken).toBe("new-access-token");
+      expect(json.data.message).toBe("Refreshed");
+      expect(res.cookies.set).toHaveBeenCalledTimes(2);
     });
 
-    it("returns 401 when refresh token missing", async () => {
-      const req = makeRequest();
-      const res = await Refresh(req);
-
+    it("returns 401 when refresh token is missing", async () => {
+      const res = await Refresh(makeRequest());
       expect(res.status).toBe(401);
     });
 
     it("returns 401 when refresh token is invalid", async () => {
-      rotateTokens.mockResolvedValue(null);
-
-      const req = makeRequest("invalid-token");
-      const res = await Refresh(req);
-
+      verifyRefreshToken.mockImplementation(() => {
+        throw new Error("invalid token");
+      });
+      const res = await Refresh(makeRequest("invalid-token"));
       expect(res.status).toBe(401);
     });
   });
