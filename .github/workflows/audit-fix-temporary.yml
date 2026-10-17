@@ -36,7 +36,9 @@ jobs:
         env:
           HEAD_BRANCH: ${{ github.ref_name }}
         run: |
-          git add package-lock.json package.json apps/*/package.json packages/*/package.json services/*/package.json 2>/dev/null || true
+          git add -A -- package-lock.json package.json apps
+          if [ -d packages ]; then git add -A -- packages; fi
+          if [ -d services ]; then git add -A -- services; fi
           if git diff --cached --quiet; then
             echo "npm audit fix did not produce tracked manifest or lockfile changes."
             exit 0
