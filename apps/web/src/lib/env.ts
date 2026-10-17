@@ -7,7 +7,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]),
-  APP_ENV: z.enum(["development", "staging", "production"]),
+  APP_ENV: z.enum(["development", "staging", "production", "test"]).default("development"),
   // Number of trusted reverse-proxy hops represented in X-Forwarded-For.
   // Production deployments must set this to match their actual proxy topology.
   TRUSTED_PROXY_HOPS: z.coerce.number().int().min(0).default(0),
