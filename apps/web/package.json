@@ -64,8 +64,7 @@
   "overrides": {
     "apache-arrow": "18.1.0",
     "@modelcontextprotocol/sdk": "^1.32.1",
-    "decode-uri-component": "^0.4.3",
-    "extract-zip": "^2.0.2"
+    "decode-uri-component": "^0.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
