@@ -25,8 +25,8 @@ jobs:
           node-version: 20
       - name: Apply semver-compatible security fixes
         run: |
-          npm audit fix --ignore-scripts --no-fund || true
-          npm audit --omit=dev --audit-level=high || true
+          npm audit fix --package-lock-only --ignore-scripts --no-fund || true
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Commit updated dependency lockfile
         env:
           HEAD_BRANCH: ${{ github.ref_name }}
