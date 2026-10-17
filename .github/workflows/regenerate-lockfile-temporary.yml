@@ -1,9 +1,9 @@
 name: Regenerate dependency lockfile (temporary)
 
 on:
-  push:
-    branches:
-      - fix/security-workflow-audit-gate
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
@@ -14,12 +14,12 @@ concurrency:
 
 jobs:
   regenerate:
-    if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: fix/security-workflow-audit-gate
+          ref: ${{ github.event.pull_request.head.ref }}
           persist-credentials: true
       - uses: actions/setup-node@v4
         with:
@@ -36,4 +36,4 @@ jobs:
             exit 0
           fi
           git commit -m "Regenerate lockfile after dependency fixes"
-          git push origin HEAD:fix/security-workflow-audit-gate
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
