@@ -24,8 +24,11 @@ jest.mock("@/lib/prisma", () => ({
 
 jest.mock("@/services/auth/auth", () => ({
   verifyAuth: jest.fn(),
-  createSession: jest.fn(),
   rotateTokens: jest.fn(),
+}));
+
+jest.mock("@/services/auth/session", () => ({
+  createSession: jest.fn(),
 }));
 
 jest.mock("bcrypt", () => ({
@@ -41,6 +44,7 @@ jest.mock("@/lib/response", () => ({
       data,
       timestamp: new Date().toISOString(),
     }),
+    cookies: { set: jest.fn() },
   }),
   errorResponse: (error: string, options?: any) => ({
     status: options?.status || 400,
@@ -68,7 +72,7 @@ describe("Auth Endpoints Integration Tests", () => {
   describe("POST /api/auth/register", () => {
     const { prisma } = require("@/lib/prisma");
     const bcrypt = require("bcrypt");
-    const { createSession } = require("@/services/auth/auth");
+    const { createSession } = require("@/services/auth/session");
     const { POST: Register } = require("@/app/api/auth/register/route");
 
     function makeRequest(body: any): Request {
@@ -102,10 +106,10 @@ describe("Auth Endpoints Integration Tests", () => {
       });
 
       const res = await Register(req);
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       const json = await res.json();
       expect(json.success).toBe(true);
-      expect(json.data.user.email).toBe("test@example.com");
+      expect(json.data.message).toBe("Registered & Logged in");
     });
 
     it("returns 400 when email already exists", async () => {
@@ -192,7 +196,7 @@ describe("Auth Endpoints Integration Tests", () => {
       expect(res.status).toBe(200);
       const json = await res.json();
       expect(json.success).toBe(true);
-      expect(json.data.accessToken).toBeDefined();
+      expect(json.data.message).toBe("Logged in");
     });
 
     it("returns 401 when user not found", async () => {
