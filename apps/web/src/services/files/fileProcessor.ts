@@ -8,7 +8,16 @@ type PdfParseResult = {
 };
 
 async function parsePdfBuffer(buffer: Buffer): Promise<PdfParseResult> {
-  const pdfModule = require("pdf-parse");
+  let pdfModule: any;
+
+  try {
+    // pdf-parse v2 requires its worker entry to be initialized before loading
+    // the parser in Node/Next.js server runtimes. v1 has no worker subpath.
+    require("pdf-parse/worker");
+  } catch {
+    // Expected for the legacy v1 API.
+  }
+  pdfModule = require("pdf-parse");
 
   // pdf-parse v1 exports a callable function; v2 exports the PDFParse class.
   if (typeof pdfModule === "function") {
