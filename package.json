@@ -8,7 +8,7 @@
     "services/*"
   ],
   "scripts": {
-    "test": "jest",
+    "test": "npm run test --workspaces --if-present",
     "dev": "npm run dev --workspace=apps/web",
     "dev:mobile": "npm run start --workspace=apps/mobile",
     "build": "npm run build --workspace=apps/web",
@@ -21,7 +21,6 @@
     "lint": "npm run lint --workspaces --if-present",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
     "clean": "node -e \"const fs=require('fs'); const rm=p=>fs.rmSync(p,{recursive:true,force:true}); ['apps/web/.next','out','dist','build','coverage','logs','data/lancedb','.turbo'].forEach(rm); if(fs.existsSync('uploads')){for(const f of fs.readdirSync('uploads')){if(f!=='.gitkeep')rm('uploads/'+f);}}\"",
-    "test": "npm run test --workspaces --if-present",
     "test:watch": "npm run test:watch --workspace=apps/web",
     "test:coverage": "jest --coverage --config=config/jest.config.ts",
     "test:mcp": "tsx infra/scripts/test-mcp.ts",
@@ -45,7 +44,6 @@
     "@azure/storage-blob": "^12.15.0",
     "@google-cloud/storage": "^7.19.0",
     "@lancedb/lancedb": "^0.23.0",
-    "@langchain/community": "0.2.0",
     "@langchain/core": "0.3.58",
     "@langchain/openai": "^0.2.0",
     "@modelcontextprotocol/server-filesystem": "^2026.1.14",
