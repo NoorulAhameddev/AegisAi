@@ -14,8 +14,12 @@ jest.mock("@/lib/prisma", () => ({
     session: {
       create: jest.fn(),
       findFirst: jest.fn(),
+      findUnique: jest.fn(),
       updateMany: jest.fn(),
+      deleteMany: jest.fn(),
+      delete: jest.fn(),
     },
+    $transaction: jest.fn(),
     auditLog: {
       create: jest.fn(),
     },
@@ -25,10 +29,31 @@ jest.mock("@/lib/prisma", () => ({
 jest.mock("@/services/auth/auth", () => ({
   verifyAuth: jest.fn(),
   rotateTokens: jest.fn(),
+  hashPassword: jest.fn(),
+  comparePassword: jest.fn(),
+  verifyRefreshToken: jest.fn(),
+}));
+
+jest.mock("@/lib/env", () => ({
+  env: { NODE_ENV: "test", REDIS_URL: "", TRUSTED_PROXY_HOPS: 0 },
+}));
+
+jest.mock("@/lib/rate-limit", () => ({
+  rateLimit: jest.fn().mockResolvedValue({ success: true, remaining: 99 }),
+  getTrustedClientIp: jest.fn().mockReturnValue("203.0.113.10"),
+}));
+
+jest.mock("@/lib/settings", () => ({
+  getSettings: jest.fn().mockReturnValue({ allowRegistrations: true }),
+}));
+
+jest.mock("@/lib/logger", () => ({
+  logger: { error: jest.fn(), warn: jest.fn(), info: jest.fn(), debug: jest.fn(), security: jest.fn() },
 }));
 
 jest.mock("@/services/auth/session", () => ({
   createSession: jest.fn(),
+  hashToken: jest.fn().mockReturnValue("hashed-refresh-token"),
 }));
 
 jest.mock("bcrypt", () => ({
@@ -71,7 +96,7 @@ describe("Auth Endpoints Integration Tests", () => {
 
   describe("POST /api/auth/register", () => {
     const { prisma } = require("@/lib/prisma");
-    const bcrypt = require("bcrypt");
+    const { hashPassword } = require("@/services/auth/auth");
     const { createSession } = require("@/services/auth/session");
     const { POST: Register } = require("@/app/api/auth/register/route");
 
@@ -88,7 +113,7 @@ describe("Auth Endpoints Integration Tests", () => {
 
     it("successfully registers a new user", async () => {
       prisma.user.findUnique.mockResolvedValue(null); // No existing user
-      bcrypt.hash.mockResolvedValue("hashed-password");
+      hashPassword.mockResolvedValue("hashed-password");
       prisma.user.create.mockResolvedValue({
         id: "user-1",
         email: "test@example.com",
@@ -158,8 +183,8 @@ describe("Auth Endpoints Integration Tests", () => {
 
   describe("POST /api/auth/login", () => {
     const { prisma } = require("@/lib/prisma");
-    const bcrypt = require("bcrypt");
-    const { createSession } = require("@/services/auth/auth");
+    const { comparePassword } = require("@/services/auth/auth");
+    const { createSession } = require("@/services/auth/session");
     const { POST: Login } = require("@/app/api/auth/login/route");
 
     function makeRequest(body: any): Request {
@@ -181,7 +206,7 @@ describe("Auth Endpoints Integration Tests", () => {
         name: "Test User",
         tokenVersion: 1,
       });
-      bcrypt.compare.mockResolvedValue(true);
+      comparePassword.mockResolvedValue(true);
       createSession.mockResolvedValue({
         accessToken: "access-token",
         refreshToken: "refresh-token",
@@ -217,7 +242,7 @@ describe("Auth Endpoints Integration Tests", () => {
         email: "test@example.com",
         password: "hashed-password",
       });
-      bcrypt.compare.mockResolvedValue(false);
+      comparePassword.mockResolvedValue(false);
 
       const req = makeRequest({
         email: "test@example.com",
