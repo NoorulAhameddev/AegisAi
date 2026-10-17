@@ -559,8 +559,18 @@ async function fetchAndCleanWebPage(
 
     const hostname = currentUrl.hostname.replace(/^\[|\]$/g, "");
     const pinned = await resolvePublicAddress(hostname);
-    const pinnedLookup = ((_hostname: string, _options: unknown, callback: (...args: any[]) => void) => {
-      callback(null, pinned.address, pinned.family);
+    // Node's lookup callback contract changes when callers request all addresses.
+    // Support both forms so the pinned DNS result works with current Node HTTP agents.
+    const pinnedLookup = ((
+      _hostname: string,
+      options: number | { all?: boolean },
+      callback: (...args: any[]) => void,
+    ) => {
+      if (typeof options === "object" && options !== null && options.all) {
+        callback(null, [{ address: pinned.address, family: pinned.family }]);
+      } else {
+        callback(null, pinned.address, pinned.family);
+      }
     }) as any;
     const agent = currentUrl.protocol === "https:"
       ? new https.Agent({ lookup: pinnedLookup })
