@@ -8,6 +8,9 @@ import { z } from "zod";
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]),
   APP_ENV: z.enum(["development", "staging", "production"]),
+  // Number of trusted reverse-proxy hops represented in X-Forwarded-For.
+  // Production deployments must set this to match their actual proxy topology.
+  TRUSTED_PROXY_HOPS: z.coerce.number().int().min(0).default(0),
 
   // DATABASE_URL should include connection pool parameters:
   // postgresql://user:password@localhost:5432/dbname?schema=public&sslmode=require&connectionLimit=20&idleTimeout=25000
@@ -136,6 +139,12 @@ if (
   parsed.data.APP_ENV === "production"
 ) {
   const errors: string[] = [];
+
+  if (parsed.data.TRUSTED_PROXY_HOPS < 1) {
+    errors.push(
+      "FATAL: TRUSTED_PROXY_HOPS must be configured to match the trusted reverse-proxy chain in production!",
+    );
+  }
 
   if (
     parsed.data.AUDIT_SIGNING_KEY ===
