@@ -34,7 +34,6 @@ jobs:
           fi
           npm audit fix --package-lock-only --ignore-scripts --no-fund || true
           npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          npm ci --ignore-scripts --no-audit --no-fund
           npm audit --omit=dev --audit-level=high || true
       - name: Commit lockfile
         env:
