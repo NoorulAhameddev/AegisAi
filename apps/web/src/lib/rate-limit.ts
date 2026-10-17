@@ -48,12 +48,15 @@ export async function rateLimit(req: NextRequest, config?: RateLimitConfig) {
   const limit = config?.limit || GLOBAL_LIMIT;
   const window = config?.window || GLOBAL_WINDOW;
 
-  // SECURITY: Use req.ip (from socket) instead of x-forwarded-for header,
-  // which can be trivially spoofed by clients.
-  // req.ip is derived from the actual connection address and is not user-controllable.
-  // Only trust x-forwarded-for when behind a known trusted proxy (ALB/CloudFront).
+  // NextRequest does not expose a portable socket IP in every deployment.
+  // Trust forwarded headers only when the deployment explicitly declares its
+  // trusted proxy hop count. Select the address immediately before those proxies.
+  const trustedProxyHops = Number.parseInt(process.env.TRUSTED_PROXY_HOPS || "0", 10);
   const forwardedFor = req.headers.get("x-forwarded-for");
-  const ip = forwardedFor ? forwardedFor.split(",")[0].trim() : "unknown";
+  const chain = forwardedFor?.split(",").map((part) => part.trim()).filter(Boolean) ?? [];
+  const validHopConfig = Number.isInteger(trustedProxyHops) && trustedProxyHops > 0;
+  const clientIndex = chain.length - trustedProxyHops;
+  const ip = validHopConfig && clientIndex >= 0 ? chain[clientIndex] : "untrusted-client";
   const key = `rate_limit:${ip}`;
 
   try {
