@@ -122,13 +122,6 @@ class MCPClient {
       );
     }
 
-    // Implementation would call the MCP server via stdio transport
-    // TODO: Implement actual MCP stdio protocol communication
-    throw new Error(
-      "MCP filesystem server is configured but protocol implementation is pending.",
-    );
-  }
-
   /**
    * GitHub operations
    */
