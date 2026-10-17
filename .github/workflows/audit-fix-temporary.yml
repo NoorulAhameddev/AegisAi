@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: dependency-remediation
+  group: dependency-remediation-20261017
   cancel-in-progress: false
 
 jobs:
