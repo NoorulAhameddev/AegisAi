@@ -145,19 +145,46 @@ export async function extractFromPDF(
   pdfBuffer: Uint8Array,
 ): Promise<PDFExtractionResult> {
   try {
-    const pdfParse = (await import("pdf-parse")).default;
-    const result = await pdfParse(pdfBuffer);
+    const pdfModule = await import("pdf-parse");
+    const pdfDefault = pdfModule.default as unknown;
+    let text = "";
+    let totalPages = 0;
+    let info: Record<string, unknown> = {};
+
+    // Support both the callable v1 API and the PDFParse class in v2.
+    if (typeof pdfDefault === "function") {
+      const result = await (pdfDefault as (data: Uint8Array) => Promise<any>)(pdfBuffer);
+      text = result.text || "";
+      totalPages = result.numpages || 0;
+      info = result.info || {};
+    } else if (typeof pdfModule.PDFParse === "function") {
+      const parser = new pdfModule.PDFParse({ data: pdfBuffer });
+      try {
+        const [textResult, infoResult] = await Promise.all([
+          parser.getText(),
+          parser.getInfo(),
+        ]);
+        text = textResult.text || "";
+        totalPages = textResult.total || infoResult.total || 0;
+        info = infoResult.infoData || infoResult.info || {};
+      } finally {
+        await parser.destroy();
+      }
+    } else {
+      throw new Error("Unsupported pdf-parse API");
+    }
+
     const images = await extractImagesFromPDF(pdfBuffer);
 
     return {
-      text: (result.text || "").trim(),
+      text: text.trim(),
       images,
-      totalPages: result.numpages || 0,
+      totalPages,
       metadata: {
-        title: result.info?.Title,
-        author: result.info?.Author,
-        creationDate: result.info?.CreationDate,
-        modificationDate: result.info?.ModDate,
+        title: typeof info.Title === "string" ? info.Title : undefined,
+        author: typeof info.Author === "string" ? info.Author : undefined,
+        creationDate: typeof info.CreationDate === "string" ? info.CreationDate : undefined,
+        modificationDate: typeof info.ModDate === "string" ? info.ModDate : undefined,
       },
     };
   } catch (error) {
