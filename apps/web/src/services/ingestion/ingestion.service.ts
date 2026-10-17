@@ -14,6 +14,10 @@ import { getEncryptionKey } from "@/lib/secrets";
 import { logger } from "@/lib/logger";
 import fs from "fs";
 import crypto from "crypto";
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
+import http from "node:http";
+import https from "node:https";
 import path from "path";
 import OpenAI from "openai";
 
@@ -474,32 +478,141 @@ export async function fetchYouTubeTitle(videoId: string): Promise<string> {
   }
 }
 
+const MAX_WEBPAGE_BYTES = 2 * 1024 * 1024;
+const MAX_WEBPAGE_REDIRECTS = 3;
+
+function isPublicIp(address: string): boolean {
+  const family = isIP(address);
+  if (family === 4) {
+    const octets = address.split(".").map(Number);
+    if (octets.length !== 4 || octets.some((n) => n < 0 || n > 255)) return false;
+    const [a, b, c] = octets;
+    // Reject private, loopback, link-local, shared, documentation, benchmark,
+    // multicast, and reserved IPv4 ranges.
+    if (a === 0 || a === 10 || a === 127 || a >= 224) return false;
+    if (a === 100 && b >= 64 && b <= 127) return false;
+    if (a === 169 && b === 254) return false;
+    if (a === 172 && b >= 16 && b <= 31) return false;
+    if (a === 192 && (b === 168 || (b === 0 && c === 0) || (b === 0 && c === 2))) return false;
+    if (a === 198 && (b === 18 || b === 19 || (b === 51 && c === 100))) return false;
+    if (a === 203 && b === 0 && c === 113) return false;
+    if (a === 255 && b === 255 && c === 255) return false;
+    return true;
+  }
+
+  if (family === 6) {
+    const normalized = address.toLowerCase();
+    // Permit global-unicast IPv6 only. Reject mapped addresses, loopback,
+    // unspecified, ULA, link-local, multicast, and special-use/documentation blocks.
+    if (normalized.startsWith("::ffff:")) return false;
+    if (!(normalized.startsWith("2") || normalized.startsWith("3"))) return false;
+    if (
+      normalized.startsWith("2001:db8:") ||
+      normalized.startsWith("2001:0:") ||
+      normalized.startsWith("2001:10:") ||
+      normalized.startsWith("2001:20:")
+    ) return false;
+    return true;
+  }
+
+  return false;
+}
+
+async function resolvePublicAddress(hostname: string): Promise<{ address: string; family: number }> {
+  const literalFamily = isIP(hostname);
+  const addresses = literalFamily
+    ? [{ address: hostname, family: literalFamily }]
+    : await lookup(hostname, { all: true, verbatim: true });
+
+  // Reject the whole hostname if any DNS answer is non-public. Pin the
+  // selected public answer into the HTTP agent to prevent a second DNS lookup.
+  if (!addresses.length || addresses.some(({ address }) => !isPublicIp(address))) {
+    throw new Error("Webpage URL resolves to a non-public or unsupported IP address");
+  }
+  return addresses[0];
+}
+
 async function fetchAndCleanWebPage(
-  url: string,
+  inputUrl: string,
 ): Promise<{ title: string; content: string }> {
   const axios = (await import("axios")).default;
   const cheerio = await import("cheerio");
+  let currentUrl: URL;
 
-  const response = await axios.get(url, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    },
-    timeout: 10000,
-  });
+  try {
+    currentUrl = new URL(inputUrl);
+  } catch {
+    throw new Error("Invalid webpage URL");
+  }
 
-  const $ = cheerio.load(response.data);
+  for (let redirect = 0; redirect <= MAX_WEBPAGE_REDIRECTS; redirect += 1) {
+    if (
+      !["http:", "https:"].includes(currentUrl.protocol) ||
+      currentUrl.username ||
+      currentUrl.password ||
+      !currentUrl.hostname ||
+      ![80, 443].includes(Number(currentUrl.port || (currentUrl.protocol === "https:" ? 443 : 80)))
+    ) {
+      throw new Error("Only public HTTP/HTTPS webpage URLs on standard ports are allowed");
+    }
 
-  // Remove unwanted elements
-  $("script, style, nav, footer, header, aside, iframe").remove();
+    const hostname = currentUrl.hostname.replace(/^\[|\]$/g, "");
+    const pinned = await resolvePublicAddress(hostname);
+    const pinnedLookup = ((_hostname: string, _options: unknown, callback: (...args: any[]) => void) => {
+      callback(null, pinned.address, pinned.family);
+    }) as any;
+    const agent = currentUrl.protocol === "https:"
+      ? new https.Agent({ lookup: pinnedLookup })
+      : new http.Agent({ lookup: pinnedLookup });
 
-  // Extract title
-  const title = $("title").text() || $("h1").first().text() || "Web Page";
+    let response;
+    try {
+      response = await axios.get(currentUrl.toString(), {
+        httpAgent: currentUrl.protocol === "http:" ? agent : undefined,
+        httpsAgent: currentUrl.protocol === "https:" ? agent : undefined,
+        proxy: false,
+        maxRedirects: 0,
+        timeout: 10000,
+        responseType: "text",
+        maxContentLength: MAX_WEBPAGE_BYTES,
+        maxBodyLength: MAX_WEBPAGE_BYTES,
+        validateStatus: (status: number) => status >= 200 && status < 400,
+        headers: {
+          "User-Agent": "AegisAI-WebpageIngestion/1.0",
+          Accept: "text/html,application/xhtml+xml",
+        },
+      });
+    } catch (error) {
+      if ((error as { code?: string }).code === "ERR_BAD_RESPONSE") {
+        throw new Error("Webpage response exceeded the allowed size or was invalid");
+      }
+      throw new Error("Unable to fetch webpage");
+    } finally {
+      agent.destroy();
+    }
 
-  // Extract main content
-  const content = $("body").text().replace(/\s+/g, " ").trim();
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.location;
+      if (!location || redirect === MAX_WEBPAGE_REDIRECTS) {
+        throw new Error("Webpage redirect limit exceeded or redirect target missing");
+      }
+      currentUrl = new URL(location, currentUrl);
+      continue;
+    }
 
-  return { title: title.slice(0, 200), content };
+    const contentType = String(response.headers["content-type"] || "").toLowerCase();
+    if (!contentType.includes("text/html") && !contentType.includes("application/xhtml+xml")) {
+      throw new Error("URL must return an HTML webpage");
+    }
+
+    const $ = cheerio.load(String(response.data));
+    $("script, style, nav, footer, header, aside, iframe, object, embed").remove();
+    const title = $("title").text() || $("h1").first().text() || "Web Page";
+    const content = $("body").text().replace(/\s+/g, " ").trim();
+    return { title: title.slice(0, 200), content };
+  }
+
+  throw new Error("Unable to fetch webpage");
 }
 
 async function transcribeAudio(filePath: string): Promise<string> {
