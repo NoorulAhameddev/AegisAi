@@ -11,7 +11,7 @@ import {
   rateLimitResponse,
 } from "@/lib/response";
 import { registerSchema } from "@/lib/validations";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, getTrustedClientIp } from "@/lib/rate-limit";
 import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Auto-login
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    const ip = getTrustedClientIp(req);
     const userAgent = req.headers.get("user-agent") || "unknown";
 
     // Dynamic import to avoid cycles/issues
