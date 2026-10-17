@@ -23,6 +23,15 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
     
     steps:
       - uses: actions/checkout@v4
@@ -49,6 +58,12 @@ jobs:
         run: npm test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aegis_test
+          REDIS_URL: redis://localhost:6379
+          APP_ENV: test
+          OPENROUTER_API_KEY: sk-test-key
+          JWT_ACCESS_SECRET: test-access-secret-min-32-chars!!
+          JWT_REFRESH_SECRET: test-refresh-secret-min-32-chars!!
+          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef
       
       - name: Upload coverage
         uses: codecov/codecov-action@v3
