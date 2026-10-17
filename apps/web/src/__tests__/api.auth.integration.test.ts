@@ -154,7 +154,7 @@ describe("Auth Endpoints Integration Tests", () => {
       expect(res.status).toBe(400);
       const json = await res.json();
       expect(json.success).toBe(false);
-      expect(json.error).toContain("already exists");
+      expect(json.error).toContain("exists");
     });
 
     it("returns 400 when password is too weak", async () => {

@@ -17,6 +17,8 @@ const redis = env.REDIS_URL
 interface RateLimitConfig {
   limit: number;
   window: number; // in seconds
+  /** Stable bucket identifier for routes with independent rate policies. */
+  key?: string;
 }
 
 const GLOBAL_LIMIT = 100;
@@ -67,7 +69,10 @@ export async function rateLimit(req: NextRequest, config?: RateLimitConfig) {
   const limit = config?.limit || GLOBAL_LIMIT;
   const window = config?.window || GLOBAL_WINDOW;
   const ip = getTrustedClientIp(req);
-  const key = `rate_limit:${ip}`;
+  // Keep independent policies in separate buckets; otherwise login, registration,
+  // and uploads unintentionally consume each other's counters and expiry windows.
+  const scope = config?.key ?? (config ? req.nextUrl.pathname : "global");
+  const key = `rate_limit:${scope}:${ip}`;
 
   try {
     if (redis && !redisHealthTracker.shouldUseFallback()) {

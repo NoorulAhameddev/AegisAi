@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
     const limit = await rateLimit(req, {
       limit: env.MAX_UPLOADS_PER_MINUTE,
       window: 60,
+      key: "files:upload",
     });
     if (!limit.success) {
       return rateLimitResponse();

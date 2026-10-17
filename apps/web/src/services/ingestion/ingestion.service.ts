@@ -493,7 +493,7 @@ function isPublicIp(address: string): boolean {
     if (a === 100 && b >= 64 && b <= 127) return false;
     if (a === 169 && b === 254) return false;
     if (a === 172 && b >= 16 && b <= 31) return false;
-    if (a === 192 && (b === 168 || (b === 0 && c === 0) || (b === 0 && c === 2))) return false;
+    if (a === 192 && (b === 168 || (b === 0 && c === 0) || (b === 0 && c === 2) || (b === 88 && c === 99))) return false;
     if (a === 198 && (b === 18 || b === 19 || (b === 51 && c === 100))) return false;
     if (a === 203 && b === 0 && c === 113) return false;
     if (a === 255 && b === 255 && c === 255) return false;
@@ -502,15 +502,18 @@ function isPublicIp(address: string): boolean {
 
   if (family === 6) {
     const normalized = address.toLowerCase();
-    // Permit global-unicast IPv6 only. Reject mapped addresses, loopback,
-    // unspecified, ULA, link-local, multicast, and special-use/documentation blocks.
+    // Permit global-unicast IPv6 only. Parsing the first groups also catches
+    // reserved ranges written with expanded zero padding (for example 2001:0db8::1).
     if (normalized.startsWith("::ffff:")) return false;
-    if (!(normalized.startsWith("2") || normalized.startsWith("3"))) return false;
+    const groups = normalized.split(":");
+    const firstGroup = Number.parseInt(groups[0] || "0", 16);
+    const secondGroup = Number.parseInt(groups[1] || "0", 16);
+    if (firstGroup < 0x2000 || firstGroup > 0x3fff) return false;
+    // Reject 6to4, documentation space, and special-use IETF protocol assignments.
+    if (firstGroup === 0x2002 || firstGroup === 0x3fff) return false;
     if (
-      normalized.startsWith("2001:db8:") ||
-      normalized.startsWith("2001:0:") ||
-      normalized.startsWith("2001:10:") ||
-      normalized.startsWith("2001:20:")
+      firstGroup === 0x2001 &&
+      [0x0000, 0x0002, 0x0003, 0x0010, 0x0020, 0x0db8].includes(secondGroup)
     ) return false;
     return true;
   }

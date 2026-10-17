@@ -17,7 +17,7 @@ import { NextRequest } from "next/server";
 export async function POST(req: NextRequest) {
   try {
     // CRITICAL: Rate limit registration endpoint to prevent brute force
-    const limit = await rateLimit(req, { limit: 3, window: 3600 }); // 3 registrations per hour per IP
+    const limit = await rateLimit(req, { limit: 3, window: 3600, key: "auth:register" }); // 3 registrations per hour per IP
     if (!limit.success) {
       return rateLimitResponse();
     }
