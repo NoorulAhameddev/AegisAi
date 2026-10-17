@@ -1,0 +1,46 @@
+name: Apply compatible dependency security updates (temporary)
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aegis-audit-fix-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  audit-fix:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Apply semver-compatible security fixes
+        run: |
+          npm audit fix --ignore-scripts --no-fund || true
+          npm audit --omit=dev --audit-level=high || true
+      - name: Commit updated dependency lockfile
+        env:
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          git add package-lock.json package.json apps/*/package.json packages/*/package.json services/*/package.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "npm audit fix did not produce tracked manifest or lockfile changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Apply semver-compatible dependency security updates"
+          git fetch origin "$HEAD_BRANCH"
+          git rebase "origin/$HEAD_BRANCH"
+          git push origin "HEAD:$HEAD_BRANCH"
