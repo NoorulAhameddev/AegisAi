@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { isIP } from "node:net";
 import Redis from "ioredis";
 import { logger } from "./logger";
 import { env } from "@/lib/env";
@@ -45,13 +46,14 @@ export function getTrustedClientIp(req: NextRequest): string {
   const trustedProxyHops = env.TRUSTED_PROXY_HOPS;
   const forwardedFor = req.headers.get("x-forwarded-for");
   const chain = forwardedFor?.split(",").map((part) => part.trim()).filter(Boolean) ?? [];
-  const clientIndex = chain.length - trustedProxyHops;
+  const clientIndex = chain.length - trustedProxyHops - 1;
 
   if (trustedProxyHops < 1 || clientIndex < 0) {
     return "untrusted-client";
   }
 
-  return chain[clientIndex];
+  const candidate = chain[clientIndex];
+  return isIP(candidate) ? candidate : "untrusted-client";
 }
 
 export async function rateLimit(req: NextRequest, config?: RateLimitConfig) {
