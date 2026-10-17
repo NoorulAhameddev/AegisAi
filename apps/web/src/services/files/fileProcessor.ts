@@ -8,23 +8,22 @@ type PdfParseResult = {
 };
 
 async function parsePdfBuffer(buffer: Buffer): Promise<PdfParseResult> {
-  let pdfModule: any;
-
   try {
     // pdf-parse v2 requires its worker entry to be initialized before loading
     // the parser in Node/Next.js server runtimes. v1 has no worker subpath.
-    require("pdf-parse/worker");
+    await import("pdf-parse/worker");
   } catch {
     // Expected for the legacy v1 API.
   }
-  pdfModule = require("pdf-parse");
+  const pdfModule = await import("pdf-parse");
+  const legacyParser = pdfModule.default as unknown;
 
   // pdf-parse v1 exports a callable function; v2 exports the PDFParse class.
-  if (typeof pdfModule === "function") {
-    return pdfModule(buffer);
+  if (typeof legacyParser === "function") {
+    return (legacyParser as (data: Buffer) => Promise<PdfParseResult>)(buffer);
   }
 
-  const PDFParse = pdfModule.PDFParse ?? pdfModule.default?.PDFParse;
+  const PDFParse = pdfModule.PDFParse;
   if (typeof PDFParse !== "function") {
     throw new Error("Unsupported pdf-parse API");
   }
