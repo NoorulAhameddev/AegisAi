@@ -1,6 +1,41 @@
 import fs from "fs";
 import { logger } from "@/lib/logger";
 
+type PdfParseResult = {
+  text: string;
+  numpages?: number;
+  info?: Record<string, unknown>;
+};
+
+async function parsePdfBuffer(buffer: Buffer): Promise<PdfParseResult> {
+  const pdfModule = require("pdf-parse");
+
+  // pdf-parse v1 exports a callable function; v2 exports the PDFParse class.
+  if (typeof pdfModule === "function") {
+    return pdfModule(buffer);
+  }
+
+  const PDFParse = pdfModule.PDFParse ?? pdfModule.default?.PDFParse;
+  if (typeof PDFParse !== "function") {
+    throw new Error("Unsupported pdf-parse API");
+  }
+
+  const parser = new PDFParse({ data: buffer });
+  try {
+    const [textResult, infoResult] = await Promise.all([
+      parser.getText(),
+      parser.getInfo(),
+    ]);
+    return {
+      text: textResult.text ?? "",
+      numpages: textResult.total ?? infoResult.total,
+      info: infoResult.infoData ?? infoResult.info ?? {},
+    };
+  } finally {
+    await parser.destroy();
+  }
+}
+
 type TesseractModule = {
   recognize: (
     image: string,
@@ -33,9 +68,8 @@ export async function extractText(
   try {
     // PDF Extraction
     if (mime === "application/pdf") {
-      const pdf = require("pdf-parse");
       const dataBuffer = fs.readFileSync(filePath);
-      const data = await pdf(dataBuffer);
+      const data = await parsePdfBuffer(dataBuffer);
       return data.text;
     }
 
@@ -138,9 +172,8 @@ export async function extractMetadata(
   try {
     // PDF metadata
     if (mime === "application/pdf") {
-      const pdf = require("pdf-parse");
       const dataBuffer = fs.readFileSync(filePath);
-      const data = await pdf(dataBuffer);
+      const data = await parsePdfBuffer(dataBuffer);
       metadata.pages = data.numpages;
       metadata.info = data.info;
     }
