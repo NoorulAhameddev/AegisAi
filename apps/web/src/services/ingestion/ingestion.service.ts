@@ -551,7 +551,8 @@ async function fetchAndCleanWebPage(
       currentUrl.username ||
       currentUrl.password ||
       !currentUrl.hostname ||
-      ![80, 443].includes(Number(currentUrl.port || (currentUrl.protocol === "https:" ? 443 : 80)))
+      (currentUrl.port !== "" &&
+        Number(currentUrl.port) !== (currentUrl.protocol === "https:" ? 443 : 80))
     ) {
       throw new Error("Only public HTTP/HTTPS webpage URLs on standard ports are allowed");
     }
