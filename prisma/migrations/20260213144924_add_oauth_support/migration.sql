@@ -187,20 +187,7 @@ CREATE TABLE "ImageFile" (
     CONSTRAINT "ImageFile_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "Document" (
-    "id" TEXT NOT NULL,
-    "text" TEXT NOT NULL,
-    "metadata" JSONB,
-    "imageData" TEXT,
-    "imageMimeType" TEXT,
-    "userId" TEXT NOT NULL,
-    "sourceId" TEXT,
-    "chunkIndex" INTEGER,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "Document_pkey" PRIMARY KEY ("id")
-);
+-- Document and its indexes were created by the earlier add_vector_models migration.
 
 -- CreateTable
 CREATE TABLE "FeatureFlag" (
@@ -379,15 +366,6 @@ CREATE INDEX "ImageFile_hash_idx" ON "ImageFile"("hash");
 
 -- CreateIndex
 CREATE INDEX "ImageFile_deletedAt_idx" ON "ImageFile"("deletedAt");
-
--- CreateIndex
-CREATE INDEX "Document_userId_idx" ON "Document"("userId");
-
--- CreateIndex
-CREATE INDEX "Document_userId_sourceId_idx" ON "Document"("userId", "sourceId");
-
--- CreateIndex
-CREATE INDEX "Document_createdAt_idx" ON "Document"("createdAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "FeatureFlag_name_key" ON "FeatureFlag"("name");
