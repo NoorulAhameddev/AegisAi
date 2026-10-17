@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any */
 /**
  * Integration tests for Auth endpoints
  * Tests registration, login, token refresh, and logout flows
