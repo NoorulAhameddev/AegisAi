@@ -8,7 +8,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: aegis-audit-fix-${{ github.ref_name }}
+  group: aegis-audit-fix-lock-update-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -25,8 +25,7 @@ jobs:
           node-version: 20
       - name: Apply semver-compatible security fixes
         run: |
-          npm audit fix --package-lock-only --ignore-scripts --no-fund || true
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm update --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Commit updated dependency lockfile
         env:
           HEAD_BRANCH: ${{ github.ref_name }}
