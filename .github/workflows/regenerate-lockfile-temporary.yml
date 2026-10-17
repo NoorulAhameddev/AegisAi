@@ -32,6 +32,9 @@ jobs:
             cp /tmp/package-lock.backup.json package-lock.json
             exit 1
           fi
+          # Apply only semver-compatible fixes; do not force breaking major upgrades.
+          npm audit fix --package-lock-only --ignore-scripts --no-fund || true
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
           npm audit --omit=dev --audit-level=high || true
       - name: Commit lockfile
         env:
