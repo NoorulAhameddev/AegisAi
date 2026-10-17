@@ -46,9 +46,9 @@ export function getTrustedClientIp(req: NextRequest): string {
   const trustedProxyHops = env.TRUSTED_PROXY_HOPS;
   const forwardedFor = req.headers.get("x-forwarded-for");
   const chain = forwardedFor?.split(",").map((part) => part.trim()).filter(Boolean) ?? [];
-  // Count trusted proxy addresses that appear in X-Forwarded-For; select the
-  // rightmost address before those proxies, never the attacker-controlled leftmost entry.
-  const clientIndex = chain.length - trustedProxyHops;
+  // X-Forwarded-For is ordered client, proxy-1, ..., proxy-N. Skip the
+  // configured trusted proxies from the right, then select the preceding client.
+  const clientIndex = chain.length - trustedProxyHops - 1;
 
   if (trustedProxyHops < 1 || clientIndex < 0) {
     return "untrusted-client";
