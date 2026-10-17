@@ -1,4 +1,4 @@
-name: Migrate mobile app to Expo SDK 58 (temporary)
+name: Regenerate workspace lockfile (temporary)
 
 on:
   push:
@@ -8,13 +8,13 @@ permissions:
   contents: write
 
 concurrency:
-  group: aegis-expo-sdk-migration
+  group: aegis-lock-update-sdk58
   cancel-in-progress: true
 
 jobs:
-  align-mobile-dependencies:
+  lockfile:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -24,28 +24,29 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Align Expo SDK packages and refresh lockfile
+      - name: Regenerate lockfile and apply compatible fixes
         run: |
-          npm install --ignore-scripts --no-audit --no-fund --legacy-peer-deps
-          cd apps/mobile
-          npx expo install --fix
-          cd ../..
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          cp package-lock.json /tmp/package-lock.backup.json
+          rm package-lock.json
+          if ! npm install --package-lock-only --ignore-scripts --no-audit --no-fund; then
+            cp /tmp/package-lock.backup.json package-lock.json
+            exit 1
+          fi
           npm audit fix --package-lock-only --ignore-scripts --no-fund || true
           npm install --package-lock-only --ignore-scripts --no-audit --no-fund
           npm audit --omit=dev --audit-level=high || true
-      - name: Commit aligned Expo packages and lockfile
+      - name: Commit lockfile
         env:
           HEAD_BRANCH: ${{ github.ref_name }}
         run: |
-          git add -- apps/mobile/package.json package-lock.json
+          git add -- package-lock.json apps/mobile/package.json
           if git diff --cached --quiet; then
-            echo "Expo dependencies and lockfile already aligned."
+            echo "No lockfile changes to commit."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Upgrade mobile app to Expo SDK 58"
+          git commit -m "Align Expo SDK 58 dependencies and refresh lockfile"
           git fetch origin "$HEAD_BRANCH"
           git rebase "origin/$HEAD_BRANCH"
           git push origin "HEAD:$HEAD_BRANCH"
