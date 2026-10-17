@@ -145,6 +145,12 @@ export async function extractFromPDF(
   pdfBuffer: Uint8Array,
 ): Promise<PDFExtractionResult> {
   try {
+    // v2's worker entry must load before the parser in Node/Next.js.
+    try {
+      await import("pdf-parse/worker");
+    } catch {
+      // pdf-parse v1 has no worker subpath.
+    }
     const pdfModule = await import("pdf-parse");
     const pdfDefault = pdfModule.default as unknown;
     let text = "";
