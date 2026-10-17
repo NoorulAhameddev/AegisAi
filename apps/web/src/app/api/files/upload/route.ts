@@ -76,6 +76,20 @@ export async function POST(req: NextRequest) {
   try {
     logger.info("Upload start");
 
+    // Reject obviously oversized requests before Next.js materializes multipart
+    // form data. Allow a small allowance for multipart boundaries and fields.
+    const contentLengthHeader = req.headers.get("content-length");
+    if (contentLengthHeader !== null) {
+      const contentLength = Number(contentLengthHeader);
+      if (
+        !Number.isSafeInteger(contentLength) ||
+        contentLength < 0 ||
+        contentLength > env.MAX_FILE_SIZE + 1024 * 1024
+      ) {
+        return errorResponse("Upload request too large", { status: 413 });
+      }
+    }
+
     const user = await verifyAuth(req);
     if (!user) return unauthorizedResponse();
 
