@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { logger } from "./src/lib/logger";
 import { env } from "./src/lib/env";
 import { isAdminRole } from "./src/services/auth/permissions";
-import { validateCSRFToken } from "./src/lib/csrf";
+import { createCSRFResponse, validateCSRFToken } from "./src/lib/csrf";
 
 // Define JWT payload type for type safety
 interface JWTPayload {
@@ -50,7 +50,7 @@ export async function middleware(req: NextRequest) {
       );
       res.headers.set(
         "Access-Control-Allow-Headers",
-        "Content-Type, Authorization, x-request-id",
+        "Content-Type, Authorization, x-request-id, x-csrf-token",
       );
     }
     return res;
@@ -290,8 +290,15 @@ export async function middleware(req: NextRequest) {
     );
     response.headers.set(
       "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, x-request-id",
+      "Content-Type, Authorization, x-request-id, x-csrf-token",
     );
+    response.headers.set("Access-Control-Expose-Headers", "x-csrf-token");
+  }
+
+  // Issue a double-submit CSRF token on GET responses. Protected mutating
+  // requests require this cookie and the matching x-csrf-token header.
+  if (req.method === "GET") {
+    createCSRFResponse(req, response);
   }
 
   // Add strict CSP with nonce for HTML pages (security hardening)
