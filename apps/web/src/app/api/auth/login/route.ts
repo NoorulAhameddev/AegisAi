@@ -14,7 +14,7 @@ import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
   try {
-    const limit = await rateLimit(req, { limit: 20, window: 3600 });
+    const limit = await rateLimit(req, { limit: 5, window: 300 });
     if (!limit.success) {
       logger.security("Login rate limit exceeded", {
         ip: req.headers.get("x-forwarded-for"),
