@@ -23,7 +23,7 @@
     "clean": "node -e \"const fs=require('fs'); const rm=p=>fs.rmSync(p,{recursive:true,force:true}); ['apps/web/.next','out','dist','build','coverage','logs','data/lancedb','.turbo'].forEach(rm); if(fs.existsSync('uploads')){for(const f of fs.readdirSync('uploads')){if(f!=='.gitkeep')rm('uploads/'+f);}}\"",
     "test": "npm run test --workspaces --if-present",
     "test:watch": "npm run test:watch --workspace=apps/web",
-    "test:coverage": "jest --coverage --config=config/jest.config.ts",
+    "test:coverage": "npm run test:coverage --workspace=apps/web",
     "test:mcp": "tsx infra/scripts/test-mcp.ts",
     "test:edge": "tsx infra/scripts/test-edge.ts",
     "migrate": "prisma migrate dev",

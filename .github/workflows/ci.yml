@@ -112,6 +112,12 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
+      - name: Setup test database
+        run: npm run migrate:deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aegis_ai_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/aegis_ai_test
+
       - name: Run tests with coverage
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aegis_ai_test
@@ -129,7 +135,9 @@ jobs:
         if: always()
         with:
           name: coverage-report
-          path: coverage/
+          path: |
+            coverage/
+            apps/web/coverage/
           retention-days: 7
 
   build:
