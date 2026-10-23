@@ -112,6 +112,7 @@ jobs:
       - name: Run tests with coverage
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aegis_ai_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/aegis_ai_test
           REDIS_URL: redis://localhost:6379
           JWT_ACCESS_SECRET: test-access-secret-min-32-chars!!
           JWT_REFRESH_SECRET: test-refresh-secret-min-32-chars!!
@@ -167,6 +168,7 @@ jobs:
       - name: Build
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aegis_ai
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/aegis_ai
           REDIS_URL: redis://localhost:6379
           JWT_ACCESS_SECRET: build-secret-min-32-characters!!
           JWT_REFRESH_SECRET: build-secret-min-32-characters!!

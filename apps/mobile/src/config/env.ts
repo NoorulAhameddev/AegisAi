@@ -1,3 +1,4 @@
+/* eslint-disable expo/no-dynamic-env-var */
 /**
  * Environment Configuration
  * Centralized environment variable management with type safety and validation
