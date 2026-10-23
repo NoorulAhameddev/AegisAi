@@ -17,8 +17,8 @@ const redis = env.REDIS_URL
       retryStrategy: () => null,
     })
   : null;
-redis?.on("error", (err) => {
-  logger.warn("Rerank cache Redis error", { error: err.message });
+redis?.on("error", (err: unknown) => {
+  logger.warn("Rerank cache Redis error", { error: err instanceof Error ? err.message : String(err) });
 });
 
 const DEFAULT_TTL_SECONDS = 900;

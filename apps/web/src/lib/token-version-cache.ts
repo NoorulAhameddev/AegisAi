@@ -14,8 +14,8 @@ const redis = new Redis(env.REDIS_URL, {
   maxRetriesPerRequest: 1,
   retryStrategy: () => null,
 });
-redis.on("error", (err) => {
-  logger.warn("Token version cache Redis error", { error: err.message });
+redis.on("error", (err: unknown) => {
+  logger.warn("Token version cache Redis error", { error: err instanceof Error ? err.message : String(err) });
 });
 const TOKEN_VERSION_KEY_PREFIX = "token_version:";
 const TOKEN_VERSION_TTL = 30; // 30 seconds - short TTL for fast revocation

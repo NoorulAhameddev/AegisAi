@@ -12,8 +12,8 @@ import {
 const redis = env.REDIS_URL
   ? new Redis(env.REDIS_URL, { maxRetriesPerRequest: null })
   : null;
-redis?.on("error", (err) => {
-  logger.warn("Rate limit Redis error", { error: err.message });
+redis?.on("error", (err: unknown) => {
+  logger.warn("Rate limit Redis error", { error: err instanceof Error ? err.message : String(err) });
 });
 
 interface RateLimitConfig {

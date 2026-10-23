@@ -25,8 +25,8 @@ const redis = env.REDIS_URL
       retryStrategy: () => null,
     })
   : null;
-redis?.on("error", (err) => {
-  logger.warn("Chat analytics Redis error", { error: err.message });
+redis?.on("error", (err: unknown) => {
+  logger.warn("Chat analytics Redis error", { error: err instanceof Error ? err.message : String(err) });
 });
 
 const CACHE_TTL = 3600; // 1 hour in seconds
