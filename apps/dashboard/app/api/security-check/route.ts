@@ -1,33 +1,40 @@
 import { NextResponse } from "next/server";
-import path from "path";
-import { spawn } from "child_process";
 import tasksStore from "@/lib/tasksStore";
 import activity from "@/lib/activity";
 import { requireAuth, unauthorizedResponse } from "@/lib/auth";
+
+const requiredSecrets = [
+  "DATABASE_URL",
+  "REDIS_URL",
+  "JWT_ACCESS_SECRET",
+  "JWT_REFRESH_SECRET",
+  "ENCRYPTION_KEY",
+  "AUDIT_SIGNING_KEY",
+];
+
+function isPlaceholder(val?: string) {
+  if (!val) return true;
+  return /REMOVE_ME|REPLACE_WITH|your_/.test(val);
+}
 
 export async function GET(req: Request) {
   const user = await requireAuth(req);
   if (!user) return unauthorizedResponse();
 
   try {
-    const scriptPath = path.join(
-      process.cwd(),
-      "scripts",
-      "startup-secret-check.js",
-    );
-    const out: string[] = [];
-    const proc = spawn("node", [scriptPath], { shell: false });
-    proc.stdout.on("data", (d) => out.push(d.toString()));
-    proc.stderr.on("data", (d) => out.push(d.toString()));
-    const code = await new Promise((res) => proc.on("close", res));
-    const passed = code === 0;
+    const missing: string[] = [];
+    for (const k of requiredSecrets) {
+      const v = process.env[k];
+      if (!v || isPlaceholder(v)) missing.push(k);
+    }
+    const passed = missing.length === 0;
     const issues = passed
       ? []
       : [
           {
             key: "secrets",
             severity: "high",
-            message: out.join("").slice(0, 1000),
+            message: `Missing or placeholder secrets detected for: ${missing.join(", ")}`,
           },
         ];
 

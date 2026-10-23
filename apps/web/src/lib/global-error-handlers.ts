@@ -24,8 +24,13 @@ export function setupGlobalErrorHandlers(processName: string = "app") {
     );
 
     // In production, exit the process to allow restart via PM2/Docker/K8s
-    // This prevents the app from running in an undefined state
-    if (process.env.NODE_ENV === "production") {
+    // This prevents the app from running in an undefined state (skipped during build phase)
+    const isBuildPhase =
+      process.env.NEXT_PHASE === "phase-production-build" ||
+      process.env.SKIP_PROD_VALIDATION === "1" ||
+      process.env.BUILD_PHASE === "1";
+
+    if (process.env.NODE_ENV === "production" && !isBuildPhase) {
       logger.error(
         "Exiting process due to unhandled rejection",
         new Error("Fatal error"),
@@ -42,11 +47,18 @@ export function setupGlobalErrorHandlers(processName: string = "app") {
       type: "uncaughtException",
     });
 
-    // Always exit on uncaught exception - the process is in an undefined state
-    logger.error("Exiting process due to uncaught exception", error, {
-      process: processName,
-    });
-    process.exit(1);
+    // Always exit on uncaught exception in runtime (skipped during build phase)
+    const isBuildPhase =
+      process.env.NEXT_PHASE === "phase-production-build" ||
+      process.env.SKIP_PROD_VALIDATION === "1" ||
+      process.env.BUILD_PHASE === "1";
+
+    if (!isBuildPhase) {
+      logger.error("Exiting process due to uncaught exception", error, {
+        process: processName,
+      });
+      process.exit(1);
+    }
   });
 
   // Handle graceful shutdown signals
