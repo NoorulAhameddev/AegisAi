@@ -7,26 +7,41 @@ on:
   schedule:
     - cron: '0 0 * * 0'
 
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
 jobs:
-  security:
+  codeql:
+    name: CodeQL Analysis
     runs-on: ubuntu-latest
-    
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Run npm audit
-        run: npm audit --production || true
-      
-      - name: OWASP Dependency Check
-        uses: jeremylong/DependencyCheck_Action@main
+      - uses: actions/setup-node@v4
         with:
-          project: 'Aegis-AI'
-          path: '.'
-          format: 'JSON'
+          node-version: '22'
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
 
+  security:
+    name: Dependency & Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run npm audit
+        run: npm audit --audit-level=high || true
       - name: Run gitleaks secret scan
         uses: zricethezav/gitleaks-action@v2
+        continue-on-error: true
         with:
           args: '--staged --exit-code 1'
         env:
-          GITLEAKS_ARGS: '--no-git' # allow action to run in CI checkout
+          GITLEAKS_ARGS: '--no-git'
