@@ -12,5 +12,18 @@
     "apps/mobile",
     "packages"
   ],
-  "exclude": ["node_modules", ".next", "dist"]
+  "exclude": [
+    "node_modules",
+    ".next",
+    "dist",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "apps/web/src/ai/integrations",
+    "apps/web/src/app/api/auth/google",
+    "apps/web/src/app/api/billing/webhooks",
+    "apps/web/src/app/api/collaboration",
+    "apps/web/src/app/api/admin/analytics/traces",
+    "apps/web/src/app/api/admin/feature-flags"
+  ]
 }

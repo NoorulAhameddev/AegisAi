@@ -26,7 +26,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ secrets.DOCKER_USERNAME || 'aegis-ai' }}/aegis-ai
+            aegis-ai/aegis-ai
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}

@@ -125,7 +125,7 @@ export class LocalStorageAdapter extends StorageAdapter {
     }
 
     // Create directories if needed
-    await fs.mkdir(dirname(fullPath), { recursive: true });
+    await fs.mkdir(pathModule.dirname(fullPath), { recursive: true });
 
     return new Promise((resolve, reject) => {
       let size = 0;
