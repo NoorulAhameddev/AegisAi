@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
-import store from "../../../lib/tasksStore";
-import activity from "../../../lib/activity";
-import { requireAuth, unauthorizedResponse } from "../../../../lib/auth";
+import store from "@/lib/tasksStore";
+import activity from "@/lib/activity";
+import { requireAuth, unauthorizedResponse } from "@/lib/auth";
 
 export async function PUT(
   request: NextRequest,

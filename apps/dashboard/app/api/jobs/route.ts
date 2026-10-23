@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import jobsApi from "../../../lib/jobsApi";
-import { requireAuth, unauthorizedResponse } from "../../../lib/auth";
+import jobsApi from "@/lib/jobsApi";
+import { requireAuth, unauthorizedResponse } from "@/lib/auth";
 
 export async function GET(req: Request) {
   const user = await requireAuth(req);

@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import fs from "fs/promises";
 import path from "path";
-import { requireAuth, unauthorizedResponse } from "../../../../lib/auth";
+import { requireAuth, unauthorizedResponse } from "@/lib/auth";
 
 const jobsDir = path.join(process.cwd(), ".dashboard", "jobs");
 

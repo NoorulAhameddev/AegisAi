@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
 import fs from "fs";
 import path from "path";
-import { tailLog } from "../../../../../lib/logTail";
-import { requireAuth, unauthorizedResponse } from "../../../../../lib/auth";
+import { tailLog } from "@/lib/logTail";
+import { requireAuth, unauthorizedResponse } from "@/lib/auth";
 
 const jobsDir = path.join(process.cwd(), ".dashboard", "jobs");
 

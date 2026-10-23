@@ -1,9 +1,9 @@
 import { promisify } from "util";
 import { exec } from "child_process";
-import tasksStore from "../../lib/tasksStore";
-import activity from "../../lib/activity";
-import jobsApi from "../../../lib/jobsApi";
-import { requireAuth, unauthorizedResponse } from "../../../lib/auth";
+import tasksStore from "@/lib/tasksStore";
+import activity from "@/lib/activity";
+import jobsApi from "@/lib/jobsApi";
+import { requireAuth, unauthorizedResponse } from "@/lib/auth";
 
 function normalizeVersion(v: string) {
   if (!v || typeof v !== "string") return [0, 0, 0];

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import jobsApi from "../../../../../lib/jobsApi";
-import { requireAuth, unauthorizedResponse } from "../../../../../lib/auth";
+import jobsApi from "@/lib/jobsApi";
+import { requireAuth, unauthorizedResponse } from "@/lib/auth";
 
 function isValidJobId(id: string): boolean {
   return /^[a-zA-Z0-9\-]+$/.test(id);

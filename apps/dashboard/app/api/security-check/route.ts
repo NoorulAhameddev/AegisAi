@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import path from "path";
 import { spawn } from "child_process";
-import tasksStore from "../../lib/tasksStore";
-import activity from "../../lib/activity";
-import { requireAuth, unauthorizedResponse } from "../../../lib/auth";
+import tasksStore from "@/lib/tasksStore";
+import activity from "@/lib/activity";
+import { requireAuth, unauthorizedResponse } from "@/lib/auth";
 
 export async function GET(req: Request) {
   const user = await requireAuth(req);

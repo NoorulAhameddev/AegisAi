@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
-import { requireAuth, unauthorizedResponse } from "../../../lib/auth";
+import { requireAuth, unauthorizedResponse } from "@/lib/auth";
 
 const activityFile = path.join(process.cwd(), ".dashboard", "activity.log");
 

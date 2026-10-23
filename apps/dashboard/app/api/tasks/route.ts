@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import store from "../../lib/tasksStore";
-import activity from "../../lib/activity";
-import { requireAuth, unauthorizedResponse } from "../../../lib/auth";
+import store from "@/lib/tasksStore";
+import activity from "@/lib/activity";
+import { requireAuth, unauthorizedResponse } from "@/lib/auth";
 
 export async function GET(req: Request) {
   const user = await requireAuth(req);
