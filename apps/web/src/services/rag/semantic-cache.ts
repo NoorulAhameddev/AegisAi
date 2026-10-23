@@ -40,8 +40,12 @@ const redis = env.REDIS_URL
       maxRetriesPerRequest: 1,
       enableReadyCheck: true,
       connectTimeout: 3000,
+      retryStrategy: () => null,
     })
   : null;
+redis?.on("error", (err) => {
+  logger.warn("Semantic cache Redis error", { error: err.message });
+});
 
 // In-memory fallback cache
 const inMemoryCache = new Map<string, CachedQueryResult>();

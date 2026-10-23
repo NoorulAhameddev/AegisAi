@@ -51,14 +51,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
-        if: ${{ env.AWS_ACCESS_KEY_ID != '' }}
+        if: env.AWS_ACCESS_KEY_ID != ''
         uses: aws-actions/configure-aws-credentials@v4
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          aws-region: us-east-1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -79,11 +79,12 @@ jobs:
         run: terraform plan -out=tfplan
 
       - name: Terraform Apply
-        if: ${{ inputs.apply_terraform == true || secrets.TF_APPLY == 'true' }}
+        if: inputs.apply_terraform == true || env.TF_APPLY == 'true'
         working-directory: infra/aws/terraform
         env:
           TF_VAR_alarm_email: ${{ secrets.ALARM_EMAIL }}
           TF_VAR_slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          TF_APPLY: ${{ secrets.TF_APPLY }}
         run: terraform apply -auto-approve tfplan
 
   ecs-deploy:
@@ -91,14 +92,14 @@ jobs:
     needs: terraform
     steps:
       - name: Configure AWS Credentials
-        if: ${{ env.AWS_ACCESS_KEY_ID != '' }}
+        if: env.AWS_ACCESS_KEY_ID != ''
         uses: aws-actions/configure-aws-credentials@v4
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          aws-region: us-east-1
 
       - name: Force New ECS Deployments
         env:

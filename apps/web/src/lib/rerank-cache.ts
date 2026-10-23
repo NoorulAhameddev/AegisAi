@@ -14,8 +14,12 @@ const redis = env.REDIS_URL
       maxRetriesPerRequest: 1,
       enableReadyCheck: true,
       connectTimeout: 3000,
+      retryStrategy: () => null,
     })
   : null;
+redis?.on("error", (err) => {
+  logger.warn("Rerank cache Redis error", { error: err.message });
+});
 
 const DEFAULT_TTL_SECONDS = 900;
 

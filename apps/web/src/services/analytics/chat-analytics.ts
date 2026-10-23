@@ -22,8 +22,12 @@ const redis = env.REDIS_URL
       maxRetriesPerRequest: 1,
       enableReadyCheck: true,
       connectTimeout: 3000,
+      retryStrategy: () => null,
     })
   : null;
+redis?.on("error", (err) => {
+  logger.warn("Chat analytics Redis error", { error: err.message });
+});
 
 const CACHE_TTL = 3600; // 1 hour in seconds
 

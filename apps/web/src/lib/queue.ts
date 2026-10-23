@@ -62,8 +62,14 @@ export const chatQueue = new Queue(queueName, {
     // (see chat.worker.ts) since BullMQ v5 has no per-job timeout option.
   },
 });
+chatQueue.on("error", (err) => {
+  logger.warn("[Queue] chatQueue error", { error: (err as Error).message });
+});
 
 const chatQueueEvents = new QueueEvents(queueName, { connection });
+chatQueueEvents.on("error", (err) => {
+  logger.warn("[Queue] chatQueueEvents error", { error: (err as Error).message });
+});
 
 // Log duplicate job attempts for monitoring
 chatQueueEvents.on("duplicated", ({ jobId }) => {

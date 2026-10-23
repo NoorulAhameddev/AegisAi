@@ -9,7 +9,14 @@ import Redis from "ioredis";
 import { env } from "./env";
 import { logger } from "./logger";
 
-const redis = new Redis(env.REDIS_URL);
+const redis = new Redis(env.REDIS_URL, {
+  lazyConnect: true,
+  maxRetriesPerRequest: 1,
+  retryStrategy: () => null,
+});
+redis.on("error", (err) => {
+  logger.warn("Token version cache Redis error", { error: err.message });
+});
 const TOKEN_VERSION_KEY_PREFIX = "token_version:";
 const TOKEN_VERSION_TTL = 30; // 30 seconds - short TTL for fast revocation
 
