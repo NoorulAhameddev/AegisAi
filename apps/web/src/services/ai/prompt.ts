@@ -17,7 +17,7 @@ export async function buildSystemPrompt(userId: string) {
     memoryBlock =
       "\nSTUDENT BACKGROUND:\n" +
       memory
-        .filter((m) => m.type === "LEARNED_CONCEPT")
+        .filter((m) => m.type === "USER_FACT")
         .slice(0, 5)
         .map((m) => `- Known concept: ${m.content}`)
         .join("\n");

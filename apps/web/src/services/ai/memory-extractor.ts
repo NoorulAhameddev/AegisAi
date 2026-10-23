@@ -50,7 +50,7 @@ export async function extractAndSaveMemory(
         // Limit to 5 per chat to avoid bloat
         await saveMemory(
           userId,
-          "LEARNED_CONCEPT",
+          MemoryType.USER_FACT,
           concept,
           chatId || "general",
         );
@@ -60,7 +60,7 @@ export async function extractAndSaveMemory(
     if (memory.preferences) {
       await saveMemory(
         userId,
-        "PREFERENCE",
+        MemoryType.USER_FACT,
         JSON.stringify(memory.preferences),
         chatId || "general",
       );
@@ -68,7 +68,7 @@ export async function extractAndSaveMemory(
 
     if (memory.struggles && memory.struggles.length > 0) {
       for (const struggle of memory.struggles.slice(0, 3)) {
-        await saveMemory(userId, "LEARNING_GAP", struggle, chatId || "general");
+        await saveMemory(userId, MemoryType.USER_FACT, struggle, chatId || "general");
       }
     }
 
@@ -195,16 +195,16 @@ export async function getStudentMemorySummary(userId: string): Promise<{
   });
 
   const learnedConcepts = memories
-    .filter((m) => m.type === "LEARNED_CONCEPT")
+    .filter((m) => m.type === MemoryType.USER_FACT)
     .slice(0, 5)
     .map((m) => m.content);
 
   const struggledWith = memories
-    .filter((m) => m.type === "LEARNING_GAP")
+    .filter((m) => m.type === MemoryType.USER_FACT)
     .slice(0, 3)
     .map((m) => m.content);
 
-  const preferenceEntries = memories.filter((m) => m.type === "PREFERENCE");
+  const preferenceEntries = memories.filter((m) => m.type === MemoryType.USER_FACT);
   let preferences: Record<string, any> = {};
 
   if (preferenceEntries.length > 0) {

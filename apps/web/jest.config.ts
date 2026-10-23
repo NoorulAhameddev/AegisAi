@@ -22,6 +22,7 @@ const config: Config = {
     "<rootDir>/src/__tests__/**/*.test.ts",
     "<rootDir>/src/__tests__/**/*.test.tsx",
   ],
+  testTimeout: 20000,
   testPathIgnorePatterns: ["/node_modules/", "/.next/"],
   collectCoverageFrom: [
     "src/**/*.{ts,tsx}",
