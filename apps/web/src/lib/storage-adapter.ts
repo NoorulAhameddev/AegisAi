@@ -11,7 +11,7 @@
  *   await storage.delete('path/to/file.pdf')
  */
 
-import { Stream } from "stream";
+import { Stream, Readable } from "stream";
 
 export interface StorageFile {
   path: string;
@@ -45,7 +45,7 @@ export abstract class StorageAdapter {
   abstract bucketName: string;
 
   abstract upload(
-    file: Stream,
+    file: Readable,
     path: string,
     metadata?: Record<string, any>,
   ): Promise<UploadResult>;
@@ -112,14 +112,14 @@ export class LocalStorageAdapter extends StorageAdapter {
   ): Promise<UploadResult> {
     const { promises: fs } = await import("fs");
     const { createWriteStream } = await import("fs");
-    const { dirname } = await import("path");
+    const pathModule = await import("path");
 
     const startTime = performance.now();
     // SECURITY: Validate path to prevent directory traversal attacks
     const normalizedPath = path.replace(/\.\./g, "");
     const fullPath = `${this.basePath}/${normalizedPath}`;
-    const resolvedPath = require("path").resolve(fullPath);
-    const resolvedBase = require("path").resolve(this.basePath);
+    const resolvedPath = pathModule.resolve(fullPath);
+    const resolvedBase = pathModule.resolve(this.basePath);
     if (!resolvedPath.startsWith(resolvedBase)) {
       throw new Error("Invalid path: directory traversal detected");
     }
@@ -250,7 +250,7 @@ export class S3StorageAdapter extends StorageAdapter {
   }
 
   async upload(
-    file: Stream,
+    file: Readable,
     path: string,
     metadata?: Record<string, any>,
   ): Promise<UploadResult> {
@@ -343,14 +343,16 @@ export class S3StorageAdapter extends StorageAdapter {
       }),
     );
 
-    return (result.Contents || []).map((obj) => ({
-      path: obj.Key!,
-      url: `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${obj.Key}`,
-      size: obj.Size || 0,
-      mimeType: getMimeType(obj.Key!),
-      uploadedAt: obj.LastModified || new Date(),
-      metadata: {},
-    }));
+    return (result.Contents || []).map(
+      (obj: { Key?: string; Size?: number; LastModified?: Date }) => ({
+        path: obj.Key!,
+        url: `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${obj.Key}`,
+        size: obj.Size || 0,
+        mimeType: getMimeType(obj.Key!),
+        uploadedAt: obj.LastModified || new Date(),
+        metadata: {},
+      }),
+    );
   }
 
   getUrl(path: string): string {
@@ -399,7 +401,7 @@ export class AzureStorageAdapter extends StorageAdapter {
   }
 
   async upload(
-    file: Stream,
+    file: Readable,
     path: string,
     metadata?: Record<string, any>,
   ): Promise<UploadResult> {
@@ -474,22 +476,30 @@ export class AzureStorageAdapter extends StorageAdapter {
   }
 
   async getSignedUrl(path: string, expiresIn: number = 3600): Promise<string> {
-    const { BlobSASPermissions, generateBlobSASUrl } =
+    const { BlobSASPermissions, generateBlobSASQueryParameters } =
       await import("@azure/storage-blob");
+    const { StorageSharedKeyCredential } =
+      await import("@azure/storage-common");
     const client = await this.getClient();
     const blobClient = client.getBlockBlobClient(path);
 
-    const sasUrl = await generateBlobSASUrl({
-      containerName: this.bucketName,
-      blobName: path,
-      permissions: BlobSASPermissions.parse("r"),
-      expiresOn: new Date(Date.now() + expiresIn * 1000),
-      protocol: "https",
-      accountName: this.account,
-      accountKey: process.env.AZURE_STORAGE_KEY!,
-    });
+    const accountKey = process.env.AZURE_STORAGE_KEY!;
+    const sharedKeyCredential = new StorageSharedKeyCredential(
+      this.account,
+      accountKey,
+    );
 
-    return sasUrl;
+    const sasQueryParameters = generateBlobSASQueryParameters(
+      {
+        containerName: this.bucketName,
+        blobName: path,
+        permissions: BlobSASPermissions.parse("r"),
+        expiresOn: new Date(Date.now() + expiresIn * 1000),
+      },
+      sharedKeyCredential,
+    );
+
+    return `${blobClient.url}?${sasQueryParameters.toString()}`;
   }
 }
 
@@ -519,7 +529,7 @@ export class GoogleCloudStorageAdapter extends StorageAdapter {
   }
 
   async upload(
-    file: Stream,
+    file: Readable,
     path: string,
     metadata?: Record<string, any>,
   ): Promise<UploadResult> {
@@ -587,14 +597,23 @@ export class GoogleCloudStorageAdapter extends StorageAdapter {
     const bucket = storage.bucket(this.bucketName);
     const [files] = await bucket.getFiles({ prefix });
 
-    return files.map((file) => ({
-      path: file.name,
-      url: `https://storage.googleapis.com/${this.bucketName}/${file.name}`,
-      size: file.metadata.size || 0,
-      mimeType: getMimeType(file.name),
-      uploadedAt: new Date(file.metadata.timeCreated),
-      metadata: file.metadata.metadata || {},
-    }));
+    return files.map(
+      (file: {
+        name: string;
+        metadata: {
+          size?: number;
+          timeCreated?: string;
+          metadata?: Record<string, string>;
+        };
+      }) => ({
+        path: file.name,
+        url: `https://storage.googleapis.com/${this.bucketName}/${file.name}`,
+        size: file.metadata.size || 0,
+        mimeType: getMimeType(file.name),
+        uploadedAt: new Date(file.metadata.timeCreated || Date.now()),
+        metadata: file.metadata.metadata || {},
+      }),
+    );
   }
 
   getUrl(path: string): string {

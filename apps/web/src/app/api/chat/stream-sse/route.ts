@@ -174,7 +174,7 @@ const handler = async (req: NextRequest) => {
     const stream = new ReadableStream({
       async start(controller) {
         const startTime = Date.now();
-        let streamController: any = null;
+        const streamController: any = null;
 
         try {
           // Retrieve RAG context
@@ -267,7 +267,7 @@ const handler = async (req: NextRequest) => {
             throw raceError;
           }
 
-          let chunkBuffer: string[] = [];
+          const chunkBuffer: string[] = [];
           let chunkCount = 0;
 
           for await (const chunk of completion) {

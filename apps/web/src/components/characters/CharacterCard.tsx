@@ -44,7 +44,7 @@ export function CharacterCard({
 }: CharacterCardProps) {
   return (
     <div
-      className="group relative bg-zinc-900/50 border border-white/10 rounded-lg p-4 hover:border-purple-500/30 transition-all cursor-pointer"
+      className="group relative bg-ink-850 border border-hair p-4 hover:border-brand/40 transition-colors cursor-pointer"
       onClick={() => onSelect?.(id)}
     >
       {/* Header */}
@@ -53,14 +53,14 @@ export function CharacterCard({
           {avatar ? (
             <span className="text-3xl shrink-0">{avatar}</span>
           ) : (
-            <div className="h-12 w-12 rounded-xl bg-linear-to-br from-purple-500 to-purple-700 flex items-center justify-center shrink-0">
-              <Sparkles className="h-6 w-6 text-white" />
+            <div className="h-12 w-12 bg-ink-800 border border-hair flex items-center justify-center shrink-0">
+              <Sparkles className="h-6 w-6 text-ink-100" />
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h3 className="text-white font-medium truncate">{name}</h3>
+            <h3 className="text-ink-100 font-medium truncate">{name}</h3>
             {category && (
-              <span className="text-xs text-zinc-400">{category}</span>
+              <span className="text-xs text-ink-400">{category}</span>
             )}
           </div>
         </div>
@@ -68,12 +68,12 @@ export function CharacterCard({
         {/* Badges */}
         <div className="flex flex-col gap-1 items-end">
           {isSystem && (
-            <span className="px-2 py-0.5 text-[10px] font-medium bg-purple-500/20 text-purple-300 rounded">
+            <span className="px-2 py-0.5 text-[10px] font-medium bg-brand/15 text-brand">
               SYSTEM
             </span>
           )}
           {isPublic && !isSystem && (
-            <span className="px-2 py-0.5 text-[10px] font-medium bg-blue-500/20 text-blue-300 rounded">
+            <span className="px-2 py-0.5 text-[10px] font-medium bg-ink-800 text-ink-400">
               PUBLIC
             </span>
           )}
@@ -82,7 +82,7 @@ export function CharacterCard({
 
       {/* Description */}
       {description && (
-        <p className="text-sm text-zinc-400 mb-3 line-clamp-2">{description}</p>
+        <p className="text-sm text-ink-400 mb-3 line-clamp-2">{description}</p>
       )}
 
       {/* Tags */}
@@ -91,13 +91,13 @@ export function CharacterCard({
           {tags.slice(0, 3).map((tag) => (
             <span
               key={tag}
-              className="px-2 py-0.5 text-xs bg-zinc-800 text-zinc-300 rounded"
+              className="px-2 py-0.5 text-xs bg-ink-800 text-ink-300"
             >
               #{tag}
             </span>
           ))}
           {tags.length > 3 && (
-            <span className="px-2 py-0.5 text-xs text-zinc-500">
+            <span className="px-2 py-0.5 text-xs text-ink-500">
               +{tags.length - 3}
             </span>
           )}
@@ -105,7 +105,7 @@ export function CharacterCard({
       )}
 
       {/* Stats */}
-      <div className="flex items-center justify-between text-xs text-zinc-500 mb-3 pb-3 border-b border-white/5">
+      <div className="flex items-center justify-between text-xs text-ink-500 mb-3 pb-3 border-b border-hair">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
             <TrendingUp className="h-3 w-3" />
@@ -125,7 +125,7 @@ export function CharacterCard({
                 e.stopPropagation();
                 onEdit(id);
               }}
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded text-sm transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-hair text-ink-100 hover:bg-ink-800 text-sm transition-colors"
             >
               <Edit2 className="h-3 w-3" />
               Edit
@@ -138,7 +138,7 @@ export function CharacterCard({
                 // TODO: Replace with a confirmation modal
                 onDelete(id);
               }}
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-300 rounded text-sm transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-300 text-sm transition-colors"
             >
               <Trash2 className="h-3 w-3" />
               Delete

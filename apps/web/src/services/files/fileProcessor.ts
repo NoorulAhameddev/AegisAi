@@ -33,6 +33,7 @@ export async function extractText(
   try {
     // PDF Extraction
     if (mime === "application/pdf") {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const pdf = require("pdf-parse");
       const dataBuffer = fs.readFileSync(filePath);
       const data = await pdf(dataBuffer);
@@ -44,6 +45,7 @@ export async function extractText(
       mime ===
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     ) {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const mammoth = require("mammoth");
       const result = await mammoth.extractRawText({ path: filePath });
       return result.value;
@@ -138,6 +140,7 @@ export async function extractMetadata(
   try {
     // PDF metadata
     if (mime === "application/pdf") {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const pdf = require("pdf-parse");
       const dataBuffer = fs.readFileSync(filePath);
       const data = await pdf(dataBuffer);

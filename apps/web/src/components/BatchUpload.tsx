@@ -127,10 +127,10 @@ export default function BatchUpload({
         onDragOver={handleDrag}
         onDragLeave={handleDrag}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition ${
+        className={`border-2 border-dashed p-8 text-center transition-colors ${
           dragActive
-            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-            : "border-gray-300 dark:border-gray-700"
+            ? "border-brand bg-ink-800"
+            : "border-ink-700"
         }`}
       >
         <input
@@ -142,16 +142,16 @@ export default function BatchUpload({
           aria-label="Upload files"
           title="Upload files"
         />
-        <UploadIcon size={48} className="mx-auto mb-4 text-gray-400" />
+        <UploadIcon size={48} className="mx-auto mb-4 text-ink-400" />
         <p className="text-lg font-medium mb-2">
           Drop files here or click to browse
         </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+        <p className="text-sm text-ink-500 mb-4">
           Supports PDF, DOCX, TXT, Markdown, Audio, and more
         </p>
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="px-4 py-2 bg-brand text-ink-950 hover:bg-brand-dim"
         >
           Select Files
         </button>
@@ -171,18 +171,18 @@ export default function BatchUpload({
             </button>
           </div>
 
-          <div className="max-h-64 overflow-y-auto space-y-2 border border-gray-300 dark:border-gray-700 rounded-lg p-3">
+          <div className="max-h-64 overflow-y-auto space-y-2 border border-ink-700 p-3">
             {files.map((fileStatus, index) => (
               <div
                 key={index}
-                className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-800 rounded"
+                className="flex items-center gap-3 p-2 bg-ink-800"
               >
-                <FileIcon size={18} className="text-gray-500" />
+                <FileIcon size={18} className="text-ink-500" />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate">
                     {fileStatus.file.name}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-ink-500">
                     {(fileStatus.file.size / 1024 / 1024).toFixed(2)} MB
                   </div>
                 </div>
@@ -195,7 +195,7 @@ export default function BatchUpload({
                 {fileStatus.status === "pending" && !uploading && (
                   <button
                     onClick={() => removeFile(index)}
-                    className="text-gray-500 hover:text-red-600"
+                    className="text-ink-500 hover:text-red-600"
                     title="Remove file"
                     aria-label="Remove file"
                   >
@@ -209,7 +209,7 @@ export default function BatchUpload({
           <button
             onClick={uploadFiles}
             disabled={uploading || files.length === 0}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full px-4 py-2 bg-brand text-ink-950 hover:bg-brand-dim disabled:opacity-50"
           >
             {uploading ? "Uploading..." : `Upload ${files.length} file(s)`}
           </button>

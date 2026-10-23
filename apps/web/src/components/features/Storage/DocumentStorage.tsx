@@ -82,7 +82,7 @@ export function DocumentStorage({
       {/* Save Button */}
       <button
         onClick={() => setShowSaveDialog(!showSaveDialog)}
-        className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+        className="w-full flex items-center justify-center gap-2 bg-brand text-ink-950 hover:bg-brand-dim font-mono text-[0.7rem] uppercase tracking-[0.12em] py-2 px-4 transition"
       >
         <Save size={18} />
         Save Document
@@ -90,10 +90,10 @@ export function DocumentStorage({
 
       {/* Save Dialog */}
       {showSaveDialog && (
-        <Card className="p-4 border-green-200 bg-green-50">
+        <Card className="p-4 bg-ink-850 border-hair">
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-ink-300 mb-1">
                 Document Title
               </label>
               <Input
@@ -105,7 +105,7 @@ export function DocumentStorage({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-ink-300 mb-1">
                 Tags (comma-separated)
               </label>
               <Input
@@ -119,14 +119,14 @@ export function DocumentStorage({
             <div className="flex gap-2">
               <button
                 onClick={() => setShowSaveDialog(false)}
-                className="flex-1 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition"
+                className="flex-1 py-2 border border-hair font-medium text-ink-100 hover:bg-ink-800 transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || !saveTitle.trim()}
-                className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-2 rounded-lg transition"
+                className="flex-1 bg-brand text-ink-950 hover:bg-brand-dim disabled:bg-ink-700 font-medium py-2 transition"
               >
                 {saving ? "Saving..." : "Save"}
               </button>
@@ -138,21 +138,21 @@ export function DocumentStorage({
       {/* Saved Documents */}
       {nonArchivedDocs.length > 0 && (
         <Card className="p-4">
-          <h3 className="font-semibold mb-3">
+          <h3 className="font-display text-lg font-medium tracking-tight text-ink-100 mb-3">
             Saved Documents ({nonArchivedDocs.length})
           </h3>
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {nonArchivedDocs.map((doc) => (
               <div
                 key={doc.id}
-                className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                className="p-3 bg-ink-900 border border-hair hover:bg-ink-800 transition"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <p className="font-medium text-sm text-gray-900">
+                    <p className="font-medium text-sm text-ink-100">
                       {doc.title}
                     </p>
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                    <div className="flex items-center gap-2 text-xs text-ink-500 mt-1">
                       <Clock size={12} />
                       {new Date(doc.updatedAt).toLocaleDateString()}
                       <Badge variant="secondary" className="text-xs">
@@ -163,13 +163,13 @@ export function DocumentStorage({
                   <div className="flex gap-2 ml-2">
                     <button
                       onClick={() => setSelectedDoc(doc)}
-                      className="p-1 text-gray-500 hover:text-blue-600"
+                      className="p-1 text-ink-500 hover:text-brand"
                     >
                       <Copy size={16} />
                     </button>
                     <button
                       onClick={() => handleDelete(doc.id)}
-                      className="p-1 text-gray-500 hover:text-red-600"
+                      className="p-1 text-ink-500 hover:text-red-400"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -194,14 +194,17 @@ export function DocumentStorage({
       {/* Archived Documents */}
       {archivedDocs.length > 0 && (
         <Card className="p-4">
-          <h3 className="font-semibold mb-3 flex items-center gap-2">
+          <h3 className="font-medium mb-3 flex items-center gap-2 text-ink-100">
             <Archive size={16} />
             Archived ({archivedDocs.length})
           </h3>
           <div className="space-y-2 max-h-32 overflow-y-auto opacity-60">
             {archivedDocs.map((doc) => (
-              <div key={doc.id} className="p-2 bg-gray-50 rounded text-sm">
-                <p className="font-medium text-gray-600">{doc.title}</p>
+              <div
+                key={doc.id}
+                className="p-2 bg-ink-900 border border-hair text-sm"
+              >
+                <p className="font-medium text-ink-400">{doc.title}</p>
               </div>
             ))}
           </div>

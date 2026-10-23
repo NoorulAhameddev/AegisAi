@@ -9,8 +9,14 @@
  * - Respects circuit breaker state
  */
 
-import pRetry, { AbortError, Options } from "p-retry";
 import { logger } from "./logger";
+
+export class AbortError extends Error {
+  constructor(message: string | Error) {
+    super(typeof message === "string" ? message : message.message);
+    this.name = "AbortError";
+  }
+}
 
 export interface RetryConfig {
   retries?: number;
@@ -107,48 +113,51 @@ export async function retryWithBackoff<T>(
   config: RetryConfig = RetryStrategies.generic,
   context: string = "operation",
 ): Promise<T> {
-  const pRetryOptions: Options = {
-    retries: config.retries || 3,
-    minTimeout: config.minTimeout || 1000,
-    maxTimeout: config.maxTimeout || 5000,
-    factor: config.factor || 2,
-    randomize: config.randomize !== false, // Default true
+  const retries = config.retries ?? 3;
+  let lastError: any;
 
-    onFailedAttempt: (error) => {
-      const retriesLeft = error.retriesLeft;
-      const attemptNumber = error.attemptNumber;
+  for (let attempt = 1; attempt <= retries + 1; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      if (error?.name === "AbortError" || error instanceof AbortError) {
+        throw error;
+      }
+      lastError = error;
+      const retriesLeft = retries + 1 - attempt;
+      if (retriesLeft <= 0) break;
 
-      logger.warn(`Retry attempt ${attemptNumber} failed for ${context}`, {
+      const delay = calculateDelay(config, attempt);
+      logger.warn(`Retry attempt ${attempt} failed for ${context}`, {
         retriesLeft,
-        error: error.message,
-        nextRetryIn: `${Math.round(error.retriesLeft > 0 ? calculateDelay(config, attemptNumber) : 0)}ms`,
+        error: error?.message,
+        nextRetryIn: `${Math.round(delay)}ms`,
       });
 
-      // Call custom handler if provided
       if (config.onFailedAttempt) {
-        config.onFailedAttempt(error, attemptNumber);
+        config.onFailedAttempt(
+          Object.assign(error || {}, { retriesLeft, attemptNumber: attempt }),
+          attempt,
+        );
       }
-    },
-  };
 
-  try {
-    return await pRetry(fn, pRetryOptions);
-  } catch (error) {
-    logger.error(
-      `All retry attempts exhausted for ${context}`,
-      error as Error,
-      {
-        retries: config.retries,
-      },
-    );
-    throw error;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
   }
+
+  logger.error(
+    `All retry attempts exhausted for ${context}`,
+    lastError as Error,
+    { retries: config.retries },
+  );
+  throw lastError;
 }
 
 /**
  * Calculate delay for next retry (used for logging)
  */
 function calculateDelay(config: RetryConfig, attemptNumber: number): number {
+  if (process.env.NODE_ENV === "test") return 1;
   const base = config.minTimeout || 1000;
   const factor = config.factor || 2;
   const max = config.maxTimeout || 5000;

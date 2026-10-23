@@ -82,21 +82,21 @@ export default function ProjectSelector({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+        className="flex items-center gap-2 px-4 py-2 bg-ink-900 border border-hair hover:bg-ink-800 transition-colors"
       >
         <FolderIcon size={18} />
         <span>{selectedProject ? selectedProject.name : "All Documents"}</span>
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
-          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="absolute top-full left-0 mt-2 w-80 bg-ink-900 border border-hair z-50">
+          <div className="p-2 border-b border-hair">
             <button
               onClick={() => {
                 onSelectProject(undefined);
                 setIsOpen(false);
               }}
-              className="w-full text-left px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="w-full text-left px-3 py-2 hover:bg-ink-800"
             >
               All Documents
             </button>
@@ -110,15 +110,15 @@ export default function ProjectSelector({
                   onSelectProject(project.id);
                   setIsOpen(false);
                 }}
-                className={`w-full text-left px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                className={`w-full text-left px-3 py-2 hover:bg-ink-800 ${
                   selectedProjectId === project.id
-                    ? "bg-blue-50 dark:bg-blue-900/30"
+                    ? "bg-brand/15"
                     : ""
                 }`}
               >
                 <div className="font-medium">{project.name}</div>
                 {project.description && (
-                  <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                  <div className="text-sm text-ink-500 truncate">
                     {project.description}
                   </div>
                 )}
@@ -126,11 +126,11 @@ export default function ProjectSelector({
             ))}
           </div>
 
-          <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+          <div className="p-2 border-t border-hair">
             {!showCreateForm ? (
               <button
                 onClick={() => setShowCreateForm(true)}
-                className="w-full flex items-center gap-2 px-3 py-2 text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                className="w-full flex items-center gap-2 px-3 py-2 text-brand hover:bg-ink-800"
               >
                 <PlusIcon size={18} />
                 New Project
@@ -142,21 +142,21 @@ export default function ProjectSelector({
                   placeholder="Project name"
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900"
+                  className="w-full px-3 py-2 border border-hair bg-ink-950 text-ink-100 text-sm"
                   autoFocus
                 />
                 <textarea
                   placeholder="Description (optional)"
                   value={newProjectDescription}
                   onChange={(e) => setNewProjectDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 resize-none"
+                  className="w-full px-3 py-2 border border-hair bg-ink-950 text-ink-100 text-sm resize-none"
                   rows={2}
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={createProject}
                     disabled={loading || !newProjectName.trim()}
-                    className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                    className="flex-1 px-3 py-2 bg-brand text-ink-950 hover:bg-brand-dim disabled:opacity-50 font-medium"
                   >
                     {loading ? "Creating..." : "Create"}
                   </button>
@@ -166,7 +166,7 @@ export default function ProjectSelector({
                       setNewProjectName("");
                       setNewProjectDescription("");
                     }}
-                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="px-3 py-2 border border-hair hover:bg-ink-800"
                     title="Close form"
                     aria-label="Close form"
                   >

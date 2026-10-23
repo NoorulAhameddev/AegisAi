@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Comprehensive Tests for Chat Processor Worker
  * Tests security layers, RAG integration, encryption, token budgets, and response safety
  */
@@ -32,12 +32,64 @@ jest.mock("@/lib/prisma", () => ({
     usageMetric: {
       create: jest.fn(),
     },
+    memory: {
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+    auditLog: {
+      create: jest.fn().mockResolvedValue({}),
+    },
+    $transaction: jest.fn((cb) => cb({ $executeRaw: jest.fn() })),
   },
+  withTransaction: jest.fn(async (cb) => {
+    const mockTx = {
+      message: {
+        create: jest.fn().mockResolvedValue({
+          id: "msg-123",
+          chatId: "chat-123",
+          role: "ASSISTANT",
+          content: "encrypted_This is a test response",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          deletedAt: null,
+        }),
+      },
+      chat: {
+        findUnique: jest.fn().mockResolvedValue({ title: "Test Chat" }),
+        update: jest.fn().mockResolvedValue({}),
+      },
+    };
+    return cb(mockTx);
+  }),
 }));
 
 jest.mock("@/lib/rag-retrieval");
 jest.mock("@/lib/moderation");
-jest.mock("@/lib/response-safety");
+jest.mock("@/lib/response-safety", () => ({
+  validateResponseContent: jest.fn().mockResolvedValue({ safe: true, category: "ok" }),
+  redactDangerousContent: jest.fn().mockImplementation((text) => text),
+  buildSafeResponse: jest.fn().mockImplementation((content) => ({ content, warning: "" })),
+}));
+jest.mock("@/lib/response-boundary");
+jest.mock("@/tools", () => ({
+  executeTool: jest.fn().mockResolvedValue({ success: true }),
+  getToolDefinitions: jest.fn().mockReturnValue([]),
+  getOpenAITools: jest.fn().mockReturnValue([]),
+}));
+jest.mock("@/lib/security-agent", () => ({
+  checkIntent: jest.fn().mockResolvedValue({ valid: true }),
+}));
+jest.mock("@/lib/vector-store", () => ({
+  addDocument: jest.fn().mockResolvedValue("doc-id"),
+}));
+jest.mock("@/services/billing/token-budget", () => ({
+  tokenBudgetManager: {
+    checkBudget: jest.fn().mockResolvedValue({ approved: true, remaining: 1000 }),
+    reserveBudget: jest.fn().mockResolvedValue({ approved: true, reservedAt: new Date() }),
+    commitUsage: jest.fn().mockResolvedValue(true),
+    finalizeUsage: jest.fn().mockResolvedValue(true),
+    refundReservation: jest.fn().mockResolvedValue(true),
+  },
+}));
 jest.mock("@/services/ai/memory-extractor");
 jest.mock("@/lib/encryption");
 jest.mock("@/services/ai/openai", () => ({
@@ -104,6 +156,28 @@ describe("Chat Processor Worker", () => {
       isBanned: false,
       createdAt: new Date(),
       updatedAt: new Date(),
+    } as any);
+
+    mockPrisma.memory.findMany.mockResolvedValue([]);
+    mockPrisma.message.findMany.mockResolvedValue([]);
+    mockPrisma.auditLog.create.mockResolvedValue({} as any);
+
+    mockOpenAI.chat.completions.create.mockResolvedValue({
+      id: "chatcmpl-123",
+      choices: [
+        {
+          message: {
+            role: "assistant",
+            content: "Quantum computing uses qubits for computation.",
+          },
+          finish_reason: "stop",
+        },
+      ],
+      usage: {
+        prompt_tokens: 50,
+        completion_tokens: 50,
+        total_tokens: 100,
+      },
     } as any);
 
     mockPrisma.chat.findFirst.mockResolvedValue({
@@ -504,7 +578,7 @@ describe("Chat Processor Worker", () => {
 
       // Should have multiple progress updates
       expect(mockJob.updateProgress).toHaveBeenCalledWith(expect.any(Number));
-      expect(mockJob.updateProgress).toHaveBeenCalledTimes(expect.any(Number));
+      expect((mockJob.updateProgress as jest.Mock).mock.calls.length).toBeGreaterThan(0);
     });
 
     it("should report progress at key stages", async () => {

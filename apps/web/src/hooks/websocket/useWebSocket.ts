@@ -192,7 +192,7 @@ export function useRealtimeChat(chatId: string, userId: string | null) {
   const setTyping = useCallback(
     (isTyping: boolean) => {
       if (!connected) return;
-      send("typing", chatId, isTyping);
+      send("typing", { chatId, isTyping });
     },
     [connected, chatId, send],
   );

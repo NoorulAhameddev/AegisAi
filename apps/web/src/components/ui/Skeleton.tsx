@@ -12,10 +12,10 @@ export function Skeleton({
   return (
     <div
       className={cn(
-        "animate-pulse bg-zinc-800/50",
-        variant === "text" && "h-4 rounded",
+        "animate-pulse bg-ink-800",
+        variant === "text" && "h-4 rounded-none",
         variant === "circular" && "rounded-full",
-        variant === "rectangular" && "rounded-xl",
+        variant === "rectangular" && "rounded-none",
         className,
       )}
       {...props}
@@ -25,7 +25,7 @@ export function Skeleton({
 
 export function CardSkeleton() {
   return (
-    <div className="rounded-2xl bg-zinc-900/40 border border-white/5 p-6 space-y-4">
+    <div className="bg-ink-850 border border-hair p-6 space-y-4">
       <div className="flex items-center justify-between">
         <Skeleton className="h-8 w-32" />
         <Skeleton variant="circular" className="h-10 w-10" />

@@ -2,10 +2,12 @@ import { searchSimilar, Document } from "@/ai/rag/vector-store";
 import { getRAGConfig } from "@/services/rag/rag-config";
 import { rerankDocumentsCrossEncoderWithScores } from "@/services/rag/rerank";
 import {
-  scoreRAGChunks,
+  scoreRAGChunk,
+  detectRAGInjectionAttempt,
   type RAGChunk,
-  type ScoredChunk,
+  type TrustScore,
 } from "@/lib/rag-trust-scoring";
+import { isSemanticCacheEnabled } from "@/services/rag/config";
 import { generateEmbedding } from "@/services/rag/embeddings";
 import {
   getSemanticCachedResults,
@@ -108,38 +110,50 @@ export async function retrieveContext(
     id: doc.id,
     text: doc.text,
     metadata: doc.metadata ? JSON.parse(doc.metadata) : undefined,
-    source: doc.sourceId,
-    chunk_index: doc.chunkIndex || 0,
+    source: "user_upload",
   }));
 
-  const scoredChunks = scoreRAGChunks(ragChunks, query, {
-    includeInjectionDetection: true,
-    minTrustScore: 0.3, // Filter out very low-trust documents (optional)
+  // Score each chunk and collect injection risks
+  const trustScores = new Map<string, number>();
+  const scoredChunks: TrustScore[] = ragChunks.map((chunk) =>
+    scoreRAGChunk(chunk, query),
+  );
+
+  // Detect injection attempts in raw text
+  const injectionRisks: string[] = [];
+  topKDocs.forEach((doc) => {
+    const injection = detectRAGInjectionAttempt(doc.text);
+    if (injection.detected) {
+      injectionRisks.push(`Document "${doc.sourceId}": ${injection.pattern}`);
+    }
   });
 
-  // Filter documents based on trust scores
-  const injectionRisks: string[] = [];
-  const trustScores = new Map<string, number>();
-  const filteredDocs = topKDocs.filter((doc, idx) => {
-    const scored = scoredChunks[idx];
+  // Filter documents based on trust scores (keep scores aligned with docs)
+  const scoredPairs = topKDocs.map((doc, idx) => ({
+    doc,
+    scored: scoredChunks[idx],
+  }));
+
+  const filteredPairs = scoredPairs.filter(({ doc, scored }) => {
     if (scored) {
-      trustScores.set(doc.id, scored.score);
+      trustScores.set(doc.id, scored.overall);
       if (scored.riskLevel === "high") {
         injectionRisks.push(
           `Document "${doc.sourceId}": ${scored.reasons.join(", ")}`,
         );
-        return scored.score >= 0.3; // Still include but with caution
+        return scored.overall >= 0.3; // Still include but with caution
       }
     }
     return true;
   });
 
+  const filteredDocs = filteredPairs.map((pair) => pair.doc);
+
   // 5. Build context string with deduplication and trust info
   const { context, tokensUsed, sources } = buildContext(
-    filteredDocs,
+    filteredPairs,
     config.retrieval.maxContextLength,
     options?.includeMetadata,
-    scoredChunks, // Pass scored chunks for trust indicators
   );
 
   // 6. Cache the results for future queries (NEW: semantic caching)
@@ -171,24 +185,21 @@ export async function retrieveContext(
  * Build context string from documents with trust scoring
  */
 function buildContext(
-  documents: Document[],
+  documents: Array<{ doc: Document; scored?: TrustScore }>,
   maxLength: number,
   includeMetadata?: boolean,
-  scoredChunks?: ScoredChunk[],
 ): { context: string; tokensUsed: number; sources: Set<string> } {
   const contextParts: string[] = [];
   let currentLength = 0;
   const sources = new Set<string>();
 
-  for (let i = 0; i < documents.length; i++) {
-    const doc = documents[i];
+  for (const { doc, scored } of documents) {
     let docText = doc.text;
-    const scored = scoredChunks?.[i];
 
     // Add trust indicator if available (subtle but informative)
     if (scored) {
-      const trustBar = getTrustIndicator(scored.score);
-      docText = `${trustBar} [Trust: ${(scored.score * 100).toFixed(0)}%]\n${docText}`;
+      const trustBar = getTrustIndicator(scored.overall);
+      docText = `${trustBar} [Trust: ${(scored.overall * 100).toFixed(0)}%]\n${docText}`;
     }
 
     // Add metadata if requested

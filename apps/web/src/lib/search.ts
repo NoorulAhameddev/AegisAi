@@ -1,6 +1,7 @@
 import fs from "fs";
 import { logger } from "@/lib/logger";
-import { logger } from "@/lib/logger";
+import axios from "axios";
+import * as cheerio from "cheerio";
 
 export async function searchWeb(query: string) {
   try {
@@ -8,10 +9,6 @@ export async function searchWeb(query: string) {
       "server_debug.log",
       `[SEARCH] Custom/DDG Query: ${query}\n`,
     );
-
-    // Use dynamic require to act as a fallback if types are not present
-    const axios = require("axios");
-    const cheerio = require("cheerio");
 
     const res = await axios.get("https://html.duckduckgo.com/html/", {
       params: { q: query },

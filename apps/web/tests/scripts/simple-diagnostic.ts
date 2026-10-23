@@ -14,7 +14,7 @@ async function test() {
 
   try {
     console.log("Importing agent...");
-    const agentModule = await import("../src/ai/integrations/langchain-agent");
+    await import("../src/ai/integrations/langchain-agent");
     console.log("Agent module imported.");
   } catch (e) {
     console.error("Failed to import agent:", e);
@@ -22,7 +22,7 @@ async function test() {
 
   try {
     console.log("Importing retrieval...");
-    const retrieval = await import("../src/lib/rag-retrieval");
+    await import("../src/lib/rag-retrieval");
     console.log("Retrieval module imported.");
   } catch (e) {
     console.error("Failed to import retrieval:", e);

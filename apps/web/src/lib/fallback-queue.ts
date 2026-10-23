@@ -194,7 +194,6 @@ export async function cleanupFallbackQueue(
     return 0;
   }
 }
-}
 
 /**
  * Migrate fallback jobs back to Redis when it recovers
@@ -207,13 +206,20 @@ export async function migrateFallbackJobsToRedis(
     // Step 1: Atomically claim jobs by marking them as "migrating"
     // This prevents other workers from picking up the same jobs
     const jobs: any = await prisma.$queryRaw`
+      WITH claimed AS (
+        SELECT id
+        FROM fallback_queue
+        WHERE queue_name = ${queueName}
+          AND status = 'pending'
+        ORDER BY created_at ASC
+        LIMIT 100
+        FOR UPDATE SKIP LOCKED
+      )
       UPDATE fallback_queue
       SET status = 'migrating'
-      WHERE queue_name = ${queueName}
-        AND status = 'pending'
-      ORDER BY created_at ASC
-      LIMIT 100
-      RETURNING *
+      FROM claimed
+      WHERE fallback_queue.id = claimed.id
+      RETURNING fallback_queue.*
     `;
 
     let migratedCount = 0;
@@ -241,21 +247,6 @@ export async function migrateFallbackJobsToRedis(
           jobId: job.id,
         });
       }
-    }
-
-    logger.info("Migrated fallback jobs to Redis", {
-      queueName,
-      migratedCount,
-    });
-
-    return migratedCount;
-  } catch (error) {
-    logger.error("Failed to migrate fallback jobs", error as Error, {
-      queueName,
-    });
-    return 0;
-  }
-}
     }
 
     logger.info("Migrated fallback jobs to Redis", {

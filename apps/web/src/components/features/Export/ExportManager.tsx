@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Download, FileText, Loader2 } from "lucide-react";
-import { logger } from "@/lib/logger";
+import { Download, FileText, Loader2, Braces } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { logger } from "@/lib/logger";
 
 type ExportFormat = "pdf" | "markdown" | "docx" | "json" | "txt";
@@ -12,7 +12,7 @@ type ExportFormat = "pdf" | "markdown" | "docx" | "json" | "txt";
 interface ExportOption {
   format: ExportFormat;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   description: string;
   speed: "fast" | "medium" | "slow";
 }
@@ -21,35 +21,35 @@ const EXPORT_OPTIONS: ExportOption[] = [
   {
     format: "markdown",
     label: "Markdown",
-    icon: "📝",
+    icon: FileText,
     description: "Clean markdown format, best for editing",
     speed: "fast",
   },
   {
     format: "pdf",
     label: "PDF",
-    icon: "📄",
+    icon: FileText,
     description: "Professional PDF with formatting",
     speed: "medium",
   },
   {
     format: "docx",
     label: "Word",
-    icon: "📋",
+    icon: FileText,
     description: "Microsoft Word format, editable",
     speed: "medium",
   },
   {
     format: "json",
     label: "JSON",
-    icon: "{}",
+    icon: Braces,
     description: "Structured data format",
     speed: "fast",
   },
   {
     format: "txt",
     label: "Text",
-    icon: "📃",
+    icon: FileText,
     description: "Plain text format",
     speed: "fast",
   },
@@ -98,29 +98,33 @@ export function ExportManager({
   return (
     <div className="space-y-4">
       <Card className="p-4">
-        <h3 className="font-semibold mb-4">Export Content</h3>
+        <h3 className="font-display text-lg font-medium tracking-tight text-ink-100 mb-4">
+          Export Content
+        </h3>
 
         <div className="grid grid-cols-5 gap-2 mb-4">
           {EXPORT_OPTIONS.map((option) => (
             <button
               key={option.format}
               onClick={() => setSelectedFormat(option.format)}
-              className={`p-3 rounded-lg border-2 transition text-center ${
+              className={`p-3 border-2 transition text-center ${
                 selectedFormat === option.format
-                  ? "border-blue-600 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
+                  ? "border-brand bg-ink-800"
+                  : "border-ink-700 hover:border-ink-500"
               }`}
             >
-              <p className="text-xl mb-1">{option.icon}</p>
-              <p className="text-xs font-semibold">{option.label}</p>
+              <option.icon className="h-6 w-6 mx-auto mb-1 text-brand" />
+              <p className="text-xs font-medium text-ink-100">
+                {option.label}
+              </p>
             </button>
           ))}
         </div>
 
         {/* Selected format info */}
         {EXPORT_OPTIONS.find((o) => o.format === selectedFormat) && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-            <p className="text-sm text-blue-900">
+          <div className="bg-ink-850 border-hair border p-3 mb-4">
+            <p className="text-sm text-ink-300">
               {
                 EXPORT_OPTIONS.find((o) => o.format === selectedFormat)
                   ?.description
@@ -132,7 +136,7 @@ export function ExportManager({
         <button
           onClick={handleExport}
           disabled={exporting}
-          className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition"
+          className="w-full flex items-center justify-center gap-2 bg-brand text-ink-950 hover:bg-brand-dim disabled:bg-ink-700 font-mono text-[0.7rem] uppercase tracking-[0.12em] py-2 px-4 transition"
         >
           {exporting ? (
             <>
@@ -155,17 +159,19 @@ export function ExportManager({
 
       {/* Export Statistics */}
       <Card className="p-4">
-        <h4 className="text-sm font-semibold mb-3">Export Statistics</h4>
+        <h4 className="font-display text-sm font-medium tracking-tight text-ink-100 mb-3">
+          Export Statistics
+        </h4>
         <div className="grid grid-cols-3 gap-3 text-sm">
           <div>
-            <p className="text-gray-500">Characters</p>
-            <p className="text-lg font-bold">
+            <p className="text-ink-500">Characters</p>
+            <p className="font-display text-lg font-medium tracking-tight text-ink-100">
               {content.length.toLocaleString()}
             </p>
           </div>
           <div>
-            <p className="text-gray-500">Words</p>
-            <p className="text-lg font-bold">
+            <p className="text-ink-500">Words</p>
+            <p className="font-display text-lg font-medium tracking-tight text-ink-100">
               {content
                 .split(/\s+/)
                 .filter((w) => w.length > 0)
@@ -173,8 +179,8 @@ export function ExportManager({
             </p>
           </div>
           <div>
-            <p className="text-gray-500">Lines</p>
-            <p className="text-lg font-bold">
+            <p className="text-ink-500">Lines</p>
+            <p className="font-display text-lg font-medium tracking-tight text-ink-100">
               {content.split("\n").length.toLocaleString()}
             </p>
           </div>

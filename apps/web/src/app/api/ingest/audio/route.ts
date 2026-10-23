@@ -32,26 +32,22 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    try {
-      const userId = authResult.id;
-      const result = await ingestAudioFile(
-        {
-          name: file.name,
-          type: file.type,
-          buffer,
-        },
-        {
-          userId,
-          projectId: projectId || undefined,
-          enableRAG: true,
-          encryptStorage: true,
-        },
-      );
+    const userId = authResult.id;
+    const result = await ingestAudioFile(
+      {
+        name: file.name,
+        type: file.type,
+        buffer,
+      },
+      {
+        userId,
+        projectId: projectId || undefined,
+        enableRAG: true,
+        encryptStorage: true,
+      },
+    );
 
-      return successResponse(result);
-    } catch (error) {
-      throw error;
-    }
+    return successResponse(result);
   } catch (error) {
     logger.error("Audio ingestion error", error as Error);
     return errorResponse(

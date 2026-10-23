@@ -116,11 +116,11 @@ function formatJavaScript(code: string, indent: string): string {
   const lines = code.split("\n");
   const formatted: string[] = [];
   let indentLevel = 0;
-  let inString = false;
-  let stringChar = "";
+  const inString = false;
+  const stringChar = "";
 
   for (const line of lines) {
-    let trimmed = line.trim();
+    const trimmed = line.trim();
 
     if (!trimmed) {
       formatted.push("");

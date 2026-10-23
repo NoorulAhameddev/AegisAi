@@ -21,7 +21,7 @@ interface ApiResponse<T> {
   error?: string;
 }
 
-async function getCsrfToken(): string | null {
+async function getCsrfToken(): Promise<string | null> {
   try {
     const match = document.cookie.match(/csrf-token=([^;]+)/);
     return match ? decodeURIComponent(match[1]) : null;

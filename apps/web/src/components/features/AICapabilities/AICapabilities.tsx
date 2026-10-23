@@ -3,7 +3,22 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Loader2, Zap, Copy, Check, Settings } from "lucide-react";
+import {
+  Loader2,
+  Zap,
+  Copy,
+  Check,
+  Settings,
+  FileText,
+  StickyNote,
+  List,
+  Brain,
+  BookOpen,
+  Lightbulb,
+  MessageCircle,
+  HelpCircle,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 type AICapability =
   | "summarize"
@@ -18,7 +33,7 @@ type AICapability =
 interface AICapabilityOption {
   id: AICapability;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   description: string;
   complexity: "fast" | "medium" | "slow";
 }
@@ -27,56 +42,56 @@ const CAPABILITIES: AICapabilityOption[] = [
   {
     id: "summarize",
     label: "Summarize",
-    icon: "📝",
+    icon: FileText,
     description: "Generate concise summary",
     complexity: "fast",
   },
   {
     id: "notes",
     label: "Notes",
-    icon: "📄",
+    icon: StickyNote,
     description: "Detailed structured notes",
     complexity: "medium",
   },
   {
     id: "bullets",
     label: "Bullet Points",
-    icon: "📋",
+    icon: List,
     description: "Key takeaways as bullets",
     complexity: "fast",
   },
   {
     id: "concepts",
     label: "Key Concepts",
-    icon: "🧠",
+    icon: Brain,
     description: "Extract main concepts",
     complexity: "medium",
   },
   {
     id: "definitions",
     label: "Glossary",
-    icon: "📚",
+    icon: BookOpen,
     description: "Definitions & explanations",
     complexity: "medium",
   },
   {
     id: "examples",
     label: "Examples",
-    icon: "💡",
+    icon: Lightbulb,
     description: "Real-world examples",
     complexity: "medium",
   },
   {
     id: "explain",
     label: "ELI5",
-    icon: "👧",
+    icon: MessageCircle,
     description: "Simplified explanation",
     complexity: "fast",
   },
   {
     id: "qa",
     label: "Q&A",
-    icon: "❓",
+    icon: HelpCircle,
     description: "Answer questions",
     complexity: "medium",
   },
@@ -130,15 +145,15 @@ export function AICapabilities({
           <button
             key={cap.id}
             onClick={() => setSelectedCapability(cap.id)}
-            className={`p-3 rounded-lg border-2 transition text-left ${
+            className={`p-3 border-2 transition text-left ${
               selectedCapability === cap.id
-                ? "border-blue-600 bg-blue-50"
-                : "border-gray-200 hover:border-gray-300"
+                ? "border-brand bg-ink-800"
+                : "border-ink-700 hover:border-ink-500"
             }`}
           >
-            <p className="text-xl mb-1">{cap.icon}</p>
-            <p className="text-sm font-semibold">{cap.label}</p>
-            <p className="text-xs text-gray-500 mt-1">{cap.description}</p>
+            <cap.icon className="h-5 w-5 mb-1 text-brand" />
+            <p className="text-sm font-medium text-ink-100">{cap.label}</p>
+            <p className="text-xs text-ink-500 mt-1">{cap.description}</p>
             <div className="mt-2">
               {cap.complexity === "fast" && (
                 <Badge variant="success" className="text-xs">
@@ -164,16 +179,16 @@ export function AICapabilities({
       <Card className="p-4">
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900"
+          className="flex items-center gap-2 text-sm font-medium text-ink-300 hover:text-ink-100"
         >
           <Settings size={16} />
           Advanced Options
         </button>
 
         {showAdvanced && (
-          <div className="mt-4 space-y-3 border-t pt-4">
+          <div className="mt-4 space-y-3 border-t border-hair pt-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-2">
+              <label className="text-sm font-medium text-ink-300 block mb-2">
                 Custom Prompt (optional)
               </label>
               <textarea
@@ -181,7 +196,7 @@ export function AICapabilities({
                 onChange={(e) => setCustomPrompt(e.target.value)}
                 placeholder="Add custom instructions or context..."
                 rows={3}
-                className="w-full border rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-ink-700 bg-ink-900 text-ink-100 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
@@ -192,7 +207,7 @@ export function AICapabilities({
       <button
         onClick={handleGenerate}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition"
+        className="w-full flex items-center justify-center gap-2 bg-brand text-ink-950 hover:bg-brand-dim disabled:bg-ink-700 disabled:text-ink-500 font-mono text-[0.7rem] uppercase tracking-[0.12em] py-3 px-4 transition"
       >
         {loading ? (
           <>
@@ -209,12 +224,12 @@ export function AICapabilities({
 
       {/* Output */}
       {output && (
-        <Card className="p-4 bg-linear-to-br from-blue-50 to-indigo-50">
+        <Card className="p-4 bg-ink-850 border-hair">
           <div className="flex items-center justify-between mb-3">
-            <p className="font-semibold text-gray-900">Output</p>
+            <p className="font-medium text-ink-100">Output</p>
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1 px-2 py-1 text-sm rounded-lg hover:bg-white"
+              className="flex items-center gap-1 px-2 py-1 text-sm hover:bg-ink-800"
             >
               {copied ? (
                 <>
@@ -229,8 +244,8 @@ export function AICapabilities({
               )}
             </button>
           </div>
-          <div className="bg-white rounded-lg p-4 max-h-72 overflow-y-auto">
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">
+          <div className="bg-ink-900 border border-hair p-4 max-h-72 overflow-y-auto">
+            <p className="text-sm text-ink-300 whitespace-pre-wrap">
               {output}
             </p>
           </div>

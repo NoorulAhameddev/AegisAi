@@ -69,7 +69,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
   return (
     <aside
       className={cn(
-        "h-screen sticky top-0 border-r border-white/5 bg-black/40 backdrop-blur-xl flex flex-col transition-all duration-300 ease-in-out z-50",
+        "h-screen sticky top-0 border-r border-hair bg-ink-950 flex flex-col transition-all duration-300 ease-in-out z-50",
         collapsed ? "w-20" : "w-72",
       )}
     >
@@ -81,30 +81,30 @@ export function AppSidebar({ user }: AppSidebarProps) {
         )}
       >
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-linear-to-br from-purple-600 to-blue-600 p-px group cursor-pointer hover:scale-110 transition-transform">
-            <div className="h-full w-full rounded-xl bg-black flex items-center justify-center group-hover:shadow-[inset_0_0_10px_rgba(168,85,247,0.4)] transition-all">
+          <Link href="/" className="flex items-center gap-3 group focus:outline-none">
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden bg-ink-850 border border-ink-700 p-1 group-hover:border-brand/50 transition-colors">
               <img
                 src="/aegis-logo.png"
-                alt="Logo"
-                className="h-6 w-6 object-contain"
+                alt="Aegis AI Logo"
+                className="h-full w-full object-contain"
               />
             </div>
-          </div>
-          <span
-            className={cn(
-              "font-bold text-xl tracking-tight whitespace-nowrap transition-all duration-300 bg-linear-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent",
-              collapsed ? "opacity-0 w-0" : "opacity-100 w-auto",
-            )}
-          >
-            Aegis AI
-          </span>
+            <span
+              className={cn(
+                "font-display font-medium text-xl tracking-tight text-ink-100 whitespace-nowrap transition-all duration-300 group-hover:text-brand",
+                collapsed ? "opacity-0 w-0" : "opacity-100 w-auto",
+              )}
+            >
+              Aegis AI
+            </span>
+          </Link>
         </div>
 
         {!collapsed && (
           <Tooltip content="Collapse sidebar" side="right">
             <button
               onClick={() => setCollapsed(true)}
-              className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-all hover:scale-110 active:scale-95"
+              className="p-1.5 text-ink-500 hover:text-ink-100 hover:bg-white/5 transition-colors active:scale-95"
               aria-label="Collapse Sidebar"
             >
               <PanelLeft className="h-4 w-4" />
@@ -119,7 +119,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
           <Tooltip content="Expand sidebar" side="right">
             <button
               onClick={() => setCollapsed(false)}
-              className="p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-all hover:scale-110 active:scale-95"
+              className="p-1.5 text-ink-500 hover:text-ink-100 hover:bg-white/5 transition-colors active:scale-95"
               aria-label="Expand Sidebar"
             >
               <ChevronRight className="h-4 w-4" />
@@ -129,7 +129,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-2 px-3 overflow-y-auto scrollbar-hide">
+      <nav className="flex-1 space-y-1 px-3 overflow-y-auto scrollbar-hide">
         {links.map((link) => {
           const isActive = pathname.startsWith(link.href);
           const isPinned = pinnedItems.includes(link.href);
@@ -139,32 +139,32 @@ export function AppSidebar({ user }: AppSidebarProps) {
               <Link
                 href={link.href}
                 className={cn(
-                  "flex items-center rounded-xl transition-all duration-200 relative",
+                  "flex items-center transition-colors duration-200 relative",
                   collapsed ? "justify-center p-3" : "px-4 py-3 gap-3",
                   isActive
-                    ? "bg-linear-to-r from-purple-500/10 to-blue-500/10 text-purple-400 border border-purple-500/20 shadow-[inset_0_0_10px_rgba(168,85,247,0.1)]"
-                    : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10",
+                    ? "bg-white/5 text-brand font-medium border-l-2 border-l-brand"
+                    : "text-ink-400 hover:text-ink-100 hover:bg-white/5 border-l-2 border-l-transparent",
                 )}
                 title={collapsed ? link.label : undefined}
               >
                 <link.icon
                   className={cn(
-                    "shrink-0 transition-all",
+                    "shrink-0 transition-colors",
                     collapsed ? "h-6 w-6" : "h-5 w-5",
                     isActive
-                      ? "text-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.4)]"
-                      : "text-zinc-500 group-hover/nav:text-zinc-300",
+                      ? "text-brand"
+                      : "text-ink-500 group-hover/nav:text-ink-300",
                   )}
                 />
 
                 {!collapsed && (
-                  <span className="font-medium whitespace-nowrap overflow-hidden transition-all">
+                  <span className="font-medium whitespace-nowrap overflow-hidden transition-all text-sm">
                     {link.label}
                   </span>
                 )}
 
                 {isActive && !collapsed && (
-                  <div className="ml-auto h-2 w-2 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)] animate-pulse-subtle" />
+                  <div className="ml-auto h-1.5 w-1.5 rounded-full bg-brand" />
                 )}
 
                 {!collapsed && (
@@ -173,7 +173,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                       e.preventDefault();
                       togglePin(link.href);
                     }}
-                    className="ml-auto opacity-0 group-hover/nav:opacity-100 p-1 rounded-md text-zinc-600 hover:text-zinc-400 hover:bg-white/10 transition-all active:scale-90"
+                    className="ml-auto opacity-0 group-hover/nav:opacity-100 p-1 text-ink-600 hover:text-ink-400 hover:bg-white/5 transition-colors active:scale-90"
                     aria-label={isPinned ? "Unpin" : "Pin"}
                   >
                     {isPinned ? (
@@ -192,35 +192,33 @@ export function AppSidebar({ user }: AppSidebarProps) {
       {/* Footer */}
       <div
         className={cn(
-          "p-4 border-t border-white/5 group/footer",
+          "p-4 border-t border-hair group/footer",
           collapsed && "flex justify-center",
         )}
       >
         <Tooltip content={user.email} side="right" delay={500}>
           <div
             className={cn(
-              "flex items-center rounded-xl hover:bg-white/5 transition-all cursor-pointer border border-transparent hover:border-white/5 group/user",
+              "flex items-center hover:bg-white/5 transition-colors cursor-pointer",
               collapsed
                 ? "p-0 justify-center h-10 w-10 overflow-hidden"
                 : "p-3 gap-3",
             )}
           >
-            <div className="relative h-9 w-9 shrink-0 rounded-full bg-linear-to-tr from-purple-500 to-blue-500 p-px group-hover/user:shadow-[0_0_12px_rgba(168,85,247,0.4)] transition-all">
-              <div className="h-full w-full rounded-full bg-zinc-900 flex items-center justify-center text-sm font-bold text-white">
-                {user.name.charAt(0).toUpperCase()}
-              </div>
-              <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-black animate-pulse-subtle" />
+            <div className="relative h-9 w-9 shrink-0 rounded-full bg-ink-800 border border-ink-700 flex items-center justify-center font-medium text-ink-100 text-xs">
+              {user.name.charAt(0).toUpperCase()}
+              <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-ink-950" />
             </div>
 
             {!collapsed && (
               <>
                 <div className="flex-1 overflow-hidden">
-                  <p className="font-medium text-sm text-zinc-200 truncate group-hover/user:text-white transition-colors">
+                  <p className="font-medium text-sm text-ink-200 truncate group-hover/user:text-ink-100 transition-colors">
                     {user.name}
                   </p>
-                  <p className="text-xs text-zinc-500 truncate">{user.email}</p>
+                  <p className="text-xs text-ink-500 font-mono truncate">{user.email}</p>
                 </div>
-                <LogOut className="h-4 w-4 text-zinc-600 group-hover/user:text-zinc-400 transition-all group-hover/user:scale-110 active:scale-95" />
+                <LogOut className="h-4 w-4 text-ink-600 group-hover/user:text-ink-400 transition-colors active:scale-95" />
               </>
             )}
           </div>

@@ -125,11 +125,11 @@ export function AnalyticsTab() {
       {/* Header with Live Indicator */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Activity className="h-6 w-6 text-purple-500" />
+          <h2 className="text-2xl font-display font-medium tracking-tight text-ink-100 flex items-center gap-2">
+            <Activity className="h-6 w-6 text-brand" />
             Chat Analytics
           </h2>
-          <p className="text-sm text-zinc-400 mt-1">
+          <p className="text-sm text-ink-400 mt-1">
             Real-time metrics and historical trends
           </p>
         </div>
@@ -138,7 +138,7 @@ export function AnalyticsTab() {
           <select
             value={selectedPeriod}
             onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="bg-zinc-800 text-white border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="bg-ink-800 text-ink-100 border border-ink-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
           >
             <option value="24h">Last 24 Hours</option>
             <option value="7d">Last 7 Days</option>
@@ -150,7 +150,7 @@ export function AnalyticsTab() {
 
       {/* Live Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4">
+        <div className="bg-ink-850 border border-hair p-4">
           <MetricCard
             title="Active Chats"
             value={liveMetrics?.activeChats ?? summaryStats?.totalChats ?? 0}
@@ -159,7 +159,7 @@ export function AnalyticsTab() {
             subtitle="Last 5 minutes"
           />
         </div>
-        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4">
+        <div className="bg-ink-850 border border-hair p-4">
           <MetricCard
             title="Messages/Min"
             value={liveMetrics?.messagesPerMinute ?? 0}
@@ -168,7 +168,7 @@ export function AnalyticsTab() {
             subtitle="Current rate"
           />
         </div>
-        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4">
+        <div className="bg-ink-850 border border-hair p-4">
           <MetricCard
             title="Avg Response Time"
             value={liveMetrics ? `${liveMetrics.avgResponseTime}ms` : "0ms"}
@@ -177,7 +177,7 @@ export function AnalyticsTab() {
             subtitle="Processing latency"
           />
         </div>
-        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4">
+        <div className="bg-ink-850 border border-hair p-4">
           <MetricCard
             title="Flagged Content"
             value={summaryStats?.flaggedContent ?? 0}
@@ -190,129 +190,119 @@ export function AnalyticsTab() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-6">
-          <div className="text-sm text-zinc-400 mb-1">Total Messages</div>
-          <div className="text-3xl font-bold text-white">
+        <div className="bg-ink-850 border border-hair p-6">
+          <div className="text-sm text-ink-400 mb-1">Total Messages</div>
+          <div className="text-3xl font-display font-medium tracking-tight text-ink-100">
             {summaryStats?.totalMessages.toLocaleString() ?? 0}
           </div>
-          <div className="text-xs text-zinc-500 mt-2">
+          <div className="text-xs text-ink-500 mt-2">
             Avg {summaryStats?.avgMessagesPerChat.toFixed(1)} per chat
           </div>
         </div>
-        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-6">
-          <div className="text-sm text-zinc-400 mb-1">Active Users (24h)</div>
-          <div className="text-3xl font-bold text-white">
+        <div className="bg-ink-850 border border-hair p-6">
+          <div className="text-sm text-ink-400 mb-1">Active Users (24h)</div>
+          <div className="text-3xl font-display font-medium tracking-tight text-ink-100">
             {summaryStats?.activeUsers24h.toLocaleString() ?? 0}
           </div>
-          <div className="text-xs text-zinc-500 mt-2">
+          <div className="text-xs text-ink-500 mt-2">
             {summaryStats?.totalChats.toLocaleString()} total chats
           </div>
         </div>
-        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-6">
-          <div className="text-sm text-zinc-400 mb-1">Avg Tokens/Message</div>
-          <div className="text-3xl font-bold text-white">
+        <div className="bg-ink-850 border border-hair p-6">
+          <div className="text-sm text-ink-400 mb-1">Avg Tokens/Message</div>
+          <div className="text-3xl font-display font-medium tracking-tight text-ink-100">
             {summaryStats?.avgTokensPerMessage.toLocaleString() ?? 0}
           </div>
-          <div className="text-xs text-zinc-500 mt-2">Per message average</div>
+          <div className="text-xs text-ink-500 mt-2">Per message average</div>
         </div>
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Message Trends */}
-        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-1">
-          <TimeSeriesChart
-            title="Message Volume"
-            data={
-              historicalStats?.messagesPerPeriod.map((item) => ({
-                period: item.period,
-                value: item.count,
-                label: `${item.count} messages`,
-              })) ?? []
-            }
-            color="#8b5cf6"
-            height={250}
-          />
-        </div>
+        <TimeSeriesChart
+          title="Message Volume"
+          data={
+            historicalStats?.messagesPerPeriod.map((item) => ({
+              period: item.period,
+              value: item.count,
+              label: `${item.count} messages`,
+            })) ?? []
+          }
+          color="#c8965a"
+          height={250}
+        />
 
         {/* Active Users */}
-        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-1">
-          <TimeSeriesChart
-            title="Active Users"
-            data={
-              historicalStats?.activeUsers.map((item) => ({
-                period: item.period,
-                value: item.count,
-                label: `${item.count} users`,
-              })) ?? []
-            }
-            color="#3b82f6"
-            height={250}
-          />
-        </div>
+        <TimeSeriesChart
+          title="Active Users"
+          data={
+            historicalStats?.activeUsers.map((item) => ({
+              period: item.period,
+              value: item.count,
+              label: `${item.count} users`,
+            })) ?? []
+          }
+          color="#a3753f"
+          height={250}
+        />
 
         {/* Token Usage */}
-        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-1">
-          <TimeSeriesChart
-            title="Token Usage"
-            data={
-              historicalStats?.tokenUsage.map((item) => ({
-                period: item.period,
-                value: item.total,
-                label: `${item.total.toLocaleString()} tokens`,
-              })) ?? []
-            }
-            color="#10b981"
-            height={250}
-          />
-        </div>
+        <TimeSeriesChart
+          title="Token Usage"
+          data={
+            historicalStats?.tokenUsage.map((item) => ({
+              period: item.period,
+              value: item.total,
+              label: `${item.total.toLocaleString()} tokens`,
+            })) ?? []
+          }
+          color="#8f9d59"
+          height={250}
+        />
 
         {/* Message Type Distribution */}
-        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-1">
-          <PieChart
-            title="Message Distribution"
-            data={
-              historicalStats
-                ? [
-                    {
-                      label: "User Messages",
-                      value: historicalStats.messagesPerPeriod.reduce(
-                        (sum, item) => sum + item.userMessages,
-                        0,
-                      ),
-                      color: "#8b5cf6",
-                    },
-                    {
-                      label: "Assistant Messages",
-                      value: historicalStats.messagesPerPeriod.reduce(
-                        (sum, item) => sum + item.assistantMessages,
-                        0,
-                      ),
-                      color: "#3b82f6",
-                    },
-                  ]
-                : []
-            }
-            size={180}
-          />
-        </div>
+        <PieChart
+          title="Message Distribution"
+          data={
+            historicalStats
+              ? [
+                  {
+                    label: "User Messages",
+                    value: historicalStats.messagesPerPeriod.reduce(
+                      (sum, item) => sum + item.userMessages,
+                      0,
+                    ),
+                    color: "#c8965a",
+                  },
+                  {
+                    label: "Assistant Messages",
+                    value: historicalStats.messagesPerPeriod.reduce(
+                      (sum, item) => sum + item.assistantMessages,
+                      0,
+                    ),
+                    color: "#a3753f",
+                  },
+                ]
+              : []
+          }
+          size={180}
+        />
       </div>
 
       {/* Moderation Insights */}
       {historicalStats &&
         historicalStats.moderationFlags.some((item) => item.count > 0) && (
-          <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-1">
-            <TimeSeriesChart
-              title="Moderation Flags"
-              data={historicalStats.moderationFlags.map((item) => ({
-                period: item.period,
-                value: item.count,
-                label: `${item.count} flags`,
-              }))}
-              color="#ef4444"
-              height={200}
-            />
-          </div>
+          <TimeSeriesChart
+            title="Moderation Flags"
+            data={historicalStats.moderationFlags.map((item) => ({
+              period: item.period,
+              value: item.count,
+              label: `${item.count} flags`,
+            }))}
+            color="#ef4444"
+            height={200}
+          />
         )}
     </div>
   );

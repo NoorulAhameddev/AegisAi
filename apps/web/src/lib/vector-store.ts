@@ -45,20 +45,14 @@ export async function addMultiModalDocument(
   imageMimeType?: string,
 ): Promise<string> {
   // Generate embeddings for both text and image
-  const multiModalContent: MultiModalContent = {
-    type: imageBase64 ? "mixed" : "text",
-    text,
-    imageBase64,
-    mimeType: imageMimeType,
-  };
-
-  const multiModalEmbedding =
-    await generateMultiModalEmbedding(multiModalContent);
+  const multiModalEmbedding = await generateMultiModalEmbedding(text, {
+    mergeStrategy: "text-only",
+  });
   const vector = await generateEmbedding(text);
 
   return provider.addDocument(text, metadata, userId, vector, {
-    textEmbedding: multiModalEmbedding.textEmbedding,
-    imageEmbedding: multiModalEmbedding.imageEmbedding,
+    textEmbedding: multiModalEmbedding.textEmbedding ?? undefined,
+    imageEmbedding: multiModalEmbedding.imageEmbedding ?? undefined,
     imageData: imageBase64,
     imageMimeType,
   });

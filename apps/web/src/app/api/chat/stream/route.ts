@@ -42,7 +42,7 @@ const handler = async (req: NextRequest) => {
 
     const bodySchema = z.object({
       chatId: z.string().min(1),
-      message: z.string().min(1),
+      message: z.string().min(1).max(10000),
       fileId: z.string().optional(),
     });
     const { data, response } = await parseBody(req, bodySchema);

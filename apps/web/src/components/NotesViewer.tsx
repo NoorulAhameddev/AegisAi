@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import ExportButton from "./ExportButton";
 import { logger } from "@/lib/logger";
-import { logger } from "@/lib/logger";
 
 interface Note {
   id: string;
@@ -118,15 +117,15 @@ export default function NotesViewer({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
       {/* Notes List */}
-      <div className="lg:col-span-1 space-y-2 overflow-y-auto max-h-[600px] border border-gray-300 dark:border-gray-700 rounded-lg p-3">
+      <div className="lg:col-span-1 space-y-2 overflow-y-auto max-h-[600px] border border-hair p-3">
         {notes.map((note) => (
           <button
             key={note.id}
             onClick={() => setSelectedNote(note)}
-            className={`w-full text-left p-3 rounded-lg transition ${
+            className={`w-full text-left p-3 transition ${
               selectedNote?.id === note.id
-                ? "bg-blue-100 dark:bg-blue-900/30 border-2 border-blue-500"
-                : "bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-transparent"
+                ? "bg-brand/15 border-l-2 border-brand"
+                : "bg-ink-900 hover:bg-ink-850 border-l-2 border-l-transparent"
             }`}
           >
             <div className="font-medium truncate mb-1">{note.title}</div>
@@ -145,7 +144,7 @@ export default function NotesViewer({
                 {note.tags.slice(0, 3).map((tag, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded text-xs"
+                    className="px-2 py-0.5 bg-ink-800 text-brand text-xs"
                   >
                     {tag}
                   </span>
@@ -194,7 +193,7 @@ export default function NotesViewer({
             </div>
 
             {selectedNote.project && (
-              <div className="mb-4 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg inline-block">
+              <div className="mb-4 px-3 py-2 bg-ink-900 border border-hair inline-block">
                 <span className="text-sm">
                   Project: {selectedNote.project.name}
                 </span>
@@ -206,7 +205,7 @@ export default function NotesViewer({
                 {selectedNote.tags.map((tag, idx) => (
                   <span
                     key={idx}
-                    className="px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-full text-sm"
+                    className="px-3 py-1 bg-ink-800 text-brand text-sm"
                   >
                     {tag}
                   </span>

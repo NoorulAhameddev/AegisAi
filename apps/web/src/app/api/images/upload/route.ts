@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     }
 
     const userId = authResult.id;
-    const requestId = req.headers.get("x-request-id");
+    const requestId = req.headers.get("x-request-id") || undefined;
 
     // Convert File to Buffer
     const fileBuffer = Buffer.from(await file.arrayBuffer());

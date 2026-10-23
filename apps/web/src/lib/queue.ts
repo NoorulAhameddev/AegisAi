@@ -1,4 +1,4 @@
-import { Queue } from "bullmq";
+import { Queue, QueueEvents } from "bullmq";
 import Redis from "ioredis";
 import { env } from "@/lib/env";
 import { redisHealthTracker } from "./redis-fallback";
@@ -9,13 +9,13 @@ import { getQueueDepthWithFallback } from "./queue-operations";
 const redisUrl = env.REDIS_URL;
 const queueName = env.QUEUE_NAME;
 
-export let connection: Redis;
+export let connection: InstanceType<typeof Redis>;
 
 try {
-  connection = new Redis(redisUrl, {
+  connection =   new Redis(redisUrl, {
     maxRetriesPerRequest: null,
     enableReadyCheck: true,
-    retryStrategy(times) {
+    retryStrategy(times: number) {
       const delay = Math.min(times * 50, 2000);
       logger.warn(
         `Redis connection retry attempt ${times}, waiting ${delay}ms`,
@@ -24,7 +24,7 @@ try {
     },
   });
 
-  connection.on("error", (err) => {
+  connection.on("error", (err: Error) => {
     logger.error("[Queue] Redis connection error", err as Error);
     redisHealthTracker.markFailure();
   });
@@ -58,21 +58,15 @@ export const chatQueue = new Queue(queueName, {
       type: "exponential",
       delay: 1000,
     },
-    // Job timeout: 90 seconds for chat completion
-    // Prevents jobs from running indefinitely
-    timeout: 90000, // 90 seconds
-    // CRITICAL: Use deduplication to prevent duplicate job processing
-    // Note: jobId should be set when enqueueing to enable dedup
-  },
-  // Limit queue size to prevent memory exhaustion
-  limiter: {
-    max: 1000, // Max 1000 jobs in queue
-    duration: 1000, // Per second
+    // Job execution timeout is enforced in the worker processing code
+    // (see chat.worker.ts) since BullMQ v5 has no per-job timeout option.
   },
 });
 
+const chatQueueEvents = new QueueEvents(queueName, { connection });
+
 // Log duplicate job attempts for monitoring
-chatQueue.on("duplicated", ({ jobId }) => {
+chatQueueEvents.on("duplicated", ({ jobId }) => {
   logger.info(`Duplicate job blocked: ${jobId}`, { queue: "chat" });
 });
 
@@ -91,18 +85,14 @@ export const ragQueue = new Queue("rag-queue", {
     },
     removeOnComplete: { count: 100, age: 3600 },
     removeOnFail: false, // Keep failed jobs for recovery even if Redis crashes
-    // Job timeout: 300 seconds for RAG ingestion (embeddings + chunking)
-    timeout: 300000, // 5 minutes
-  },
-  // Limit queue size to prevent memory exhaustion
-  limiter: {
-    max: 500, // Max 500 jobs in queue (RAG is more expensive)
-    duration: 1000, // Per second
+    // Job execution timeout is enforced in the worker processing code
   },
 });
 
+const ragQueueEvents = new QueueEvents("rag-queue", { connection });
+
 // Log duplicate job attempts for monitoring
-ragQueue.on("duplicated", ({ jobId }) => {
+ragQueueEvents.on("duplicated", ({ jobId }) => {
   logger.info(`Duplicate RAG job blocked: ${jobId}`, { queue: "rag" });
 });
 
@@ -129,15 +119,14 @@ export const videoSummaryQueue = new Queue("video-summary-queue", {
     },
     removeOnComplete: { count: 100, age: 3600 },
     removeOnFail: false,
-    timeout: 120000, // 2 minutes
-  },
-  limiter: {
-    max: 200,
-    duration: 1000,
   },
 });
 
-videoSummaryQueue.on("duplicated", ({ jobId }) => {
+const videoSummaryQueueEvents = new QueueEvents("video-summary-queue", {
+  connection,
+});
+
+videoSummaryQueueEvents.on("duplicated", ({ jobId }) => {
   logger.info(`Duplicate video-summary job blocked: ${jobId}`, {
     queue: "video-summary",
   });

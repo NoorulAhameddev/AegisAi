@@ -35,9 +35,9 @@ export function ArtifactsPanel({
   return (
     <div
       className={cn(
-        "border-l border-white/10 bg-zinc-900/50 backdrop-blur-xl transition-all duration-300 ease-in-out flex flex-col overflow-hidden",
+        "border-l border-hair bg-ink-900 transition-all duration-300 ease-in-out flex flex-col overflow-hidden",
         isFullscreen
-          ? "fixed inset-0 z-50 bg-zinc-950"
+          ? "fixed inset-0 z-50 bg-ink-950"
           : "w-0 md:w-[450px] lg:w-[600px] shrink-0",
         isOpen && !isFullscreen ? "opacity-100 translate-x-0 border-l" : "",
         !isOpen && !isFullscreen
@@ -46,25 +46,25 @@ export function ArtifactsPanel({
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-zinc-900/80">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-hair bg-ink-950">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-zinc-100">
+          <span className="text-sm font-medium text-ink-100">
             Artifact Preview
           </span>
-          <span className="text-xs text-zinc-500 bg-white/5 px-2 py-0.5 rounded uppercase">
+          <span className="text-xs text-ink-500 font-mono uppercase">
             {language}
           </span>
         </div>
         <div className="flex items-center gap-1">
           {isRenderable && (
-            <div className="flex bg-zinc-800 rounded-lg p-0.5 mr-2 border border-white/5">
+            <div className="flex bg-ink-850 border border-hair p-0.5 mr-2">
               <button
                 onClick={() => setActiveTab("preview")}
                 className={cn(
-                  "px-3 py-1 rounded-md text-xs font-medium transition-all flex items-center gap-1.5",
+                  "px-3 py-1 text-xs font-medium transition-colors flex items-center gap-1.5",
                   activeTab === "preview"
-                    ? "bg-purple-600 text-white shadow-sm"
-                    : "text-zinc-400 hover:text-white hover:bg-white/5",
+                    ? "bg-brand text-ink-950"
+                    : "text-ink-500 hover:text-ink-100 hover:bg-ink-800",
                 )}
               >
                 <Eye className="h-3.5 w-3.5" /> Preview
@@ -72,10 +72,10 @@ export function ArtifactsPanel({
               <button
                 onClick={() => setActiveTab("code")}
                 className={cn(
-                  "px-3 py-1 rounded-md text-xs font-medium transition-all flex items-center gap-1.5",
+                  "px-3 py-1 text-xs font-medium transition-colors flex items-center gap-1.5",
                   activeTab === "code"
-                    ? "bg-zinc-700 text-white shadow-sm"
-                    : "text-zinc-400 hover:text-white hover:bg-white/5",
+                    ? "bg-ink-700 text-ink-100"
+                    : "text-ink-500 hover:text-ink-100 hover:bg-ink-800",
                 )}
               >
                 <Code className="h-3.5 w-3.5" /> Code
@@ -85,7 +85,7 @@ export function ArtifactsPanel({
 
           <button
             onClick={() => setKey((p) => p + 1)}
-            className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+            className="p-1.5 text-ink-500 hover:text-ink-100 hover:bg-ink-800 transition-colors"
             title="Reload Preview"
           >
             <RefreshCw className="h-4 w-4" />
@@ -93,7 +93,7 @@ export function ArtifactsPanel({
 
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+            className="p-1.5 text-ink-500 hover:text-ink-100 hover:bg-ink-800 transition-colors"
             title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
           >
             {isFullscreen ? (
@@ -105,7 +105,7 @@ export function ArtifactsPanel({
 
           <button
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors ml-1"
+            className="p-1.5 text-ink-500 hover:text-ink-100 hover:bg-ink-800 transition-colors ml-1"
             title="Close"
           >
             <X className="h-4 w-4" />
@@ -114,7 +114,7 @@ export function ArtifactsPanel({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden bg-zinc-950/50 relative">
+      <div className="flex-1 overflow-hidden bg-ink-950 relative">
         {activeTab === "preview" && isRenderable ? (
           <div className="h-full w-full flex flex-col">
             {/* Safe Preview Construction */}
@@ -124,14 +124,14 @@ export function ArtifactsPanel({
                 srcDoc={DOMPurify.sanitize(content, {
                   USE_PROFILES: { html: true },
                 })}
-                className="w-full h-full bg-white"
+                className="w-full h-full bg-cream"
                 sandbox="allow-scripts"
                 title="Preview"
               />
             )}
             {language === "svg" && (
               <div
-                className="w-full h-full flex items-center justify-center bg-[url('/grid.svg')] bg-zinc-900"
+                className="w-full h-full flex items-center justify-center bg-[url('/grid.svg')] bg-ink-900"
                 dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(content, {
                     USE_PROFILES: { svg: true },
@@ -141,7 +141,7 @@ export function ArtifactsPanel({
             )}
           </div>
         ) : (
-          <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800">
+          <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-ink-700">
             <SyntaxHighlighter
               language={language}
               style={vscDarkPlus}

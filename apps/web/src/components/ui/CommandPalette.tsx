@@ -60,7 +60,7 @@ export function CommandPalette() {
         setResults(data.results || []);
         setSelectedIndex(0);
       } catch (err) {
-        logger.error(err);
+        logger.error("Command search failed", { error: err });
       } finally {
         setLoading(false);
       }
@@ -101,19 +101,19 @@ export function CommandPalette() {
         onClick={() => setIsOpen(false)}
       />
 
-      <div className="relative w-full max-w-2xl bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-slide-up-faint">
-        <div className="flex items-center px-4 py-4 border-b border-white/5">
-          <Search className="h-5 w-5 text-zinc-500 mr-3" />
+      <div className="relative w-full max-w-2xl bg-ink-900 border border-ink-700 overflow-hidden animate-slide-up">
+        <div className="flex items-center px-4 py-4 border-b border-hair">
+          <Search className="h-5 w-5 text-ink-500 mr-3" />
           <input
             ref={inputRef}
             type="text"
             placeholder="Search chats, files, or settings..."
-            className="flex-1 bg-transparent border-none outline-none text-white text-lg placeholder:text-zinc-600"
+            className="flex-1 bg-transparent border-none outline-none text-ink-100 text-lg placeholder:text-ink-600"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
           />
-          <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/5 border border-white/10 text-[10px] text-zinc-500 font-mono">
+          <div className="flex items-center gap-1 px-2 py-1 bg-white/5 border border-hair text-[10px] text-ink-500 font-mono">
             <CommandIcon className="h-3 w-3" />
             <span>K</span>
           </div>
@@ -122,7 +122,7 @@ export function CommandPalette() {
         <div className="max-h-[400px] overflow-y-auto p-2">
           {loading ? (
             <div className="flex items-center justify-center py-10">
-              <div className="h-6 w-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              <div className="h-6 w-6 border-2 border-ink-700 border-t-brand rounded-full animate-spin" />
             </div>
           ) : results.length > 0 ? (
             <div className="space-y-1">
@@ -131,16 +131,16 @@ export function CommandPalette() {
                   key={`${result.type}-${result.id}`}
                   onClick={() => handleSelect(result)}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left",
+                    "w-full flex items-center gap-3 px-3 py-3 transition-colors text-left",
                     selectedIndex === i ? "bg-white/10" : "hover:bg-white/5",
                   )}
                 >
                   <div
                     className={cn(
-                      "h-10 w-10 rounded-lg flex items-center justify-center",
+                      "h-10 w-10 flex items-center justify-center border border-hair",
                       result.type === "chat"
-                        ? "bg-purple-500/10 text-purple-400"
-                        : "bg-blue-500/10 text-blue-400",
+                        ? "bg-brand/10 text-brand"
+                        : "bg-white/5 text-ink-300",
                     )}
                   >
                     {result.type === "chat" ? (
@@ -150,15 +150,15 @@ export function CommandPalette() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">
+                    <p className="text-sm font-medium text-ink-100 truncate">
                       {result.title}
                     </p>
-                    <p className="text-xs text-zinc-500 flex items-center gap-1 uppercase tracking-wider font-mono">
+                    <p className="text-xs text-ink-500 flex items-center gap-1 uppercase tracking-wider font-mono">
                       {result.type} • {result.subtitle}
                     </p>
                   </div>
                   {selectedIndex === i && (
-                    <span className="text-[10px] text-zinc-600 font-mono">
+                    <span className="text-[10px] text-ink-600 font-mono">
                       Enter to open
                     </span>
                   )}
@@ -166,22 +166,22 @@ export function CommandPalette() {
               ))}
             </div>
           ) : query.length >= 2 ? (
-            <div className="py-10 text-center text-zinc-500">
+            <div className="py-10 text-center text-ink-500">
               No results found for "{query}"
             </div>
           ) : (
             <div className="py-10 text-center">
-              <p className="text-zinc-500 text-sm">
+              <p className="text-ink-500 text-sm">
                 Search across your entire workspace
               </p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
-                <span className="px-2 py-1 rounded bg-white/5 border border-white/5 text-[10px] text-zinc-600">
+                <span className="px-2 py-1 bg-white/5 border border-hair text-[10px] text-ink-600 font-mono">
                   CHATS
                 </span>
-                <span className="px-2 py-1 rounded bg-white/5 border border-white/5 text-[10px] text-zinc-600">
+                <span className="px-2 py-1 bg-white/5 border border-hair text-[10px] text-ink-600 font-mono">
                   FILES
                 </span>
-                <span className="px-2 py-1 rounded bg-white/5 border border-white/5 text-[10px] text-zinc-600">
+                <span className="px-2 py-1 bg-white/5 border border-hair text-[10px] text-ink-600 font-mono">
                   SETTINGS
                 </span>
               </div>
@@ -189,16 +189,16 @@ export function CommandPalette() {
           )}
         </div>
 
-        <div className="px-4 py-3 border-t border-white/5 bg-black/20 flex items-center justify-between text-[10px] text-zinc-600">
+        <div className="px-4 py-3 border-t border-hair bg-black/20 flex items-center justify-between text-[10px] text-ink-600">
           <div className="flex gap-4">
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 rounded bg-white/5 border border-white/10 uppercase">
+              <kbd className="px-1 py-0.5 bg-white/5 border border-hair uppercase">
                 ↑↓
               </kbd>{" "}
               to navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 rounded bg-white/5 border border-white/10 uppercase">
+              <kbd className="px-1 py-0.5 bg-white/5 border border-hair uppercase">
                 Enter
               </kbd>{" "}
               to select

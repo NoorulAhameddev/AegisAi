@@ -43,7 +43,7 @@ export default function CharactersPage() {
   }
 
   return (
-    <div className="flex h-screen bg-black text-white font-sans overflow-hidden bg-[url('/bg-noise.png')]">
+    <div className="flex h-screen bg-black text-ink-100 font-sans overflow-hidden bg-[url('/bg-noise.png')]">
       {user && (
         <>
           <div className="hidden md:block">
@@ -58,17 +58,17 @@ export default function CharactersPage() {
       )}
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="px-8 py-6 flex items-center justify-between gap-4 border-b border-white/5 bg-black/20 backdrop-blur-sm sticky top-0 z-20">
+        <header className="px-8 py-6 flex items-center justify-between gap-4 border-b border-hair bg-ink-900 sticky top-0 z-20">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileNavOpen(true)}
-              className="md:hidden p-2 -ml-2 text-zinc-400 hover:text-white transition-colors"
+              className="md:hidden p-2 -ml-2 text-zinc-400 hover:text-ink-100 transition-colors"
               aria-label="Open navigation"
             >
               <Menu className="h-6 w-6" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Characters</h1>
+              <h1 className="font-display text-2xl font-medium tracking-tight">Characters</h1>
               <p className="text-zinc-400 text-sm">
                 Create and manage AI personas for your chats.
               </p>

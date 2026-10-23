@@ -42,51 +42,43 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-black text-white relative overflow-hidden selection:bg-purple-500/30">
-      {/* Enhanced Background Effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)] pointer-events-none" />
-      <div className="absolute top-0 right-1/4 translate-x-1/2 w-150 h-150 bg-blue-500/20 rounded-full blur-[120px] -z-10 animate-pulse-slow" />
-      <div className="absolute bottom-0 left-1/4 -translate-x-1/2 w-125 h-125 bg-purple-500/10 rounded-full blur-[100px] -z-10 animate-float-slow" />
-
-      {/* Floating particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 left-1/3 w-2 h-2 bg-blue-400/30 rounded-full animate-float" />
-        <div className="absolute top-2/3 left-2/3 w-1.5 h-1.5 bg-purple-400/30 rounded-full animate-float-slow" />
-        <div className="absolute top-1/2 right-1/3 w-1 h-1 bg-emerald-400/30 rounded-full animate-bounce-subtle" />
-      </div>
+    <main className="flex min-h-screen items-center justify-center bg-ink-950 text-ink-100 relative overflow-hidden selection:bg-brand/25 font-sans antialiased">
+      {/* Background dot grid */}
+      <div className="fixed inset-0 bg-[radial-gradient(#f0ebe410_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none z-0" />
 
       <div className="w-full max-w-md p-6 relative z-10">
         <div className="mb-8 text-center animate-slide-up">
-          <div className="mx-auto h-16 w-16 rounded-2xl bg-linear-to-tr from-blue-500 to-purple-600 p-px mb-6 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all">
-            <div className="h-full w-full rounded-2xl bg-black flex items-center justify-center group-hover:bg-zinc-900 transition-colors">
+          <Link href="/" className="inline-block group focus:outline-none focus:ring-2 focus:ring-brand/50 mb-6">
+            <div className="mx-auto h-16 w-16 bg-ink-850 border border-ink-700 p-2 group-hover:border-brand/60 transition-colors flex items-center justify-center">
               <img
                 src="/aegis-logo.png"
-                alt="Logo"
+                alt="Aegis AI Logo"
                 className="h-10 w-10 object-contain"
               />
             </div>
-          </div>
+          </Link>
           <div className="mb-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs mb-4">
-              <Shield className="h-3 w-3" />
-              Protected Workspace
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-brand/10 border border-brand/20 text-brand text-xs font-mono uppercase tracking-wider">
+              <Shield className="h-3.5 w-3.5" />
+              Enterprise Account Setup
             </div>
           </div>
-          <h1 className="text-4xl font-bold tracking-tight mb-2 bg-clip-text text-transparent bg-linear-to-b from-white via-white to-zinc-500">
+          <h1 className="font-display text-3xl font-medium tracking-tight mb-2 text-ink-100">
             Create Account
           </h1>
-          <p className="text-zinc-400 text-lg">Start your AI journey today</p>
+          <p className="text-ink-500 text-sm">
+            Access secure vector search, SSE streaming, and BullMQ workers
+          </p>
         </div>
 
         <GlassCard
-          className="animate-slide-up [animation-delay:100ms] opacity-0 [animation-fill-mode:forwards] p-8"
-          gradient="blue"
+          className="animate-slide-up [animation-delay:100ms] opacity-0 [animation-fill-mode:forwards] p-8 border-hair bg-ink-900"
+          gradient="none"
           interactive={false}
         >
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm flex items-center justify-center font-medium animate-slide-up backdrop-blur-sm">
-                <span className="mr-2">⚠️</span>
+              <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-200 text-sm flex items-center justify-center font-medium">
                 {error}
               </div>
             )}
@@ -98,7 +90,7 @@ export default function RegisterPage() {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               label="Full Name"
               placeholder="John Doe"
-              icon={<User className="h-5 w-5" />}
+              icon={<User className="h-5 w-5 text-zinc-500" />}
             />
 
             <Input
@@ -108,7 +100,7 @@ export default function RegisterPage() {
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               label="Email Address"
               placeholder="name@company.com"
-              icon={<Mail className="h-5 w-5" />}
+              icon={<Mail className="h-5 w-5 text-zinc-500" />}
             />
 
             <Input
@@ -118,7 +110,7 @@ export default function RegisterPage() {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               label="Password"
               placeholder="••••••••"
-              icon={<Lock className="h-5 w-5" />}
+              icon={<Lock className="h-5 w-5 text-zinc-500" />}
               helperText="At least 8 characters recommended"
             />
 
@@ -127,7 +119,7 @@ export default function RegisterPage() {
               variant="primary"
               size="lg"
               loading={loading}
-              className="w-full mt-6"
+              className="w-full mt-6 bg-ink-100 text-ink-950 hover:bg-white font-medium"
               icon={
                 !loading && (
                   <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -139,25 +131,25 @@ export default function RegisterPage() {
           </form>
         </GlassCard>
 
-        <div className="mt-8 text-center text-sm text-zinc-500 animate-slide-up [animation-delay:200ms] opacity-0 [animation-fill-mode:forwards]">
+        <div className="mt-8 text-center text-sm text-ink-500 animate-slide-up [animation-delay:200ms] opacity-0 [animation-fill-mode:forwards]">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="text-white hover:text-blue-300 font-medium transition-colors underline decoration-zinc-700 underline-offset-4 hover:decoration-blue-400"
+            className="text-ink-100 hover:text-brand font-medium transition-colors underline decoration-ink-700 underline-offset-4 hover:decoration-brand"
           >
             Sign in instead →
           </Link>
         </div>
 
         {/* Trust indicators */}
-        <div className="mt-8 flex items-center justify-center gap-6 text-xs text-zinc-600 animate-slide-up [animation-delay:250ms] opacity-0 [animation-fill-mode:forwards]">
+        <div className="mt-8 flex items-center justify-center gap-6 text-xs text-ink-500 font-mono animate-slide-up [animation-delay:250ms] opacity-0 [animation-fill-mode:forwards]">
           <div className="flex items-center gap-1.5">
-            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            <span>Free Forever</span>
+            <div className="h-1 w-1 bg-emerald-500" />
+            <span>Developer Tier $0</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-            <span>No Credit Card</span>
+            <div className="h-1 w-1 bg-brand" />
+            <span>No Credit Card Needed</span>
           </div>
         </div>
       </div>

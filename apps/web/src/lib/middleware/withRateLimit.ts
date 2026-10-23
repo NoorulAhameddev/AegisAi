@@ -114,5 +114,5 @@ export function withRateLimit<
       options.limit,
       options.window,
     );
-  }) as T;
+  }) as unknown as T;
 }

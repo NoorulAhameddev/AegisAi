@@ -120,17 +120,17 @@ export function createVectorDBProvider(): IVectorDBProvider {
   const providerType = process.env.VECTOR_DB_PROVIDER || "lancedb";
 
   switch (providerType.toLowerCase()) {
-    case "pgvector":
-      const {
-        PgvectorProvider,
-      } = require("./vector-providers/pgvector-provider");
+    case "pgvector": {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { PgvectorProvider } = require("./vector-providers/pgvector-provider");
       return new PgvectorProvider();
+    }
     case "lancedb":
-    default:
-      const {
-        LanceDBProvider,
-      } = require("./vector-providers/lancedb-provider");
+    default: {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { LanceDBProvider } = require("./vector-providers/lancedb-provider");
       return new LanceDBProvider();
+    }
   }
 }
 

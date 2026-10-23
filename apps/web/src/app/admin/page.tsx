@@ -3,6 +3,16 @@ import { redirect } from "next/navigation";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import AdminConsole from "./AdminConsole";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Admin Console",
+  description: "Aegis AI System Health, User Management & Audit Logs",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 async function verifyAdmin() {
   const cookieStore = await cookies();

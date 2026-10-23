@@ -7,9 +7,6 @@ import { getDocumentChunker } from "./chunker";
 import {
   generateMultiModalEmbedding,
   mergeEmbeddings,
-  hasImage,
-  hasText,
-  type MultiModalContent,
 } from "./multi-modal-embeddings";
 import { getVectorDBProvider } from "@/lib/vector-db-provider";
 import type { DocumentMetadata } from "@/lib/vector-db-provider";
@@ -79,22 +76,21 @@ export async function ingestMultiModalDocument(
 
   // Process each chunk as potential multi-modal content
   for (const chunk of chunks) {
-    const multiModalContent: MultiModalContent = {
-      type: chunk.metadata.imageData ? "mixed" : "text",
-      text: chunk.text,
-      imageBase64: chunk.metadata.imageData,
-      mimeType: chunk.metadata.imageMimeType,
-    };
+    const embedStrategy = options.embedStrategy || "text-only";
 
     try {
       // Generate multi-modal embeddings
-      const embedding = await generateMultiModalEmbedding(multiModalContent);
+      const embedding = await generateMultiModalEmbedding(chunk.text, {
+        mergeStrategy: embedStrategy,
+        skipImageProcessing: !chunk.metadata.imageData,
+      });
       embeddingsGenerated++;
 
       // Merge embeddings into single vector (based on strategy)
       const mergedVector = mergeEmbeddings(
-        embedding,
-        options.embedStrategy || "text-only",
+        embedding.textEmbedding,
+        embedding.imageEmbedding,
+        embedStrategy,
       );
 
       // Primary vector for search (text embedding)
@@ -118,8 +114,8 @@ export async function ingestMultiModalDocument(
         options.userId,
         primaryVector,
         {
-          textEmbedding: embedding.textEmbedding,
-          imageEmbedding: embedding.imageEmbedding,
+          textEmbedding: embedding.textEmbedding ?? undefined,
+          imageEmbedding: embedding.imageEmbedding ?? undefined,
           imageData: chunk.metadata.imageData,
           imageMimeType: chunk.metadata.imageMimeType,
         },
@@ -170,13 +166,10 @@ export async function searchMultiModal(
   logger.info(`[MultiModalRAG] Searching with strategy: ${strategy}`);
 
   // Generate query embeddings
-  const multiModalQuery: MultiModalContent = {
-    type: imageBase64 ? "mixed" : "text",
-    text: query,
-    imageBase64,
-  };
-
-  const queryEmbedding = await generateMultiModalEmbedding(multiModalQuery);
+  const queryEmbedding = await generateMultiModalEmbedding(query, {
+    mergeStrategy: "text-only",
+    skipImageProcessing: !imageBase64,
+  });
 
   // For now, use text-based search (search by text embedding)
   // Full multi-modal search would require database support for vector comparisons on multiple fields

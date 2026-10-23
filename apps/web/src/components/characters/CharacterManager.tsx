@@ -11,7 +11,6 @@ import { Plus, Search, Filter, Sparkles } from "lucide-react";
 import { CharacterCard } from "./CharacterCard";
 import { CreateCharacterModal } from "./CreateCharacterModal";
 import { logger } from "@/lib/logger";
-import { logger } from "@/lib/logger";
 
 interface CharacterPreset {
   id: string;
@@ -105,15 +104,11 @@ export function CharacterManager() {
     logger.info(`Edit character ${id} - modal not yet implemented`);
   };
 
-  const handleEdit = (id: string) => {
-    logger.info(`Edit character ${id} - modal not yet implemented`);
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="flex items-center gap-3">
-          <Sparkles className="h-5 w-5 text-purple-400 animate-pulse" />
+          <Sparkles className="h-5 w-5 text-brand animate-pulse" />
           <span className="text-zinc-400">Loading characters...</span>
         </div>
       </div>
@@ -126,21 +121,23 @@ export function CharacterManager() {
   return (
     <div className="space-y-6">
       {error && (
-        <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <div className="border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
           {error}
         </div>
       )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">Character Presets</h2>
-          <p className="text-sm text-zinc-400 mt-1">
+          <h2 className="text-2xl font-display font-medium tracking-tight text-ink-100">
+            Character Presets
+          </h2>
+          <p className="text-sm text-ink-400 mt-1">
             Manage AI personas for different use cases
           </p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-dim text-ink-950"
         >
           <Plus className="h-4 w-4" />
           Create Character
@@ -151,23 +148,23 @@ export function CharacterManager() {
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Search */}
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search characters..."
-            className="w-full pl-10 pr-4 py-2 bg-zinc-900/50 border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 transition-colors"
+            className="w-full pl-10 pr-4 py-2 bg-ink-900 border border-ink-700 text-ink-100 placeholder-ink-500 focus:outline-none focus:border-brand transition-colors"
           />
         </div>
 
         {/* Category filter */}
         <div className="relative">
-          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" />
+          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400 pointer-events-none" />
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="pl-10 pr-8 py-2 bg-zinc-900/50 border border-white/10 rounded-lg text-white focus:outline-none focus:border-purple-500 transition-colors appearance-none"
+            className="pl-10 pr-8 py-2 bg-ink-900 border border-ink-700 text-ink-100 focus:outline-none focus:border-brand transition-colors appearance-none"
           >
             <option value="">All Categories</option>
             {categories.map((category) => (
@@ -181,16 +178,16 @@ export function CharacterManager() {
 
       {/* Stats */}
       <div className="flex gap-4 text-sm">
-        <div className="px-3 py-2 bg-purple-500/10 border border-purple-500/20 rounded-lg text-purple-300">
+        <div className="px-3 py-2 bg-ink-800 border border-ink-700 text-brand">
           {totalCharacters} Total
         </div>
-        <div className="px-3 py-2 bg-zinc-900/50 border border-white/10 rounded-lg text-zinc-400">
+        <div className="px-3 py-2 bg-ink-850 border border-hair text-ink-400">
           {systemCharacters.length} System
         </div>
-        <div className="px-3 py-2 bg-zinc-900/50 border border-white/10 rounded-lg text-zinc-400">
+        <div className="px-3 py-2 bg-ink-850 border border-hair text-ink-400">
           {userCharacters.length} Your Characters
         </div>
-        <div className="px-3 py-2 bg-zinc-900/50 border border-white/10 rounded-lg text-zinc-400">
+        <div className="px-3 py-2 bg-ink-850 border border-hair text-ink-400">
           {publicCharacters.length} Public
         </div>
       </div>
@@ -198,8 +195,8 @@ export function CharacterManager() {
       {/* System Characters */}
       {systemCharacters.length > 0 && (
         <div>
-          <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-400" />
+          <h3 className="text-lg font-display font-medium tracking-tight text-ink-100 mb-3 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-brand" />
             System Characters
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -217,7 +214,7 @@ export function CharacterManager() {
       {/* User Characters */}
       {userCharacters.length > 0 && (
         <div>
-          <h3 className="text-lg font-semibold text-white mb-3">
+          <h3 className="text-lg font-display font-medium tracking-tight text-ink-100 mb-3">
             Your Characters
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -237,7 +234,7 @@ export function CharacterManager() {
       {/* Public Characters */}
       {publicCharacters.length > 0 && (
         <div>
-          <h3 className="text-lg font-semibold text-white mb-3">
+          <h3 className="text-lg font-display font-medium tracking-tight text-ink-100 mb-3">
             Public Characters
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -256,10 +253,10 @@ export function CharacterManager() {
       {totalCharacters === 0 && (
         <div className="text-center py-12">
           <Sparkles className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">
+          <h3 className="text-lg font-medium text-ink-100 mb-2">
             No characters found
           </h3>
-          <p className="text-sm text-zinc-400 mb-4">
+          <p className="text-sm text-ink-400 mb-4">
             {searchQuery || selectedCategory
               ? "Try adjusting your filters"
               : "Create your first character preset to get started"}
@@ -267,7 +264,7 @@ export function CharacterManager() {
           {!searchQuery && !selectedCategory && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-dim text-ink-950"
             >
               <Plus className="h-4 w-4" />
               Create Character

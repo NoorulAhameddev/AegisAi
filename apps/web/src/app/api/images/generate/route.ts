@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     if (response) return response;
 
     const userId = authResult.id;
-    const requestId = req.headers.get("x-request-id");
+    const requestId = req.headers.get("x-request-id") || undefined;
 
     logger.worker("image-gen-api", "request", {
       userId,

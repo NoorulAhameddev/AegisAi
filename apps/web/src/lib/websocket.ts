@@ -1,6 +1,6 @@
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { createServer } from "http";
-import type { Server } from "net";
+import type { Server as HTTPServer } from "http";
 import Redis from "ioredis";
 import { logger } from "@/lib/logger";
 import { env } from "@/lib/env";
@@ -19,7 +19,7 @@ export interface RealtimeMessage {
 export interface PresenceData {
   userId: string;
   chatId: string;
-  status: "online" | "typing" | "offline";
+  status: "online" | "typing" | "away" | "offline";
   lastSeen: string;
 }
 
@@ -27,8 +27,8 @@ export interface PresenceData {
 let io: SocketIOServer | null = null;
 
 // Redis pub/sub for inter-process communication
-let subscriber: Redis | null = null;
-let publisher: Redis | null = null;
+let subscriber: InstanceType<typeof Redis> | null = null;
+let publisher: InstanceType<typeof Redis> | null = null;
 
 // Active connections tracking
 const activeConnections = new Map<string, Set<string>>();
@@ -46,7 +46,9 @@ const MESSAGE_RATE_WINDOW = 60000; // 1 minute
  * Initialize WebSocket server
  * Should be called once on worker startup
  */
-export function initializeWebSocketServer(httpServer: Server): SocketIOServer {
+export function initializeWebSocketServer(
+  httpServer: HTTPServer,
+): SocketIOServer {
   if (io) return io;
 
   io = new SocketIOServer(httpServer, {
@@ -129,7 +131,7 @@ function setupSocketHandlers() {
             OR: [
               { userId }, // Chat owner
               { isShared: true }, // Shared chat
-              { permissions: { some: { userId } } }, // Has explicit permission
+              { ChatPermission: { some: { userId } } }, // Has explicit permission
             ],
             deletedAt: null,
           },
@@ -278,7 +280,7 @@ function setupRedisPubSub() {
     publisher = new Redis(redisUrl);
 
     // Subscribe to broadcast channels
-    subscriber.subscribe("broadcast:*", (err) => {
+    subscriber.subscribe("broadcast:*", (err: Error | null) => {
       if (err) {
         logger.error("Redis subscribe failed", err as Error);
       } else {
@@ -286,7 +288,7 @@ function setupRedisPubSub() {
       }
     });
 
-    subscriber.on("message", (channel, message) => {
+    subscriber.on("message", (channel: string, message: string) => {
       if (!io) return;
 
       try {
@@ -335,7 +337,7 @@ export function broadcastToUser(userId: string, message: RealtimeMessage) {
  */
 export function broadcastPresence(
   userId: string,
-  status: "online" | "offline",
+  status: "online" | "away" | "offline",
 ) {
   const presence: PresenceData = {
     userId,

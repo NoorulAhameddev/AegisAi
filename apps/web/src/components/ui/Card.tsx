@@ -3,24 +3,26 @@ import React from "react";
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   hover?: boolean;
-  glow?: boolean;
+  inset?: boolean;
+  flush?: boolean;
 }
 
 export function Card({
   children,
   className,
   hover = false,
-  glow = false,
+  inset = false,
+  flush = false,
   ...props
 }: CardProps) {
   return (
     <div
       className={cn(
-        "rounded-2xl bg-zinc-900/40 border border-white/5 p-6 backdrop-blur-xl",
-        "transition-all duration-300",
+        "bg-ink-850 border border-hair",
+        flush ? "p-0" : "p-6",
+        inset && "border-l-2 border-l-brand",
         hover &&
-          "hover:bg-zinc-800/60 hover:border-white/10 hover:-translate-y-1 cursor-pointer",
-        glow && "hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.3)]",
+          "cursor-pointer hover:border-ink-600 hover:bg-ink-800 transition-colors",
         className,
       )}
       {...props}
@@ -36,7 +38,7 @@ export function CardHeader({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("mb-4", className)} {...props}>
+    <div className={cn("mb-4 flex items-start justify-between", className)} {...props}>
       {children}
     </div>
   );
@@ -48,7 +50,7 @@ export function CardTitle({
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h3 className={cn("text-xl font-bold text-white", className)} {...props}>
+    <h3 className={cn("font-display text-lg font-medium tracking-tight text-ink-100", className)} {...props}>
       {children}
     </h3>
   );
@@ -60,7 +62,7 @@ export function CardDescription({
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={cn("text-zinc-400 text-sm mt-1", className)} {...props}>
+    <p className={cn("text-sm text-ink-500 mt-1", className)} {...props}>
       {children}
     </p>
   );
@@ -85,7 +87,7 @@ export function CardFooter({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("mt-4 pt-4 border-t border-white/5", className)}
+      className={cn("mt-4 pt-4 hairline", className)}
       {...props}
     >
       {children}

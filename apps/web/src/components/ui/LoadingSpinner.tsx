@@ -26,8 +26,8 @@ export function LoadingSpinner({
         className,
       )}
     >
-      <Loader2 className={cn("animate-spin text-purple-400", sizes[size])} />
-      {text && <p className="text-sm text-zinc-400 animate-pulse">{text}</p>}
+      <Loader2 className={cn("animate-spin text-brand", sizes[size])} />
+      {text && <p className="text-sm text-ink-400 animate-pulse">{text}</p>}
     </div>
   );
 }
@@ -35,7 +35,7 @@ export function LoadingSpinner({
 export function LoadingOverlay({ text = "Loading..." }: { text?: string }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="rounded-2xl bg-zinc-900/80 border border-white/10 p-8 backdrop-blur-xl">
+      <div className="bg-ink-900 border border-ink-700 p-8">
         <LoadingSpinner size="lg" text={text} />
       </div>
     </div>

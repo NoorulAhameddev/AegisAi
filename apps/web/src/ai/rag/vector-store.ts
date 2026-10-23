@@ -55,7 +55,7 @@ export interface DocumentMetadata {
 
 // CRITICAL FIX: Get fresh database connection for each operation
 // This ensures recent writes are always visible
-async function getDb() {
+export async function getDb() {
   const db = await loadLanceDB();
   // Create new connection each time - LanceDB internally caches table handles
   const dbConnection = await db.connect(DB_DIR);
@@ -98,8 +98,7 @@ export async function addDocument(
     `[VectorStore] addDocument - Creating record with userId: ${userId.substring(0, 8)}, sourceId: ${sourceId?.substring(0, 8) || "none"}`,
   );
   logger.debug(
-    `[VectorStore] Record structure:`,
-    Object.keys(record).join(", "),
+    `[VectorStore] Record structure: ${Object.keys(record).join(", ")}`,
   );
 
   const tableNames = await db.tableNames();
@@ -258,8 +257,11 @@ export async function searchSimilar(
 
     if (allDocsForUser.length > 0) {
       logger.debug(
-        `[VectorStore] Sample document:`,
-        JSON.stringify(allDocsForUser[0], null, 2).substring(0, 400),
+        `[VectorStore] Sample document: ${JSON.stringify(
+          allDocsForUser[0],
+          null,
+          2,
+        ).substring(0, 400)}`,
       );
       // Check if the sample document has a vector
       if (allDocsForUser[0].vector) {

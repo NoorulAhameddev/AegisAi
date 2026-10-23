@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { withSentryConfig } = require("@sentry/nextjs");
 
 /** @type {import('next').NextConfig} */
@@ -7,6 +8,7 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   turbopack: {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     root: require("path").resolve(__dirname, "../.."), // Set to monorepo root
   },
   // Keep native lancedb bindings external so Turbopack doesn't try to place them in ESM chunks

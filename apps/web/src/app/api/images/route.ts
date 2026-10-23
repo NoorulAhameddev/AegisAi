@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     const offset = Math.max(0, parseInt(searchParams.get("offset") ?? "0"));
 
     const userId = authResult.id;
-    const requestId = req.headers.get("x-request-id");
+    const requestId = req.headers.get("x-request-id") || undefined;
 
     const images = await getUserGeneratedImages(userId, limit, offset);
 

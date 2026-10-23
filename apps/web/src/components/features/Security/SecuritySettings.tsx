@@ -3,7 +3,17 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Shield, Eye, EyeOff, AlertTriangle, CheckCircle } from "lucide-react";
+import {
+  Shield,
+  Eye,
+  EyeOff,
+  AlertTriangle,
+  CheckCircle,
+  Check,
+  Globe,
+  Lock,
+  ShieldCheck,
+} from "lucide-react";
 import { logger } from "@/lib/logger";
 
 interface SecurityInfo {
@@ -62,20 +72,31 @@ export function SecuritySettings({
   return (
     <div className="space-y-4">
       {/* Security Status */}
-      <Card className="p-4 bg-gradient-to-br from-green-50 to-blue-50 border-green-200">
+      <Card className="p-4 bg-ink-850 border-hair">
         <div className="flex items-start gap-3">
-          <CheckCircle size={24} className="text-green-600 flex-shrink-0" />
+          <CheckCircle size={24} className="text-emerald-400 flex-shrink-0" />
           <div>
-            <h3 className="font-semibold text-green-900 mb-1">
+            <h3 className="font-medium text-ink-100 mb-1">
               Security Status
             </h3>
-            <div className="space-y-1 text-sm text-green-800">
+            <div className="space-y-1 text-sm text-ink-300">
               {securityInfo?.encryption === "enabled" && (
-                <p>✓ End-to-end encryption enabled</p>
+                <p className="flex items-center gap-1.5">
+                  <Check size={12} className="text-emerald-400" />
+                  End-to-end encryption enabled
+                </p>
               )}
-              {securityInfo?.auditLogging && <p>✓ Audit logging active</p>}
+              {securityInfo?.auditLogging && (
+                <p className="flex items-center gap-1.5">
+                  <Check size={12} className="text-emerald-400" />
+                  Audit logging active
+                </p>
+              )}
               {securityInfo?.dataLocalization && (
-                <p>✓ Data localized to {securityInfo.dataLocalization}</p>
+                <p className="flex items-center gap-1.5">
+                  <Check size={12} className="text-emerald-400" />
+                  Data localized to {securityInfo.dataLocalization}
+                </p>
               )}
             </div>
           </div>
@@ -84,7 +105,7 @@ export function SecuritySettings({
 
       {/* Data Privacy */}
       <Card className="p-4">
-        <h3 className="font-semibold mb-3 flex items-center gap-2">
+        <h3 className="font-medium mb-3 flex items-center gap-2 text-ink-100">
           <Shield size={18} />
           Data Privacy Level
         </h3>
@@ -92,46 +113,53 @@ export function SecuritySettings({
           {[
             {
               level: "public" as const,
-              label: "🌐 Public",
+              label: "Public",
               description: "Accessible to everyone (not recommended)",
-              color: "gray",
+              icon: Globe,
             },
             {
               level: "private" as const,
-              label: "🔒 Private",
+              label: "Private",
               description: "Only you can access",
-              color: "blue",
+              icon: Lock,
             },
             {
               level: "encrypted" as const,
-              label: "🔐 End-to-End Encrypted",
+              label: "End-to-End Encrypted",
               description: "Maximum security with client-side encryption",
-              color: "green",
+              icon: ShieldCheck,
             },
           ].map((option) => (
             <button
               key={option.level}
               onClick={() => handlePrivacyChange(option.level)}
-              className={`w-full text-left p-3 rounded-lg border-2 transition ${
+              className={`w-full text-left p-3 border-2 transition ${
                 privacyLevel === option.level
-                  ? `border-${option.color}-500 bg-${option.color}-50`
-                  : "border-gray-200 hover:border-gray-300"
+                  ? "border-brand bg-ink-800"
+                  : "border-ink-700 hover:border-ink-500"
               }`}
             >
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-sm text-gray-900">
-                    {option.label}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {option.description}
-                  </p>
+                <div className="flex items-center gap-2">
+                  <option.icon
+                    size={18}
+                    className={
+                      privacyLevel === option.level
+                        ? "text-brand"
+                        : "text-ink-500"
+                    }
+                  />
+                  <div>
+                    <p className="font-medium text-sm text-ink-100">
+                      {option.label}
+                    </p>
+                    <p className="text-xs text-ink-400 mt-1">
+                      {option.description}
+                    </p>
+                  </div>
                 </div>
                 {privacyLevel === option.level && (
-                  <CheckCircle
-                    size={18}
-                    className={`text-${option.color}-600`}
-                  />
+                  <CheckCircle size={18} className="text-brand" />
                 )}
               </div>
             </button>
@@ -141,7 +169,7 @@ export function SecuritySettings({
 
       {/* Token Management */}
       <Card className="p-4">
-        <h3 className="font-semibold mb-3">Session Token Expiry</h3>
+        <h3 className="font-medium mb-3 text-ink-100">Session Token Expiry</h3>
         <div className="space-y-3">
           <div>
             <label className="flex items-center justify-between text-sm mb-2">
@@ -156,7 +184,7 @@ export function SecuritySettings({
               onChange={(e) => setTokenExpiry(Number(e.target.value))}
               className="w-full"
             />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <div className="flex justify-between text-xs text-ink-500 mt-1">
               <span>5 min (shorter)</span>
               <span>24 hours (longer)</span>
             </div>
@@ -166,31 +194,31 @@ export function SecuritySettings({
 
       {/* Active Sessions */}
       <Card className="p-4">
-        <h3 className="font-semibold mb-3">Active Sessions</h3>
-        <p className="text-sm text-gray-600 mb-3">You have 1 active session</p>
+        <h3 className="font-medium mb-3 text-ink-100">Active Sessions</h3>
+        <p className="text-sm text-ink-400 mb-3">You have 1 active session</p>
 
         {!revokeConfirm ? (
           <button
             onClick={() => setRevokeConfirm(true)}
-            className="w-full py-2 px-4 border border-red-300 text-red-600 rounded-lg font-medium hover:bg-red-50 transition"
+            className="w-full py-2 px-4 border border-red-500/30 text-red-400 font-medium hover:bg-red-500/10 transition"
           >
             Revoke All Sessions
           </button>
         ) : (
           <div className="space-y-2">
-            <p className="text-sm text-red-600 font-medium">
+            <p className="text-sm text-red-400 font-medium">
               This will log you out everywhere. Are you sure?
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => setRevokeConfirm(false)}
-                className="flex-1 py-2 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
+                className="flex-1 py-2 px-4 border border-hair font-medium text-ink-100 hover:bg-ink-800"
               >
                 Cancel
               </button>
               <button
                 onClick={handleRevokeAllSessions}
-                className="flex-1 py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium"
+                className="flex-1 py-2 px-4 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 font-medium"
               >
                 Revoke All
               </button>
@@ -203,31 +231,31 @@ export function SecuritySettings({
       <Card className="p-4">
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center justify-between w-full font-semibold text-gray-700"
+          className="flex items-center justify-between w-full font-medium text-ink-300"
         >
           <span>Advanced Options</span>
           {showAdvanced ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
 
         {showAdvanced && (
-          <div className="mt-4 space-y-3 pt-4 border-t">
-            <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="mt-4 space-y-3 pt-4 border-t border-hair">
+            <div className="flex items-center gap-2 p-3 bg-amber-500/10 border border-amber-500/25">
               <AlertTriangle
                 size={18}
-                className="text-yellow-600 flex-shrink-0"
+                className="text-amber-400 flex-shrink-0"
               />
               <div>
-                <p className="text-xs font-semibold text-yellow-900">
+                <p className="text-xs font-medium text-ink-100">
                   Encryption Key Version
                 </p>
-                <p className="text-xs text-yellow-800 mt-0.5">
+                <p className="text-xs text-ink-300 mt-0.5">
                   Current: v{securityInfo?.encryptionKeyVersion || 1}
                 </p>
               </div>
             </div>
 
             {securityInfo?.lastSecurityUpdate && (
-              <div className="text-xs text-gray-600">
+              <div className="text-xs text-ink-500">
                 Last security update:{" "}
                 {new Date(securityInfo.lastSecurityUpdate).toLocaleDateString()}
               </div>

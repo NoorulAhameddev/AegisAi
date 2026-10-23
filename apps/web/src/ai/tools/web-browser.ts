@@ -48,7 +48,7 @@ export const WebReadTool: Tool = {
       $("footer").remove();
 
       // Extract text
-      let text = $("body").text().replace(/\s+/g, " ").trim();
+      const text = $("body").text().replace(/\s+/g, " ").trim();
       return text.substring(0, 5000) + (text.length > 5000 ? "..." : ""); // Limit context
     } catch (e: any) {
       return `Error reading page: ${e.message}`;

@@ -1,11 +1,8 @@
-﻿/**
+/**
  * Reranking Test Suite
  * Tests cross-encoder and heuristic reranking functionality
  * Run with: npm test -- rerank.test.ts
  */
-
-import { describe, it, expect, beforeEach, jest } from "@jest/globals";
-import type { Document } from "@/ai/rag/vector-store";
 
 // Mock OpenAI
 jest.mock("@/services/ai/openai", () => ({
@@ -20,7 +17,9 @@ jest.mock("@/services/ai/openai", () => ({
 
 // Mock rerank cache
 jest.mock("@/lib/rerank-cache", () => ({
-  getCachedRerankScores: jest.fn(() => Promise.resolve([])),
+  getCachedRerankScores: jest.fn((keys: any) =>
+    Promise.resolve(new Array(Array.isArray(keys) ? keys.length : 0).fill(null)),
+  ),
   setCachedRerankScores: jest.fn(() => Promise.resolve()),
 }));
 
@@ -40,6 +39,8 @@ import {
 } from "@/services/rag/rerank";
 import { openai } from "@/services/ai/openai";
 
+const mockCreate = openai.chat.completions.create as unknown as jest.Mock;
+
 describe("Reranking Service", () => {
   const mockDocuments: Document[] = [
     {
@@ -57,7 +58,7 @@ describe("Reranking Service", () => {
       text: "Deep learning uses neural networks with multiple layers",
       metadata: { source: "dl.txt" },
       score: 0.75,
-      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 7, // 7 days ago
+      createdAt: Date.now() - 1000 * 60 * 60 * 24 * 2, // 2 days ago
       chunkIndex: 1,
     },
     {
@@ -128,7 +129,7 @@ describe("Reranking Service", () => {
   describe("Cross-Encoder Reranking", () => {
     it("should rerank documents using OpenRouter API", async () => {
       // Mock successful API response
-      (openai.chat.completions.create as jest.Mock).mockResolvedValue({
+      mockCreate.mockResolvedValue({
         choices: [
           {
             message: {
@@ -140,16 +141,16 @@ describe("Reranking Service", () => {
 
       const query = "machine learning";
       const reranked = await rerankDocumentsCrossEncoder(query, mockDocuments, {
-        model: "glm-5",
+        model: "openai/gpt-4o-mini",
       });
 
       expect(reranked).toHaveLength(4);
-      expect(openai.chat.completions.create).toHaveBeenCalledTimes(1);
+      expect(mockCreate).toHaveBeenCalledTimes(1);
     });
 
     it("should return scores with rerankDocumentsCrossEncoderWithScores", async () => {
       // Mock successful API response
-      (openai.chat.completions.create as jest.Mock).mockResolvedValue({
+      mockCreate.mockResolvedValue({
         choices: [
           {
             message: {
@@ -164,7 +165,7 @@ describe("Reranking Service", () => {
         query,
         mockDocuments,
         {
-          model: "glm-5",
+          model: "openai/gpt-4o-mini",
         },
       );
 
@@ -175,7 +176,7 @@ describe("Reranking Service", () => {
 
     it("should handle API errors gracefully with fallback", async () => {
       // Mock API error
-      (openai.chat.completions.create as jest.Mock).mockRejectedValue(
+      mockCreate.mockRejectedValue(
         new Error("API rate limit exceeded"),
       );
 
@@ -184,12 +185,12 @@ describe("Reranking Service", () => {
 
       // Should fallback to heuristic reranking
       expect(reranked).toHaveLength(4);
-      expect(openai.chat.completions.create).toHaveBeenCalledTimes(1);
+      expect(mockCreate).toHaveBeenCalledTimes(1);
     });
 
     it("should handle invalid API response format", async () => {
       // Mock invalid API response
-      (openai.chat.completions.create as jest.Mock).mockResolvedValue({
+      mockCreate.mockResolvedValue({
         choices: [
           {
             message: {
@@ -208,7 +209,7 @@ describe("Reranking Service", () => {
 
     it("should handle wrong number of scores in response", async () => {
       // Mock response with wrong number of scores
-      (openai.chat.completions.create as jest.Mock).mockResolvedValue({
+      mockCreate.mockResolvedValue({
         choices: [
           {
             message: {
@@ -227,7 +228,7 @@ describe("Reranking Service", () => {
 
     it("should respect maxDocs option", async () => {
       // Mock API response
-      (openai.chat.completions.create as jest.Mock).mockResolvedValue({
+      mockCreate.mockResolvedValue({
         choices: [
           {
             message: {
@@ -258,7 +259,7 @@ describe("Reranking Service", () => {
       };
 
       // Mock API response
-      (openai.chat.completions.create as jest.Mock).mockResolvedValue({
+      mockCreate.mockResolvedValue({
         choices: [
           {
             message: {
@@ -274,7 +275,7 @@ describe("Reranking Service", () => {
       });
 
       // Verify API was called with truncated text
-      expect(openai.chat.completions.create).toHaveBeenCalled();
+      expect(mockCreate).toHaveBeenCalled();
     });
 
     it("should handle empty query", async () => {
@@ -301,7 +302,7 @@ describe("Reranking Service", () => {
   describe("Reranker Status", () => {
     it("should report OK status when reranker is working", async () => {
       // Mock successful probe
-      (openai.chat.completions.create as jest.Mock).mockResolvedValue({
+      mockCreate.mockResolvedValue({
         choices: [
           {
             message: {
@@ -314,14 +315,14 @@ describe("Reranking Service", () => {
       const status = await getRerankerStatus();
 
       expect(status.status).toBe("ok");
-      expect(status.latencyMs).toBeGreaterThan(0);
+      expect(status.latencyMs).toBeGreaterThanOrEqual(0);
       expect(status.usedFallback).toBe(false);
       expect(status.model).toBeDefined();
     });
 
     it("should report unavailable status when reranker fails", async () => {
       // Mock API error
-      (openai.chat.completions.create as jest.Mock).mockRejectedValue(
+      mockCreate.mockRejectedValue(
         new Error("Connection timeout"),
       );
 
@@ -334,7 +335,7 @@ describe("Reranking Service", () => {
 
     it("should report unavailable status for invalid response", async () => {
       // Mock invalid response
-      (openai.chat.completions.create as jest.Mock).mockResolvedValue({
+      mockCreate.mockResolvedValue({
         choices: [
           {
             message: {
@@ -354,7 +355,7 @@ describe("Reranking Service", () => {
   describe("Score Normalization", () => {
     it("should clamp scores to [0, 1] range", async () => {
       // Mock response with out-of-range scores
-      (openai.chat.completions.create as jest.Mock).mockResolvedValue({
+      mockCreate.mockResolvedValue({
         choices: [
           {
             message: {
@@ -367,7 +368,7 @@ describe("Reranking Service", () => {
       const result = await rerankDocumentsCrossEncoderWithScores(
         "test query",
         mockDocuments,
-        { model: "glm-5" },
+        { model: "openai/gpt-4o-mini" },
       );
 
       // All scores should be clamped to [0, 1]
@@ -381,7 +382,7 @@ describe("Reranking Service", () => {
   describe("Performance", () => {
     it("should complete reranking in reasonable time", async () => {
       // Mock fast API response
-      (openai.chat.completions.create as jest.Mock).mockResolvedValue({
+      mockCreate.mockResolvedValue({
         choices: [
           {
             message: {

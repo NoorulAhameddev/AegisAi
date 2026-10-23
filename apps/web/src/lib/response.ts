@@ -68,8 +68,11 @@ export function unauthorizedResponse(options?: { requestId?: string }) {
 /**
  * Create 403 Forbidden response
  */
-export function forbiddenResponse(options?: { requestId?: string }) {
-  return errorResponse("Forbidden", {
+export function forbiddenResponse(options?: {
+  requestId?: string;
+  message?: string;
+}) {
+  return errorResponse(options?.message || "Forbidden", {
     status: 403,
     requestId: options?.requestId,
   });

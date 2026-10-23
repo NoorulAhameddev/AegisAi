@@ -61,11 +61,11 @@ function getCharacterPresetModel() {
     );
   }
   return model as {
-    findMany: Function;
-    findFirst: Function;
-    create: Function;
-    update: Function;
-    count: Function;
+    findMany: (...args: any[]) => Promise<any>;
+    findFirst: (...args: any[]) => Promise<any>;
+    create: (...args: any[]) => Promise<any>;
+    update: (...args: any[]) => Promise<any>;
+    count: (...args: any[]) => Promise<any>;
   };
 }
 

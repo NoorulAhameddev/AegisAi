@@ -8,6 +8,7 @@ datasource db {
   // We are on Prisma 5.17.0 where this syntax is valid and correct
   // Migration to Prisma 7 config pattern planned for Q2 2026
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model AuditLog {

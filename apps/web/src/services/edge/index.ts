@@ -43,6 +43,64 @@ export interface EdgeDeployment {
   deployedAt: Date;
 }
 
+interface EdgeFunctionRecord {
+  id: string;
+  userId: string;
+  name: string;
+  slug: string;
+  code: string;
+  regions: string[];
+  environmentVariables: string | null;
+  routes?: string[];
+  cacheControl: string | null;
+  status: string;
+  deployments?: Array<{
+    id: string;
+    functionId: string;
+    region: string;
+    version: number;
+    url: string;
+    status: string;
+    deployedAt: Date;
+  }>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Map a raw Prisma record to the EdgeFunction domain type,
+ * decrypting code and environment variables
+ */
+async function toEdgeFunction(
+  func: EdgeFunctionRecord,
+): Promise<EdgeFunction> {
+  return {
+    id: func.id,
+    userId: func.userId,
+    name: func.name,
+    slug: func.slug,
+    code: await decrypt(func.code),
+    regions: func.regions as EdgeRegion[],
+    environmentVariables: func.environmentVariables
+      ? JSON.parse(await decrypt(func.environmentVariables))
+      : undefined,
+    routes: func.routes,
+    cacheControl: func.cacheControl ?? undefined,
+    status: func.status as EdgeFunction["status"],
+    deployments: func.deployments?.map((d) => ({
+      id: d.id,
+      functionId: d.functionId,
+      region: d.region as EdgeRegion,
+      version: d.version,
+      url: d.url,
+      status: d.status as EdgeDeployment["status"],
+      deployedAt: d.deployedAt,
+    })),
+    createdAt: func.createdAt,
+    updatedAt: func.updatedAt,
+  };
+}
+
 /**
  * Create edge function
  */
@@ -101,7 +159,7 @@ export async function createEdgeFunction(
       slug: finalSlug,
     });
 
-    return func as EdgeFunction;
+    return await toEdgeFunction(func);
   } catch (error) {
     logger.error("Failed to create edge function", error as Error, { userId });
     throw error;
@@ -127,7 +185,8 @@ export async function deployEdgeFunction(
     }
 
     // Determine regions to deploy to
-    const deployRegions = regions || func.regions || ["global"];
+    const deployRegions: EdgeRegion[] =
+      regions || (func.regions as EdgeRegion[]) || ["global"];
 
     // Decrypt code
     const decryptedCode = await decrypt(func.code);
@@ -142,7 +201,7 @@ export async function deployEdgeFunction(
           decryptedCode,
           region,
           func.slug,
-          func.environmentVariables,
+          func.environmentVariables ?? undefined,
         );
 
         deployments.push(deployment);
@@ -334,13 +393,7 @@ export async function getEdgeFunction(
       throw new Error("Function not found or access denied");
     }
 
-    // Decrypt code
-    const decryptedCode = await decrypt(func.code);
-
-    return {
-      ...func,
-      code: decryptedCode,
-    } as EdgeFunction;
+    return await toEdgeFunction(func);
   } catch (error) {
     logger.error("Failed to fetch edge function", error as Error);
     throw error;

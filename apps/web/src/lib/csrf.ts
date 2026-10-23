@@ -4,7 +4,6 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
 
 const CSRF_COOKIE_NAME = "csrf-token";
 const CSRF_HEADER_NAME = "x-csrf-token";
@@ -53,16 +52,12 @@ export function validateCSRFToken(request: NextRequest): boolean {
     return false;
   }
 
-  // Use timing-safe comparison to prevent timing attacks
-  const headerBuffer = Buffer.from(headerToken);
-  const cookieBuffer = Buffer.from(cookieToken);
-  
-  try {
-    return crypto.timingSafeEqual(headerBuffer, cookieBuffer);
-  } catch (e) {
-    // If buffers are invalid, reject
-    return false;
+  // Constant-time comparison (no Node crypto dependency — Edge Runtime compatible)
+  let diff = 0;
+  for (let i = 0; i < headerToken.length; i++) {
+    diff |= headerToken.charCodeAt(i) ^ cookieToken.charCodeAt(i);
   }
+  return diff === 0;
 }
 
 /**

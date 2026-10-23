@@ -64,6 +64,46 @@ export interface FunctionTrigger {
   config: Record<string, any>;
 }
 
+interface ServerlessFunctionRecord {
+  id: string;
+  userId: string;
+  name: string;
+  description: string | null;
+  code: string;
+  runtime: string;
+  environmentVariables: string | null;
+  timeout: number;
+  memory: number;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Map a raw Prisma record to the ServerlessFunction domain type,
+ * decrypting code and environment variables
+ */
+async function toServerlessFunction(
+  func: ServerlessFunctionRecord,
+): Promise<ServerlessFunction> {
+  return {
+    id: func.id,
+    userId: func.userId,
+    name: func.name,
+    description: func.description ?? undefined,
+    code: await decrypt(func.code),
+    runtime: func.runtime as FunctionRuntime,
+    environmentVariables: func.environmentVariables
+      ? JSON.parse(await decrypt(func.environmentVariables))
+      : undefined,
+    timeout: func.timeout,
+    memory: func.memory,
+    status: func.status as ServerlessFunction["status"],
+    createdAt: func.createdAt,
+    updatedAt: func.updatedAt,
+  };
+}
+
 export interface FunctionExecution {
   id: string;
   functionId: string;
@@ -72,8 +112,7 @@ export interface FunctionExecution {
   output?: Record<string, any>;
   error?: string;
   duration: number; // milliseconds
-  memoryUsed: number; // MB
-  executedAt: Date;
+  memoryUsed: number; // MB  executedAt: Date;
 }
 
 /**
@@ -174,7 +213,7 @@ export async function deployServerlessFunction(
       funcId: functionId,
     });
 
-    return updated as ServerlessFunction;
+    return await toServerlessFunction(updated);
   } catch (error) {
     logger.error("Failed to deploy function", error as Error, {
       functionId,
@@ -333,13 +372,7 @@ export async function getServerlessFunction(
       throw new Error("Function not found or access denied");
     }
 
-    // Decrypt code for display
-    const decryptedCode = await decrypt(func.code);
-
-    return {
-      ...func,
-      code: decryptedCode,
-    } as ServerlessFunction;
+    return await toServerlessFunction(func);
   } catch (error) {
     logger.error("Failed to fetch function", error as Error, { functionId });
     throw error;
@@ -405,7 +438,7 @@ export async function updateServerlessFunction(
 
     // Validate code if provided
     if (updates.code) {
-      await validateFunctionCode(updates.code, func.runtime);
+      await validateFunctionCode(updates.code, func.runtime as FunctionRuntime);
       updates.code = await encrypt(updates.code); // Encrypt before storing
     }
 

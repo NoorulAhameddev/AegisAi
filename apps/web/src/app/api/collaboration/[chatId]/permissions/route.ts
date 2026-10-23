@@ -77,7 +77,7 @@ export async function GET(
         userId: chat.User.id,
         role: "OWNER" as any,
         invitedBy: null,
-        createdAt: chat.User.createdAt || new Date(),
+        createdAt: new Date(),
       });
     }
 
@@ -254,7 +254,7 @@ async function verifyUserAccess(
     },
   });
 
-  return chat?.userId === userId || chat?.ChatPermission.length > 0;
+  return chat?.userId === userId || (chat?.ChatPermission?.length ?? 0) > 0;
 }
 
 /**
@@ -274,7 +274,7 @@ async function verifyOwnerOrAdmin(
   });
 
   const isOwner = chat?.userId === userId;
-  const isAdmin = chat?.ChatPermission.some((p) => p.role === "ADMIN");
+  const isAdmin = chat?.ChatPermission?.some((p) => p.role === "ADMIN") ?? false;
 
   return isOwner || isAdmin;
 }

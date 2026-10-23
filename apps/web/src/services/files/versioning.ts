@@ -74,6 +74,7 @@ export async function createFileVersion(
     await fs.writeFile(versionPath, fileBuffer);
 
     // Calculate hash
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const crypto = require("crypto");
     const hash = crypto.createHash("sha256").update(fileBuffer).digest("hex");
 

@@ -73,14 +73,14 @@ export const ShareModal: React.FC<ShareModalProps> = ({
             onChange={(e) => setEmails(e.target.value)}
             disabled={loading}
           />
-          <div className="text-xs text-zinc-500 mt-1">
+          <div className="text-xs text-ink-500 mt-1">
             Separate multiple emails with commas or spaces.
           </div>
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Role</label>
           <select
-            className="w-full rounded border px-2 py-1 bg-zinc-900 text-white"
+            className="w-full border border-hair bg-ink-900 text-ink-100 px-2 py-1 text-sm"
             value={role}
             onChange={(e) => setRole(e.target.value)}
             disabled={loading}
@@ -102,16 +102,16 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         </div>
         {shareUrl && (
           <div className="mt-4">
-            <div className="text-xs text-zinc-400 mb-1">Shareable Link:</div>
-            <div className="bg-zinc-800 rounded px-2 py-1 text-sm break-all select-all">
+            <div className="text-xs text-ink-500 mb-1">Shareable Link:</div>
+            <div className="bg-ink-900 border border-hair px-2 py-1 text-sm text-ink-300 break-all select-all">
               {shareUrl}
             </div>
           </div>
         )}
         {invitations && invitations.length > 0 && (
           <div className="mt-4">
-            <div className="text-xs text-zinc-400 mb-1">Invitations Sent:</div>
-            <ul className="text-sm text-zinc-300 list-disc pl-5">
+            <div className="text-xs text-ink-500 mb-1">Invitations Sent:</div>
+            <ul className="text-sm text-ink-300 list-disc pl-5">
               {invitations.map((inv: any, i: number) => (
                 <li key={i}>
                   {inv.inviteeEmail} ({inv.status})

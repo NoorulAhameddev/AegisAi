@@ -65,10 +65,16 @@ export function validateInput(
       "if you were to",
     ];
 
+    let restricted = false;
     for (const phrase of forbidden) {
       if (lower.includes(phrase)) {
-        return { valid: false, error: "Restricted content detected" };
+        restricted = true;
+        break;
       }
+    }
+
+    if (restricted) {
+      return { valid: false, error: "Restricted content detected" };
     }
 
     return { valid: true };
@@ -147,13 +153,13 @@ export function detectLeaks(content: string): boolean {
     /AKIA[0-9A-Z]{16}/, // AWS Access Key
 
     // Tokens & Authentication
-    /eyJ[a-zA-Z0-9_\-\.]+/, // JWT-ish tokens
-    /bearer\s+[a-zA-Z0-9_\-\.]{20,}/i, // Bearer tokens
+    /eyJ[a-zA-Z0-9_.-]+/, // JWT-ish tokens
+    /bearer\s+[a-zA-Z0-9_.-]{20,}/i, // Bearer tokens
     /-----BEGIN PRIVATE KEY-----/, // Private cryptographic keys
     /-----BEGIN RSA PRIVATE KEY-----/,
 
     // PII - Financial
-    /\b\d{4}[\s\-]?\d{4}[\s\-]?\d{4}[\s\-]?\d{4}\b/, // Credit card patterns
+    /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/, // Credit card patterns
     /\b\d{3}-\d{2}-\d{4}\b/, // SSN (XXX-XX-XXXX)
     /\b\d{2}\/\d{2}\/\d{4}\b/, // Expiration dates (MM/YY or MM/DD/YYYY)
     /cvv[\s:]*\d{3,4}/i, // CVV
@@ -211,6 +217,15 @@ export function sanitizeUserInput(input: string): string {
 }
 
 /**
+ * Validate email address format
+ */
+export function isValidEmail(email: string): boolean {
+  if (!email || typeof email !== "string") return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email.trim());
+}
+
+/**
  * Check if password is strong (12+ chars, uppercase, lowercase, number, special char)
  */
 export function isStrongPassword(password: string): boolean {
@@ -219,7 +234,7 @@ export function isStrongPassword(password: string): boolean {
   const hasUppercase = /[A-Z]/.test(password);
   const hasLowercase = /[a-z]/.test(password);
   const hasNumber = /\d/.test(password);
-  const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+  const hasSpecialChar = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
 
   return hasUppercase && hasLowercase && hasNumber && hasSpecialChar;
 }

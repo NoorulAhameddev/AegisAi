@@ -4,21 +4,53 @@
  */
 
 // Mock dependencies
-jest.mock("@/lib/prisma", () => ({
-  prisma: {
-    chat: {
-      findFirst: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-    },
-    message: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-    },
-    user: {
-      findUnique: jest.fn(),
-    },
+const mockPrisma: any = {
+  chat: {
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
   },
+  message: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findFirst: jest.fn(),
+    count: jest.fn(),
+  },
+  user: {
+    findUnique: jest.fn(),
+  },
+  userQuota: {
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+  },
+  usage: {
+    findMany: jest.fn(),
+    create: jest.fn(),
+  },
+  usageMetric: {
+    findMany: jest.fn().mockResolvedValue([]),
+    create: jest.fn(),
+  },
+  auditLog: {
+    create: jest.fn(),
+  },
+  conversationSummary: {
+    findMany: jest.fn().mockResolvedValue([]),
+  },
+  $transaction: jest.fn(async (cb: any) =>
+    typeof cb === "function" ? cb(mockPrisma) : Promise.all(cb),
+  ),
+};
+
+jest.mock("@/lib/prisma", () => ({
+  prisma: mockPrisma,
+}));
+
+jest.mock("@/lib/read-replicas", () => ({
+  readPrisma: mockPrisma,
 }));
 
 jest.mock("@/services/auth/auth", () => ({
@@ -27,8 +59,11 @@ jest.mock("@/services/auth/auth", () => ({
 
 jest.mock("@/lib/queue", () => ({
   chatQueue: {
-    add: jest.fn(),
+    add: jest.fn().mockResolvedValue({ id: "job-123" }),
   },
+  checkQueueBackpressure: jest
+    .fn()
+    .mockResolvedValue({ isOverloaded: false, queueLength: 0 }),
 }));
 
 jest.mock("@/lib/response", () => ({
@@ -69,6 +104,12 @@ jest.mock("@/lib/response", () => ({
 describe("Chat Streaming Endpoints", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    const { checkQueueBackpressure, chatQueue } = require("@/lib/queue");
+    checkQueueBackpressure.mockResolvedValue({
+      allowed: true,
+      depth: 0,
+    });
+    chatQueue.add.mockResolvedValue({ id: "job-123" });
   });
 
   describe("POST /api/chat/stream (Polling approach)", () => {
@@ -212,7 +253,7 @@ describe("Chat Streaming Endpoints", () => {
       expect(res.status).toBe(200);
       const json = await res.json();
       expect(json.success).toBe(true);
-      expect(json.data.chat.id).toBe("chat-1");
+      expect(json.data.chatId).toBe("chat-1");
     });
 
     it("returns 401 when not authenticated", async () => {
@@ -314,7 +355,7 @@ describe("Chat Streaming Endpoints", () => {
   });
 
   describe("GET /api/chat/status", () => {
-    const { GET: ChatStatus } = require("@/app/api/chat/status/[jobId]/route");
+    const { GET: ChatStatus } = require("@/app/api/chat/status/route");
 
     it("returns job status when found", async () => {
       // Mock BullMQ job retrieval

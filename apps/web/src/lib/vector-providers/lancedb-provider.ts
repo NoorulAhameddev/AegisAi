@@ -17,7 +17,6 @@ import { generateEmbedding } from "@/services/rag/embeddings";
 import { getDocumentChunker } from "@/services/rag/chunker";
 import { getRAGConfig } from "@/services/rag/rag-config";
 import { logger } from "@/lib/logger";
-import { logger } from "@/lib/logger";
 
 let lancedb: any = null;
 
@@ -217,7 +216,7 @@ export class LanceDBProvider implements IVectorDBProvider {
     }
 
     logger.info(
-      `[LanceDBProvider] Successfully ingested ${documentIds.length} chunks`,
+      `[LanceDBProvider] Searching for similar documents (limit=${limit})`,
     );
     const vector = await generateEmbedding(query);
 
@@ -276,7 +275,7 @@ export class LanceDBProvider implements IVectorDBProvider {
         `"userId" = '${userId}' AND "sourceId" = '${sourceId}'`,
       );
       logger.info(
-        `[LanceDBProvider] Ingesting document with ${chunks.length} chunks`,
+        `[LanceDBProvider] Deleting ${count} documents by source ${sourceId}`,
       );
     }
 

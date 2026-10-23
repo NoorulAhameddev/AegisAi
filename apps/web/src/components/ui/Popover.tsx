@@ -77,7 +77,7 @@ export const PopoverContent: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
     <div
       ref={ref}
       className={cn(
-        "absolute right-0 mt-2 rounded-xl bg-zinc-900 border border-white/10 shadow-lg z-50",
+        "absolute right-0 mt-2 bg-ink-900 border border-ink-700 z-50",
         className,
       )}
       {...props}

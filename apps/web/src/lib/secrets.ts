@@ -43,7 +43,10 @@ export async function getEncryptionKey(): Promise<Buffer> {
     try {
       const result = await kms.send(
         new DecryptCommand({
-          CiphertextBlob: Buffer.from(env.ENCRYPTION_KEY_CIPHERTEXT, "base64"),
+          CiphertextBlob: Buffer.from(
+            env.ENCRYPTION_KEY_CIPHERTEXT ?? "",
+            "base64",
+          ),
         }),
       );
 

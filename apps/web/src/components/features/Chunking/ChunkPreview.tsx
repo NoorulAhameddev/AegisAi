@@ -46,16 +46,22 @@ export function ChunkPreview({ chunks, totalTokens }: ChunkPreviewProps) {
       <Card className="p-4">
         <div className="grid grid-cols-4 gap-4">
           <div>
-            <p className="text-sm text-gray-500">Total Chunks</p>
-            <p className="text-2xl font-bold">{chunks.length}</p>
+            <p className="text-sm text-ink-500">Total Chunks</p>
+            <p className="font-display text-2xl font-medium tracking-tight text-ink-100">
+              {chunks.length}
+            </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Total Tokens</p>
-            <p className="text-2xl font-bold">{totalTokens.toLocaleString()}</p>
+            <p className="text-sm text-ink-500">Total Tokens</p>
+            <p className="font-display text-2xl font-medium tracking-tight text-ink-100">
+              {totalTokens.toLocaleString()}
+            </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Avg Tokens/Chunk</p>
-            <p className="text-2xl font-bold">{stats.avgTokensPerChunk}</p>
+            <p className="text-sm text-ink-500">Avg Tokens/Chunk</p>
+            <p className="font-display text-2xl font-medium tracking-tight text-ink-100">
+              {stats.avgTokensPerChunk}
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Health</p>
@@ -83,9 +89,11 @@ export function ChunkPreview({ chunks, totalTokens }: ChunkPreviewProps) {
       {/* Chunk List & Preview */}
       <div className="grid grid-cols-3 gap-4 h-96">
         {/* List */}
-        <div className="col-span-1 border rounded-lg overflow-y-auto">
-          <div className="sticky top-0 bg-gray-50 border-b p-3">
-            <p className="text-sm font-semibold">Chunks ({chunks.length})</p>
+        <div className="col-span-1 border border-ink-700 overflow-y-auto">
+          <div className="sticky top-0 bg-ink-800 border-b border-ink-700 p-3">
+            <p className="text-sm font-medium text-ink-100">
+              Chunks ({chunks.length})
+            </p>
           </div>
           <div className="space-y-1">
             {chunks.map((chunk, idx) => (
@@ -94,8 +102,8 @@ export function ChunkPreview({ chunks, totalTokens }: ChunkPreviewProps) {
                 onClick={() => setSelectedChunk(chunk)}
                 className={`w-full text-left px-3 py-2 text-sm border-l-2 transition ${
                   selectedChunk?.id === chunk.id
-                    ? "border-blue-600 bg-blue-50"
-                    : "border-transparent hover:bg-gray-50"
+                    ? "border-brand bg-ink-800"
+                    : "border-transparent hover:bg-ink-800"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -104,7 +112,7 @@ export function ChunkPreview({ chunks, totalTokens }: ChunkPreviewProps) {
                     {chunk.tokens}
                   </Badge>
                 </div>
-                <p className="text-xs text-gray-500 truncate mt-1">
+                <p className="text-xs text-ink-500 truncate mt-1">
                   {chunk.text.substring(0, 50)}...
                 </p>
               </button>
@@ -113,12 +121,12 @@ export function ChunkPreview({ chunks, totalTokens }: ChunkPreviewProps) {
         </div>
 
         {/* Preview */}
-        <div className="col-span-2 border rounded-lg overflow-hidden flex flex-col bg-gray-50">
+        <div className="col-span-2 border border-ink-700 overflow-hidden flex flex-col bg-ink-900">
           {selectedChunk ? (
             <>
-              <div className="border-b bg-white p-4 flex items-center justify-between">
+              <div className="border-b border-ink-700 bg-ink-800 p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold">
+                  <p className="text-sm font-medium text-ink-100">
                     Chunk #
                     {chunks.findIndex((c) => c.id === selectedChunk.id) + 1}
                   </p>
@@ -131,7 +139,7 @@ export function ChunkPreview({ chunks, totalTokens }: ChunkPreviewProps) {
                 </div>
                 <button
                   onClick={() => handleCopy(selectedChunk.id)}
-                  className="flex items-center gap-1 px-3 py-1 text-sm rounded-lg hover:bg-gray-100"
+                  className="flex items-center gap-1 px-3 py-1 text-sm hover:bg-ink-800"
                 >
                   {copiedId === selectedChunk.id ? (
                     <>
@@ -148,14 +156,14 @@ export function ChunkPreview({ chunks, totalTokens }: ChunkPreviewProps) {
               </div>
 
               <div className="flex-1 overflow-y-auto p-4">
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                <p className="text-sm text-ink-300 whitespace-pre-wrap">
                   {selectedChunk.text}
                 </p>
               </div>
             </>
           ) : (
             <div className="flex items-center justify-center h-full">
-              <p className="text-gray-500">Select a chunk to preview</p>
+              <p className="text-ink-500">Select a chunk to preview</p>
             </div>
           )}
         </div>

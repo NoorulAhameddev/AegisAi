@@ -26,7 +26,7 @@ export function Collapsible({
   return (
     <div
       className={cn(
-        "rounded-lg border border-white/10 overflow-hidden",
+        "border border-hair overflow-hidden",
         className,
       )}
     >
@@ -36,27 +36,27 @@ export function Collapsible({
       >
         <div className="flex items-center gap-3 text-left">
           {icon && (
-            <span className="text-zinc-400 group-hover:text-zinc-300">
+            <span className="text-ink-400 group-hover:text-ink-300">
               {icon}
             </span>
           )}
           <div>
-            <h3 className="font-semibold text-white">{title}</h3>
+            <h3 className="font-medium text-ink-100">{title}</h3>
             {description && (
-              <p className="text-xs text-zinc-500 mt-1">{description}</p>
+              <p className="text-xs text-ink-500 mt-1">{description}</p>
             )}
           </div>
         </div>
         <ChevronDown
           className={cn(
-            "h-4 w-4 text-zinc-500 transition-transform",
+            "h-4 w-4 text-ink-500 transition-transform",
             isOpen && "rotate-180",
           )}
         />
       </button>
 
       {isOpen && (
-        <div className="px-4 pb-4 border-t border-white/5 bg-zinc-900/30 animate-slide-down">
+        <div className="px-4 pb-4 border-t border-hair bg-ink-900/30 animate-slide-down">
           {children}
         </div>
       )}

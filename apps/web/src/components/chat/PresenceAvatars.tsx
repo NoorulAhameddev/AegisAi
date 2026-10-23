@@ -15,15 +15,15 @@ export const PresenceAvatars: React.FC<PresenceAvatarsProps> = ({ users }) => {
           name={u.userName}
           size={28}
           className={
-            "border-2 " +
-            (u.isActive ? "border-green-400" : "border-zinc-700") +
-            " bg-zinc-900 text-white shadow-sm"
+            "border " +
+            (u.isActive ? "border-brand" : "border-ink-700") +
+            " bg-ink-850 text-ink-100"
           }
           style={{ zIndex: 10 - i }}
         />
       ))}
       {users.length > 5 && (
-        <span className="ml-2 text-xs text-zinc-400">
+        <span className="ml-2 text-xs text-ink-500">
           +{users.length - 5} more
         </span>
       )}

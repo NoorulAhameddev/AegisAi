@@ -19,8 +19,7 @@ const sliderStyles = `
   .slider-gradient-bg {
     width: 100%;
     height: 0.5rem;
-    background: linear-gradient(to right, rgb(168, 85, 247) 0%, rgb(168, 85, 247) var(--percentage), rgb(39, 39, 42) var(--percentage), rgb(39, 39, 42) 100%);
-    border-radius: 0.5rem;
+    background: linear-gradient(to right, #c8965a 0%, #c8965a var(--percentage), #2a251e var(--percentage), #2a251e 100%);
   }
 `;
 
@@ -72,17 +71,17 @@ export function Slider({
           title="Slider"
           className={cn(
             "w-full h-2 appearance-none cursor-pointer",
-            "focus:outline-none focus:ring-2 focus:ring-purple-500",
+            "focus:outline-none focus:ring-2 focus:ring-brand",
             "disabled:opacity-50 disabled:cursor-not-allowed",
             "[&::-webkit-slider-thumb]:appearance-none",
             "[&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4",
-            "[&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-500",
+            "[&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-brand",
             "[&::-webkit-slider-thumb]:cursor-pointer",
-            "[&::-webkit-slider-thumb]:hover:bg-purple-400",
+            "[&::-webkit-slider-thumb]:hover:bg-brand-dim",
             "[&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4",
-            "[&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-purple-500",
+            "[&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-brand",
             "[&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer",
-            "[&::-moz-range-thumb]:hover:bg-purple-400",
+            "[&::-moz-range-thumb]:hover:bg-brand-dim",
           )}
         />
       </div>

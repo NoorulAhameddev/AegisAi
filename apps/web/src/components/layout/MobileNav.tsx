@@ -52,26 +52,24 @@ export function MobileNav({ user, isOpen, onClose }: MobileNavProps) {
       {/* Content */}
       <div
         className={cn(
-          "absolute top-0 left-0 bottom-0 w-[280px] bg-zinc-900 border-r border-white/10 p-6 flex flex-col transition-transform duration-300 shadow-2xl",
+          "absolute top-0 left-0 bottom-0 w-[280px] bg-ink-900 border-r border-hair p-6 flex flex-col transition-transform duration-300",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 bg-linear-to-br from-purple-600 to-blue-600 rounded-xl p-px">
-              <div className="h-full w-full bg-black rounded-[10px] flex items-center justify-center p-1">
-                <img
-                  src="/aegis-logo.png"
-                  alt=""
-                  className="h-full w-full object-contain"
-                />
-              </div>
+            <div className="h-9 w-9 bg-ink-850 border border-ink-700 p-1 flex items-center justify-center">
+              <img
+                src="/aegis-logo.png"
+                alt=""
+                className="h-full w-full object-contain"
+              />
             </div>
-            <span className="font-bold text-lg">Aegis AI</span>
+            <span className="font-display font-medium text-lg tracking-tight">Aegis AI</span>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-zinc-500 hover:text-white"
+            className="p-2 text-ink-500 hover:text-ink-100"
             title="Close menu"
             aria-label="Close menu"
           >
@@ -79,7 +77,7 @@ export function MobileNav({ user, isOpen, onClose }: MobileNavProps) {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-2">
+        <nav className="flex-1 space-y-1">
           {links.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -88,10 +86,10 @@ export function MobileNav({ user, isOpen, onClose }: MobileNavProps) {
                 href={link.href}
                 onClick={onClose}
                 className={cn(
-                  "flex items-center gap-4 px-4 py-3 rounded-xl transition-all",
+                  "flex items-center gap-4 px-4 py-3 border-l-2 transition-colors",
                   isActive
-                    ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
-                    : "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent",
+                    ? "bg-white/5 text-brand border-l-brand"
+                    : "text-ink-400 hover:text-ink-100 hover:bg-white/5 border-l-transparent",
                 )}
               >
                 <link.icon className="h-5 w-5" />
@@ -101,18 +99,16 @@ export function MobileNav({ user, isOpen, onClose }: MobileNavProps) {
           })}
         </nav>
 
-        <div className="pt-6 border-t border-white/5">
+        <div className="pt-6 border-t border-hair">
           <div className="flex items-center gap-3 p-3">
-            <div className="h-10 w-10 rounded-full bg-linear-to-tr from-purple-500 to-blue-500 p-px">
-              <div className="h-full w-full rounded-full bg-zinc-900 flex items-center justify-center text-sm font-bold">
-                {user.name.charAt(0).toUpperCase()}
-              </div>
+            <div className="h-10 w-10 rounded-full bg-ink-800 border border-ink-700 flex items-center justify-center text-sm font-medium">
+              {user.name.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="font-medium text-sm text-zinc-200 truncate">
+              <p className="font-medium text-sm text-ink-200 truncate">
                 {user.name}
               </p>
-              <p className="text-xs text-zinc-500 truncate">{user.email}</p>
+              <p className="text-xs text-ink-500 truncate">{user.email}</p>
             </div>
           </div>
         </div>

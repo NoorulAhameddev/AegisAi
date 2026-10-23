@@ -93,7 +93,7 @@ export function flagSuspiciousResponse(
  */
 export function sanitizeResponseBoundaries(response: string): string {
   // Remove common boundary-breaking patterns
-  let sanitized = response
+  const sanitized = response
     // Remove "actually I..." contradictions
     .replace(
       /\b(?:actually|however|but|yet),?\s+[Ii]'[md]\s+(?:supposed|able|allowed)\s+to\b/g,

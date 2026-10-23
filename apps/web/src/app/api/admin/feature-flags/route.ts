@@ -108,9 +108,7 @@ export async function POST(req: NextRequest) {
 
     return successResponse(flag, { message: "Feature flag updated" });
   } catch (error) {
-    logger.error("Failed to update feature flag", error as Error, {
-      userId: user?.id,
-    });
+    logger.error("Failed to update feature flag", error as Error);
     return errorResponse("Failed to update feature flag", { status: 500 });
   }
 }

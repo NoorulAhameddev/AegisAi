@@ -60,8 +60,10 @@ export function TextInput({
       <style>{progressStyles}</style>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Paste Text</h3>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <h3 className="font-display text-lg font-medium tracking-tight text-ink-100">
+            Paste Text
+          </h3>
+          <div className="flex items-center gap-2 text-sm text-ink-500">
             <Clock size={16} />
             <span>
               Characters: {charCount.toLocaleString()} /{" "}
@@ -80,7 +82,7 @@ export function TextInput({
 
         {/* Progress bar */}
         <div className="space-y-1">
-          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-ink-800 overflow-hidden">
             {/* 
               Dynamic Progress Width
               =======================
@@ -118,7 +120,7 @@ export function TextInput({
         <button
           onClick={handleSubmit}
           disabled={loading || !text.trim()}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition"
+          className="w-full bg-brand text-ink-950 hover:bg-brand-dim disabled:bg-ink-700 font-mono text-[0.7rem] uppercase tracking-[0.12em] py-2 px-4 transition"
         >
           {loading ? "Processing..." : "Submit Text"}
         </button>

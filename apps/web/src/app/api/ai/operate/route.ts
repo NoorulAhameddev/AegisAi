@@ -69,13 +69,14 @@ export async function POST(req: NextRequest) {
       case "eli5":
         result = await operations.generateELI5(text, userId, projectId);
         break;
-      case "rewrite":
+      case "rewrite": {
         const rewritten = await operations.rewriteContent(
           text,
           style || "professional",
         );
         result = { content: rewritten };
         break;
+      }
       case "flashcards":
         result = await operations.generateFlashcards(text, userId, projectId);
         break;

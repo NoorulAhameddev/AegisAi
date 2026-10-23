@@ -22,7 +22,6 @@ const ROLE_HIERARCHY: Record<Role, number> = {
   ANALYST: 2,
   SUPPORT: 2,
   USER: 2,
-  BANNED: 1,
 };
 
 export async function PUT(
@@ -72,7 +71,7 @@ export async function PUT(
     // Check role hierarchy - cannot modify users with higher or equal roles
     const requesterRoleLevel = ROLE_HIERARCHY[user.role as Role] || 0;
     const targetRoleLevel = ROLE_HIERARCHY[targetUser.role] || 0;
-    const newRoleLevel = ROLE_HIERARCHY[data.role] || 0;
+    const newRoleLevel = ROLE_HIERARCHY[data.role as Role] || 0;
 
     if (targetRoleLevel >= requesterRoleLevel) {
       logger.security("Privilege escalation attempt blocked", {

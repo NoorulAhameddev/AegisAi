@@ -50,8 +50,8 @@ export function Tooltip({
       {visible && (
         <div
           className={cn(
-            "absolute z-50 px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap",
-            "bg-zinc-900 border border-white/10 text-zinc-100 shadow-lg shadow-black/50",
+            "absolute z-50 px-3 py-2 text-xs font-medium rounded-none whitespace-nowrap",
+            "bg-ink-900 border border-ink-700 text-ink-100",
             "animate-fade-in pointer-events-none",
             sideClasses[side],
             className,
@@ -61,7 +61,7 @@ export function Tooltip({
           {content}
           <div
             className={cn(
-              "absolute w-2 h-2 bg-zinc-900 border border-white/10 transform rotate-45",
+              "absolute w-2 h-2 bg-ink-900 border border-ink-700 transform rotate-45",
               side === "top" && "top-full -mt-1 left-1/2 -translate-x-1/2",
               side === "bottom" &&
                 "bottom-full mt-0.5 left-1/2 -translate-x-1/2",

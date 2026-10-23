@@ -23,7 +23,7 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
     >
       <Link
         href="/"
-        className="flex items-center gap-2 px-3 py-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+        className="flex items-center gap-2 px-3 py-2 rounded-none text-ink-400 hover:text-ink-100 hover:bg-white/5 transition-colors"
       >
         <Home className="h-4 w-4" />
         <span className="hidden sm:inline">Home</span>
@@ -31,17 +31,17 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
 
       {items.map((item, idx) => (
         <div key={idx} className="flex items-center gap-1">
-          <ChevronRight className="h-4 w-4 text-zinc-600" />
+          <ChevronRight className="h-4 w-4 text-ink-600" />
           {item.href ? (
             <Link
               href={item.href}
-              className="px-3 py-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+              className="px-3 py-2 rounded-none text-ink-400 hover:text-ink-100 hover:bg-white/5 transition-colors flex items-center gap-2"
             >
               {item.icon && <span className="h-4 w-4">{item.icon}</span>}
               <span className="truncate">{item.label}</span>
             </Link>
           ) : (
-            <span className="px-3 py-2 text-white flex items-center gap-2 truncate">
+            <span className="px-3 py-2 text-ink-100 flex items-center gap-2 truncate">
               {item.icon && <span className="h-4 w-4">{item.icon}</span>}
               {item.label}
             </span>

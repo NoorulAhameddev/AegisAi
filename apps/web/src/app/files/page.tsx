@@ -20,7 +20,6 @@ import { MobileNav } from "@/components/layout/MobileNav";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { cn } from "@/lib/utils";
 import { logger } from "@/lib/logger";
-import { logger } from "@/lib/logger";
 
 type FileData = {
   id: string;
@@ -53,7 +52,7 @@ export default function FilesPage() {
         setLoading(false);
       })
       .catch((err) => {
-        logger.error(err);
+        logger.error("Failed to load files", { error: err });
         setLoading(false);
       });
   }, []);
@@ -84,7 +83,7 @@ export default function FilesPage() {
   }
 
   return (
-    <div className="flex h-screen bg-black text-white font-sans overflow-hidden bg-[url('/bg-noise.png')]">
+    <div className="flex h-screen bg-black text-ink-100 font-sans overflow-hidden bg-[url('/bg-noise.png')]">
       {user && (
         <>
           <div className="hidden md:block">
@@ -99,16 +98,16 @@ export default function FilesPage() {
       )}
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 bg-black/20 backdrop-blur-sm sticky top-0 z-20">
+        <header className="px-8 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-hair bg-ink-900 sticky top-0 z-20">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileNavOpen(true)}
-              className="md:hidden p-2 -ml-2 text-zinc-400 hover:text-white transition-colors"
+              className="md:hidden p-2 -ml-2 text-zinc-400 hover:text-ink-100 transition-colors"
             >
               <Menu className="h-6 w-6" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">
+              <h1 className="font-display text-2xl font-medium tracking-tight">
                 Knowledge Base
               </h1>
               <p className="text-zinc-400 text-sm">
@@ -119,24 +118,24 @@ export default function FilesPage() {
 
           <div className="flex items-center gap-3">
             <div className="relative group flex-1 md:flex-none">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500 group-focus-within:text-white transition-colors" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500 group-focus-within:text-ink-100 transition-colors" />
               <input
                 type="text"
                 placeholder="Search files..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm focus:outline-none focus:bg-white/10 focus:border-white/20 transition-all w-full md:w-64"
+                className="pl-9 pr-4 py-2 bg-ink-900 border border-ink-700 text-sm focus:outline-none focus:bg-ink-800 focus:border-brand transition-all w-full md:w-64"
                 aria-label="Search files"
               />
             </div>
 
-            <div className="hidden sm:flex bg-white/5 rounded-lg p-1 border border-white/10">
+            <div className="hidden sm:flex bg-ink-900 p-1 border border-ink-700">
               <button
                 onClick={() => setViewMode("grid")}
                 className={cn(
-                  "p-1.5 rounded-md transition-all",
+                  "p-1.5 transition-all",
                   viewMode === "grid"
-                    ? "bg-white/10 text-white shadow-sm"
+                    ? "bg-ink-800 text-ink-100"
                     : "text-zinc-500 hover:text-zinc-300",
                 )}
                 aria-label="Grid view"
@@ -146,9 +145,9 @@ export default function FilesPage() {
               <button
                 onClick={() => setViewMode("list")}
                 className={cn(
-                  "p-1.5 rounded-md transition-all",
+                  "p-1.5 transition-all",
                   viewMode === "list"
-                    ? "bg-white/10 text-white shadow-sm"
+                    ? "bg-ink-800 text-ink-100"
                     : "text-zinc-500 hover:text-zinc-300",
                 )}
                 aria-label="List view"
@@ -159,7 +158,7 @@ export default function FilesPage() {
 
             <Link
               href="/chat"
-              className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-lg font-bold text-sm hover:bg-zinc-200 transition-colors whitespace-nowrap"
+              className="flex items-center gap-2 px-4 py-2 bg-brand text-ink-950 font-medium text-sm hover:bg-brand-dim transition-colors whitespace-nowrap"
             >
               <Plus className="h-4 w-4" /> Upload
             </Link>
@@ -168,8 +167,8 @@ export default function FilesPage() {
 
         <div className="p-8">
           {filteredFiles.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/20">
-              <div className="h-16 w-16 rounded-full bg-zinc-800/50 flex items-center justify-center mb-4">
+            <div className="flex flex-col items-center justify-center py-20 border border-dashed border-ink-700 bg-ink-850">
+              <div className="h-16 w-16 bg-ink-800 flex items-center justify-center mb-4">
                 <FileText className="h-8 w-8 text-zinc-600" />
               </div>
               <h3 className="text-lg font-medium mb-1">No files found</h3>
@@ -178,7 +177,7 @@ export default function FilesPage() {
               </p>
               <Link
                 href="/chat"
-                className="px-5 py-2.5 bg-zinc-800 text-white rounded-xl font-medium hover:bg-zinc-700 transition-all border border-white/5"
+                className="px-5 py-2.5 bg-ink-800 text-ink-100 font-medium hover:bg-ink-700 transition-all border border-hair"
               >
                 Go to Chat
               </Link>
@@ -210,12 +209,12 @@ export default function FilesPage() {
                     )}
                   >
                     <div className="flex justify-between items-start mb-4">
-                      <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform duration-300">
+                      <div className="h-10 w-10 bg-brand/10 flex items-center justify-center text-brand group-hover:scale-110 transition-transform duration-300">
                         <FileText className="h-5 w-5" />
                       </div>
                       <button
                         onClick={(e) => handleDelete(file.id, e)}
-                        className="p-1.5 rounded-lg text-zinc-600 hover:text-red-400 hover:bg-red-400/10 transition-colors opacity-0 group-hover:opacity-100"
+                        className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-400/10 transition-colors opacity-0 group-hover:opacity-100"
                         aria-label="Delete file"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -223,7 +222,7 @@ export default function FilesPage() {
                     </div>
                     <div className="mt-auto">
                       <h3
-                        className="font-medium text-zinc-200 group-hover:text-blue-200 transition-colors truncate mb-1"
+                        className="font-medium text-zinc-200 group-hover:text-brand transition-colors truncate mb-1"
                         title={file.name}
                       >
                         {file.name}
@@ -232,7 +231,7 @@ export default function FilesPage() {
                         <span>
                           {new Date(file.createdAt).toLocaleDateString()}
                         </span>
-                        <span className="uppercase font-mono bg-white/5 px-1.5 py-0.5 rounded text-[10px]">
+                        <span className="uppercase font-mono bg-ink-800 px-1.5 py-0.5 text-[10px]">
                           {file.type}
                         </span>
                       </div>
@@ -262,16 +261,16 @@ export default function FilesPage() {
                   <div
                     key={file.id}
                     className={cn(
-                      "group flex items-center justify-between p-4 rounded-xl bg-zinc-900/40 border border-white/5 hover:bg-zinc-800/50 hover:border-white/10 transition-all animate-slide-up",
+                      "group flex items-center justify-between p-4 bg-ink-850 border border-hair hover:bg-ink-800 hover:border-ink-700 transition-all animate-slide-up",
                       delayClass,
                     )}
                   >
                     <div className="flex items-center gap-4 min-w-0">
-                      <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
+                      <div className="h-10 w-10 bg-brand/10 flex items-center justify-center text-brand">
                         <FileText className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-medium text-zinc-200 truncate group-hover:text-white transition-colors">
+                        <h3 className="font-medium text-zinc-200 truncate group-hover:text-ink-100 transition-colors">
                           {file.name}
                         </h3>
                         <p className="text-xs text-zinc-500">
@@ -282,7 +281,7 @@ export default function FilesPage() {
                     </div>
                     <button
                       onClick={(e) => handleDelete(file.id, e)}
-                      className="p-2 rounded-lg text-zinc-600 hover:text-red-400 hover:bg-red-400/10 transition-colors opacity-0 group-hover:opacity-100"
+                      className="p-2 text-zinc-600 hover:text-red-400 hover:bg-red-400/10 transition-colors opacity-0 group-hover:opacity-100"
                       aria-label="Delete file"
                     >
                       <Trash2 className="h-4 w-4" />

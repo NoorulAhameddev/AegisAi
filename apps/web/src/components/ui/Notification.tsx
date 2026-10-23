@@ -61,17 +61,17 @@ const typeConfig: Record<
   },
   info: {
     icon: <Info className="h-5 w-5" />,
-    bg: "bg-blue-500/10",
-    border: "border-blue-500/30",
-    textColor: "text-blue-300",
-    iconColor: "text-blue-400",
+    bg: "bg-brand/10",
+    border: "border-brand/30",
+    textColor: "text-brand",
+    iconColor: "text-brand",
   },
   loading: {
     icon: <Loader2 className="h-5 w-5 animate-spin" />,
-    bg: "bg-purple-500/10",
-    border: "border-purple-500/30",
-    textColor: "text-purple-300",
-    iconColor: "text-purple-400",
+    bg: "bg-brand/10",
+    border: "border-brand/30",
+    textColor: "text-brand",
+    iconColor: "text-brand",
   },
 };
 
@@ -102,11 +102,10 @@ export function Notification({
   return (
     <div
       className={cn(
-        "flex items-start gap-4 p-4 rounded-xl backdrop-blur-xl border",
+        "flex items-start gap-4 p-4 border",
         "animate-slide-down transition-all duration-300",
         config.bg,
         config.border,
-        "shadow-lg shadow-black/50",
       )}
     >
       <div className={cn("shrink-0 mt-0.5", config.iconColor)}>
@@ -114,13 +113,13 @@ export function Notification({
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className={cn("font-semibold text-sm", config.textColor)}>{title}</p>
-        {message && <p className="text-xs text-zinc-400 mt-1">{message}</p>}
+        <p className={cn("font-medium text-sm", config.textColor)}>{title}</p>
+        {message && <p className="text-xs text-ink-400 mt-1">{message}</p>}
         {action && (
           <button
             onClick={action.onClick}
             className={cn(
-              "text-xs font-medium mt-2 px-3 py-1.5 rounded-lg",
+              "text-xs font-medium mt-2 px-3 py-1.5 rounded-none",
               "hover:bg-white/10 transition-colors",
               config.textColor,
             )}
@@ -136,7 +135,7 @@ export function Notification({
             setIsVisible(false);
             onClose?.();
           }}
-          className="shrink-0 p-1 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+          className="shrink-0 p-1 text-ink-500 hover:text-ink-100 hover:bg-white/10 rounded-none transition-colors"
           aria-label="Close notification"
         >
           <X className="h-4 w-4" />

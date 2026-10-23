@@ -71,8 +71,7 @@ export default function AdminConsole() {
         body: JSON.stringify({ ban: !currentBanStatus }),
       });
     } catch (e) {
-      logger.error(e as Error);
-      logger.error("Failed to update ban status");
+      logger.error("Failed to update ban status", { error: e });
       setUsers((prev) =>
         prev.map((u) =>
           u.id === userId ? { ...u, isBanned: currentBanStatus } : u,
@@ -176,31 +175,35 @@ export default function AdminConsole() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-zinc-500 gap-2">
-        <Loader2 className="h-6 w-6 animate-spin" />
-        <span>Loading admin portal...</span>
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-zinc-400 gap-2 font-mono">
+        <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
+        <span>Loading Aegis AI Admin Portal...</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-red-500/30">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-cyan-500/20 selection:text-cyan-200 antialiased relative">
+      {/* Background Radial Grid */}
+      <div className="fixed inset-0 bg-[radial-gradient(#ffffff08_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none z-0" />
+
       {/* Header */}
-      <header className="border-b border-zinc-800 bg-zinc-950 p-6 flex items-center justify-between">
+      <header className="border-b border-ink-700 bg-ink-950 p-6 flex items-center justify-between relative z-10 sticky top-0">
         <div className="flex items-center gap-4">
           <Link
             href="/dashboard"
-            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+            className="p-2.5 border border-ink-700 bg-ink-900 hover:bg-ink-800 text-ink-400 hover:text-ink-100 transition-colors"
+            title="Back to Dashboard"
           >
-            <ArrowLeft className="h-5 w-5 text-zinc-400" />
+            <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold flex items-center gap-2">
-              <ShieldAlert className="h-6 w-6 text-red-500" />
+            <h1 className="text-xl font-display font-medium tracking-tight flex items-center gap-2 text-ink-100">
+              <ShieldAlert className="h-5 w-5 text-cyan-400" />
               Admin Console
             </h1>
-            <p className="text-xs text-zinc-500">
-              System Monitoring & User Management
+            <p className="text-xs text-ink-500 font-mono">
+              System Health, Audit Logs & Tenant Control
             </p>
           </div>
         </div>
@@ -210,10 +213,10 @@ export default function AdminConsole() {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize",
+                "px-4 py-2 text-xs font-mono capitalize border",
                 activeTab === tab
-                  ? "bg-white text-black"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900",
+                  ? "bg-zinc-100 text-zinc-950 font-bold border-zinc-100"
+                  : "text-ink-400 hover:text-ink-100 bg-zinc-900 hover:bg-zinc-800 border-ink-800",
               )}
             >
               {tab}
@@ -228,52 +231,56 @@ export default function AdminConsole() {
           <>
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="card-gradient p-6 rounded-2xl border border-white/5 bg-zinc-900/50">
+              <div className="p-6 border border-hair bg-ink-850">
                 <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 rounded-lg bg-blue-500/10 text-blue-400">
+                  <div className="p-3 bg-ink-800 text-brand">
                     <Users className="h-6 w-6" />
                   </div>
-                  <span className="text-xs font-mono text-zinc-500">TOTAL</span>
+                  <span className="eyebrow">TOTAL</span>
                 </div>
-                <div className="text-3xl font-bold mb-1">{metrics?.users}</div>
-                <div className="text-sm text-zinc-400">Registered Users</div>
+                <div className="text-3xl font-display font-medium tracking-tight mb-1">
+                  {metrics?.users}
+                </div>
+                <div className="text-sm text-ink-400">Registered Users</div>
               </div>
 
-              <div className="card-gradient p-6 rounded-2xl border border-white/5 bg-zinc-900/50">
+              <div className="p-6 border border-hair bg-ink-850">
                 <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 rounded-lg bg-green-500/10 text-green-400">
+                  <div className="p-3 bg-ink-800 text-emerald-400">
                     <BarChart3 className="h-6 w-6" />
                   </div>
-                  <span className="text-xs font-mono text-zinc-500">
-                    LIFETIME
-                  </span>
+                  <span className="eyebrow">LIFETIME</span>
                 </div>
-                <div className="text-3xl font-bold mb-1">
+                <div className="text-3xl font-display font-medium tracking-tight mb-1">
                   {metrics?.totalTokensUsed.toLocaleString()}
                 </div>
-                <div className="text-sm text-zinc-400">Tokens Consumed</div>
+                <div className="text-sm text-ink-400">Tokens Consumed</div>
               </div>
 
-              <div className="card-gradient p-6 rounded-2xl border border-white/5 bg-zinc-900/50">
+              <div className="p-6 border border-hair bg-ink-850">
                 <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 rounded-lg bg-purple-500/10 text-purple-400">
+                  <div className="p-3 bg-ink-800 text-brand">
                     <Clock className="h-6 w-6" />
                   </div>
-                  <span className="text-xs font-mono text-zinc-500">LIVE</span>
+                  <span className="eyebrow">LIVE</span>
                 </div>
-                <div className="text-3xl font-bold mb-1">99.9%</div>
-                <div className="text-sm text-zinc-400">System Uptime</div>
+                <div className="text-3xl font-display font-medium tracking-tight mb-1">
+                  99.9%
+                </div>
+                <div className="text-sm text-ink-400">System Uptime</div>
               </div>
             </div>
 
             {/* Recent Activity Log */}
-            <section className="rounded-2xl border border-white/5 bg-zinc-900/30 overflow-hidden">
-              <div className="p-6 border-b border-white/5">
-                <h3 className="font-semibold text-lg">System Activity Log</h3>
+            <section className="border border-hair bg-ink-850 overflow-hidden">
+              <div className="p-6 border-b border-hair">
+                <h3 className="font-display font-medium tracking-tight text-lg">
+                  System Activity Log
+                </h3>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-zinc-400">
-                  <thead className="bg-zinc-900/50 text-zinc-300 font-medium">
+                <table className="w-full text-left text-sm text-ink-400">
+                  <thead className="bg-ink-800 text-ink-300 font-medium">
                     <tr>
                       <th className="px-6 py-4">User</th>
                       <th className="px-6 py-4">Event</th>
@@ -281,12 +288,12 @@ export default function AdminConsole() {
                       <th className="px-6 py-4 text-right">Time</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-hair">
                     {activity.length === 0 ? (
                       <tr>
                         <td
                           colSpan={4}
-                          className="px-6 py-8 text-center text-zinc-500"
+                          className="px-6 py-8 text-center text-ink-500"
                         >
                           No activity recorded yet.
                         </td>
@@ -295,13 +302,13 @@ export default function AdminConsole() {
                       activity.map((log) => (
                         <tr
                           key={log.id}
-                          className="hover:bg-white/5 transition-colors"
+                          className="hover:bg-ink-800 transition-colors"
                         >
-                          <td className="px-6 py-4 font-medium text-white">
+                          <td className="px-6 py-4 font-medium text-ink-100">
                             {log.user?.email || "Unknown"}
                           </td>
                           <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-2 py-1 rounded bg-blue-500/10 text-blue-400 text-xs">
+                            <span className="inline-flex items-center px-2 py-1 bg-ink-800 text-brand text-xs font-mono">
                               TOKEN_USAGE
                             </span>
                           </td>
@@ -326,16 +333,18 @@ export default function AdminConsole() {
 
         {/* Users Tab */}
         {activeTab === "users" && (
-          <section className="rounded-2xl border border-white/5 bg-zinc-900/30 overflow-hidden">
-            <div className="p-6 border-b border-white/5 flex justify-between items-center">
-              <h3 className="font-semibold text-lg">User Management</h3>
-              <button className="px-4 py-2 bg-white text-black text-sm font-semibold rounded-lg hover:bg-zinc-200">
+          <section className="border border-hair bg-ink-850 overflow-hidden">
+            <div className="p-6 border-b border-hair flex justify-between items-center">
+              <h3 className="font-display font-medium tracking-tight text-lg">
+                User Management
+              </h3>
+              <button className="px-4 py-2 bg-brand text-ink-950 text-sm font-semibold hover:bg-brand-dim">
                 Export CSV
               </button>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-zinc-400">
-                <thead className="bg-zinc-900/50 text-zinc-300 font-medium">
+              <table className="w-full text-left text-sm text-ink-400">
+                <thead className="bg-ink-800 text-ink-300 font-medium">
                   <tr>
                     <th className="px-6 py-4">Name</th>
                     <th className="px-6 py-4">Email</th>
@@ -345,13 +354,13 @@ export default function AdminConsole() {
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-hair">
                   {users.map((u) => (
                     <tr
                       key={u.id}
-                      className="hover:bg-white/5 transition-colors"
+                      className="hover:bg-ink-800 transition-colors"
                     >
-                      <td className="px-6 py-4 font-medium text-white">
+                      <td className="px-6 py-4 font-medium text-ink-100">
                         {u.name}
                         {u.isBanned && (
                           <span className="ml-2 text-xs text-red-500 font-bold">
@@ -363,10 +372,10 @@ export default function AdminConsole() {
                       <td className="px-6 py-4">
                         <span
                           className={cn(
-                            "inline-flex items-center px-2 py-1 rounded text-xs",
+                            "inline-flex items-center px-2 py-1 text-xs",
                             u.role === "ADMIN"
                               ? "bg-red-500/10 text-red-400"
-                              : "bg-zinc-800 text-zinc-400",
+                              : "bg-ink-800 text-ink-400",
                           )}
                         >
                           {u.role}
@@ -383,14 +392,14 @@ export default function AdminConsole() {
                           {u.role === "USER" ? (
                             <button
                               onClick={() => handleRoleUpdate(u.id, "ADMIN")}
-                              className="text-xs px-2 py-1 text-zinc-400 hover:text-white border border-zinc-700 rounded hover:bg-zinc-800"
+                              className="text-xs px-2 py-1 text-ink-400 hover:text-ink-100 border border-ink-700 hover:bg-ink-800"
                             >
                               Make Admin
                             </button>
                           ) : (
                             <button
                               onClick={() => handleRoleUpdate(u.id, "USER")}
-                              className="text-xs px-2 py-1 text-zinc-400 hover:text-white border border-zinc-700 rounded hover:bg-zinc-800"
+                              className="text-xs px-2 py-1 text-ink-400 hover:text-ink-100 border border-ink-700 hover:bg-ink-800"
                             >
                               Demote
                             </button>
@@ -399,7 +408,7 @@ export default function AdminConsole() {
                           <button
                             onClick={() => handleBanUser(u.id, u.isBanned)}
                             className={cn(
-                              "text-xs px-3 py-1 rounded border transition-colors",
+                              "text-xs px-3 py-1 border transition-colors",
                               u.isBanned
                                 ? "border-green-800 text-green-400 hover:bg-green-900"
                                 : "border-yellow-900 text-yellow-500 hover:bg-yellow-900/30",
@@ -410,7 +419,7 @@ export default function AdminConsole() {
 
                           <button
                             onClick={() => handleDeleteUser(u.id)}
-                            className="text-xs px-2 py-1 text-red-500 hover:bg-red-900/20 border border-red-900/50 rounded"
+                            className="text-xs px-2 py-1 text-red-500 hover:bg-red-900/20 border border-red-900/50"
                             title="Delete User"
                           >
                             Delete
@@ -428,15 +437,17 @@ export default function AdminConsole() {
         {/* Settings Tab */}
         {activeTab === "settings" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <section className="rounded-2xl border border-white/5 bg-zinc-900/30 overflow-hidden p-6">
-              <h3 className="font-semibold text-lg mb-4">System Controls</h3>
+            <section className="border border-hair bg-ink-850 overflow-hidden p-6">
+              <h3 className="font-display font-medium tracking-tight text-lg mb-4">
+                System Controls
+              </h3>
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="font-medium block text-zinc-200">
+                    <label className="font-medium block text-ink-200">
                       Allow New Registrations
                     </label>
-                    <p className="text-sm text-zinc-500">
+                    <p className="text-sm text-ink-500">
                       Enable or disable new users from signing up.
                     </p>
                   </div>
@@ -448,15 +459,15 @@ export default function AdminConsole() {
                       )
                     }
                     className={cn(
-                      "w-12 h-6 rounded-full transition-colors relative",
+                      "w-12 h-6 rounded-[2px] transition-colors relative",
                       settings.allowRegistrations
                         ? "bg-green-500"
-                        : "bg-zinc-700",
+                        : "bg-ink-700",
                     )}
                   >
                     <span
                       className={cn(
-                        "absolute top-1 w-4 h-4 rounded-full bg-white transition-all",
+                        "absolute top-1 w-4 h-4 rounded-[2px] bg-white transition-all",
                         settings.allowRegistrations ? "left-7" : "left-1",
                       )}
                     />
@@ -465,10 +476,10 @@ export default function AdminConsole() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="font-medium block text-zinc-200">
+                    <label className="font-medium block text-ink-200">
                       Maintenance Mode
                     </label>
-                    <p className="text-sm text-zinc-500">
+                    <p className="text-sm text-ink-500">
                       Show maintenance page to all non-admin users.
                     </p>
                   </div>
@@ -480,13 +491,13 @@ export default function AdminConsole() {
                       )
                     }
                     className={cn(
-                      "w-12 h-6 rounded-full transition-colors relative",
-                      settings.maintenanceMode ? "bg-red-500" : "bg-zinc-700",
+                      "w-12 h-6 rounded-[2px] transition-colors relative",
+                      settings.maintenanceMode ? "bg-red-500" : "bg-ink-700",
                     )}
                   >
                     <span
                       className={cn(
-                        "absolute top-1 w-4 h-4 rounded-full bg-white transition-all",
+                        "absolute top-1 w-4 h-4 rounded-[2px] bg-white transition-all",
                         settings.maintenanceMode ? "left-7" : "left-1",
                       )}
                     />
@@ -495,14 +506,16 @@ export default function AdminConsole() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-white/5 bg-zinc-900/30 overflow-hidden p-6">
-              <h3 className="font-semibold text-lg mb-4">Admin Security</h3>
-              <p className="text-sm text-zinc-500 mb-4">
+            <section className="border border-hair bg-ink-850 overflow-hidden p-6">
+              <h3 className="font-display font-medium tracking-tight text-lg mb-4">
+                Admin Security
+              </h3>
+              <p className="text-sm text-ink-500 mb-4">
                 Ensure all administrators use strong passwords. Audit logs track
                 all admin actions.
               </p>
-              <div className="p-4 bg-yellow-900/10 border border-yellow-900/30 rounded-lg text-yellow-500 text-sm">
-                ⚠ Use the Users tab to promote/demote administrators carefully.
+              <div className="p-4 bg-yellow-900/10 border border-yellow-900/30 text-yellow-500 text-sm">
+                Use the Users tab to promote/demote administrators carefully.
               </div>
             </section>
           </div>

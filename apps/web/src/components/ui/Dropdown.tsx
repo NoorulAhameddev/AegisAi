@@ -52,8 +52,8 @@ export function Dropdown({
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          "flex items-center gap-2 px-3 py-2 rounded-lg",
-          "text-zinc-400 hover:text-white hover:bg-white/5",
+          "flex items-center gap-2 px-3 py-2 rounded-none",
+          "text-ink-400 hover:text-ink-100 hover:bg-white/5",
           "transition-colors",
           triggerClassName,
         )}
@@ -69,9 +69,9 @@ export function Dropdown({
       {open && (
         <div
           className={cn(
-            "absolute top-full mt-2 z-50 min-w-48 rounded-xl",
-            "bg-zinc-900/95 backdrop-blur-xl border border-white/10",
-            "shadow-lg shadow-black/50 animate-slide-down",
+            "absolute top-full mt-2 z-50 min-w-48",
+            "bg-ink-900 border border-ink-700",
+            "animate-slide-down",
             align === "right" ? "right-0" : "left-0",
             className,
           )}
@@ -86,11 +86,11 @@ export function Dropdown({
                 }}
                 disabled={item.disabled}
                 className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm",
+                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-none text-sm",
                   "transition-colors text-left",
                   item.isDanger
                     ? "text-red-400 hover:bg-red-500/10 disabled:opacity-50"
-                    : "text-zinc-300 hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:hover:bg-transparent",
+                    : "text-ink-300 hover:bg-white/10 hover:text-ink-100 disabled:opacity-50 disabled:hover:bg-transparent",
                   "disabled:cursor-not-allowed",
                 )}
               >

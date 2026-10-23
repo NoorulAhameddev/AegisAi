@@ -187,7 +187,12 @@ export async function POST(req: NextRequest) {
     let text = "";
     try {
       // Extract text directly from buffer (works for cloud storage)
-      text = await extractText(buffer, file.type);
+      const { tmpdir } = await import("os");
+      const { join } = await import("path");
+      const tempPath = join(tmpdir(), `aegis-extract-${uniqueId}.${extension}`);
+      await (await import("fs/promises")).writeFile(tempPath, buffer);
+      text = await extractText(tempPath, file.type);
+      await (await import("fs/promises")).unlink(tempPath).catch(() => {});
       logger.info("Upload text extracted", { length: text.length });
     } catch (e: any) {
       logger.warn("Upload extraction failed", { message: e.message });

@@ -268,7 +268,6 @@ export class TokenBudgetManager {
         userId,
         tokens: tokensUsed,
         model: metadata?.model || "gpt-4o-mini",
-        metadata: metadata ? JSON.stringify(metadata) : undefined,
       },
     });
 
@@ -365,7 +364,6 @@ export class TokenBudgetManager {
             userId,
             tokens: actualTokens,
             model: metadata?.model || "gpt-4o-mini",
-            metadata: metadata ? JSON.stringify(metadata) : undefined,
           },
         });
       },

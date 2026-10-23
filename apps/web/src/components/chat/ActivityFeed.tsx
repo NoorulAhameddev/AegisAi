@@ -33,21 +33,21 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ chatId }) => {
 
   if (loading)
     return (
-      <div className="flex items-center gap-2 text-zinc-400">
+      <div className="flex items-center gap-2 text-ink-500">
         <Loader2 className="animate-spin h-4 w-4" /> Loading activity...
       </div>
     );
-  if (error) return <div className="text-red-500 text-sm">{error}</div>;
+  if (error) return <div className="text-ink-300 text-sm">{error}</div>;
   if (!events.length)
-    return <div className="text-zinc-400 text-sm">No activity yet.</div>;
+    return <div className="text-ink-500 text-sm">No activity yet.</div>;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 border-l border-hair pl-4">
       {events.map((ev, i) => (
         <div key={i} className="flex items-center gap-2 text-sm">
-          <span className="font-bold text-zinc-200">{ev.userName}</span>
-          <span className="text-zinc-400">{ev.action.replace(/_/g, " ")}</span>
-          <span className="text-xs text-zinc-500 ml-auto">
+          <span className="font-medium text-ink-100">{ev.userName}</span>
+          <span className="text-ink-500">{ev.action.replace(/_/g, " ")}</span>
+          <span className="text-xs text-ink-600 ml-auto">
             {new Date(ev.createdAt).toLocaleString()}
           </span>
         </div>

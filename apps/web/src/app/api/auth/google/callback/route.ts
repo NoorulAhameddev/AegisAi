@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getGoogleUserInfo } from "@/services/auth/google-oauth";
 import { createSession } from "@/services/auth/session";
+import { hashPassword } from "@/services/auth/auth";
 import { logger } from "@/lib/logger";
 import { env } from "@/lib/env";
+import crypto from "crypto";
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:3000";
 
@@ -74,6 +76,8 @@ export async function GET(req: NextRequest) {
           providerId: googleUser.providerId,
           picture: googleUser.picture,
           role: "USER",
+          // OAuth users never log in with a password, but the field is required
+          password: await hashPassword(crypto.randomUUID()),
         },
       });
 

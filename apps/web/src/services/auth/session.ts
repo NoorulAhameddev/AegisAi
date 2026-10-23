@@ -262,8 +262,6 @@ export async function cleanupExpiredSessions(): Promise<number> {
  * Get user from request - handles token verification
  */
 export async function getUserFromRequest(req: Request | NextRequest) {
-  let token: string | undefined;
-
   // Cookie extraction helper
   const getCookie = (name: string) => {
     if ("cookies" in req && typeof (req as any).cookies?.get === "function") {
@@ -277,7 +275,7 @@ export async function getUserFromRequest(req: Request | NextRequest) {
     return undefined;
   };
 
-  token = getCookie("auth_access");
+  const token = getCookie("auth_access");
 
   if (!token) return null;
 

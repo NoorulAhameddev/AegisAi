@@ -69,7 +69,7 @@ export default function ExportButton({
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={loading}
-        className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-50"
+        className="flex items-center gap-2 px-3 py-2 bg-ink-800 hover:bg-ink-700 transition-colors disabled:opacity-50"
         title="Export"
       >
         <DownloadIcon size={18} />
@@ -82,11 +82,11 @@ export default function ExportButton({
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+          <div className="absolute right-0 mt-2 w-48 bg-ink-850 border border-ink-700 z-50">
             <div className="p-2 space-y-1">
               <button
                 onClick={() => exportAs("pdf")}
-                className="w-full text-left px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="w-full text-left px-3 py-2 hover:bg-ink-800"
               >
                 Export as PDF
               </button>
@@ -94,13 +94,13 @@ export default function ExportButton({
                 <>
                   <button
                     onClick={() => exportAs("markdown")}
-                    className="w-full text-left px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="w-full text-left px-3 py-2 hover:bg-ink-800"
                   >
                     Export as Markdown
                   </button>
                   <button
                     onClick={() => exportAs("docx")}
-                    className="w-full text-left px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="w-full text-left px-3 py-2 hover:bg-ink-800"
                   >
                     Export as DOCX
                   </button>

@@ -75,6 +75,7 @@ export interface MultiModalEmbedding {
  * Cache key generator for embeddings
  */
 function generateCacheKey(content: string, strategy: MergeStrategy): string {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const crypto = require("crypto");
   const hash = crypto.createHash("sha256").update(content).digest("hex");
   return `embedding:${hash}:${strategy}`;
@@ -83,7 +84,7 @@ function generateCacheKey(content: string, strategy: MergeStrategy): string {
 /**
  * Get Redis cache client
  */
-async function getRedisCache(): Promise<Redis | null> {
+async function getRedisCache(): Promise<InstanceType<typeof Redis> | null> {
   try {
     if (!process.env.REDIS_URL) return null;
     const redis = new Redis(process.env.REDIS_URL);

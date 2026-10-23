@@ -1,4 +1,4 @@
-﻿import crypto from "crypto";
+import crypto from "crypto";
 import { openai } from "@/services/ai/openai";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
@@ -138,7 +138,13 @@ export async function rerankDocumentsCrossEncoderWithScores(
     return { documents, scores: new Map() };
   }
 
-  const model = options.model || env.CROSS_ENCODER_MODEL || DEFAULT_MODEL;
+  const configuredModel = env.CROSS_ENCODER_MODEL;
+  const model =
+    options.model ||
+    (configuredModel &&
+    (configuredModel.startsWith("openai/") || configuredModel.startsWith("gpt"))
+      ? configuredModel
+      : DEFAULT_MODEL);
   const maxDocs = options.maxDocs ?? DEFAULT_MAX_DOCS;
   const maxCharsPerDoc = options.maxCharsPerDoc ?? DEFAULT_MAX_CHARS;
   const config = getRAGConfig();
@@ -267,7 +273,12 @@ export async function rerankDocumentsCrossEncoderWithScores(
 }
 
 export async function getRerankerStatus(): Promise<RerankerStatus> {
-  const model = env.CROSS_ENCODER_MODEL || DEFAULT_MODEL;
+  const configured = env.CROSS_ENCODER_MODEL;
+  const model =
+    configured &&
+    (configured.startsWith("openai/") || configured.startsWith("gpt"))
+      ? configured
+      : DEFAULT_MODEL;
 
   if (!model.startsWith("openai/") && !model.startsWith("gpt")) {
     return {

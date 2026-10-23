@@ -63,7 +63,7 @@ export async function generateVideoSummary(
   projectId?: string,
 ): Promise<VideoSummaryResult> {
   // 1. Get Edge context
-  let edgeContext = { title: "" };
+  let edgeContext: { title?: string } = {};
   try {
     edgeContext = await getEdgeContext();
   } catch {

@@ -1,6 +1,5 @@
 import { getRAGConfig } from "./rag-config";
 import { logger } from "@/lib/logger";
-import { logger } from "@/lib/logger";
 
 /**
  * Advanced text chunking strategies for RAG

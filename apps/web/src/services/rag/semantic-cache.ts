@@ -338,13 +338,13 @@ export async function getCacheStats(): Promise<SemanticCacheStats> {
 
     const avgCached =
       cachedLatencies.length > 0
-        ? cachedLatencies.reduce((sum, l) => sum + parseFloat(l), 0) /
+        ? cachedLatencies.reduce((sum: number, l: string) => sum + parseFloat(l), 0) /
           cachedLatencies.length
         : 0;
 
     const avgUncached =
       uncachedLatencies.length > 0
-        ? uncachedLatencies.reduce((sum, l) => sum + parseFloat(l), 0) /
+        ? uncachedLatencies.reduce((sum: number, l: string) => sum + parseFloat(l), 0) /
           uncachedLatencies.length
         : 0;
 

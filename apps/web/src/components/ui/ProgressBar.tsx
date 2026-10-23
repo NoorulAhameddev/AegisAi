@@ -26,10 +26,10 @@ export function ProgressBar({
   };
 
   const variantClasses = {
-    default: "bg-white",
-    gradient: "bg-gradient-to-r from-purple-500 to-blue-500",
+    default: "bg-brand",
+    gradient: "bg-brand",
     success: "bg-emerald-500",
-    warning: "bg-yellow-500",
+    warning: "bg-amber-500",
     danger: "bg-red-500",
   };
 
@@ -37,7 +37,7 @@ export function ProgressBar({
     <div className={cn("w-full", className)}>
       <div
         className={cn(
-          "w-full rounded-full bg-zinc-800/50 overflow-hidden backdrop-blur-sm border border-white/5",
+          "w-full rounded-full bg-ink-800 overflow-hidden",
           sizeClasses[size],
         )}
       >
@@ -50,11 +50,11 @@ export function ProgressBar({
         />
       </div>
       {showLabel && (
-        <div className="mt-2 flex justify-between items-center text-xs text-zinc-500">
+        <div className="mt-2 flex justify-between items-center text-xs text-ink-500">
           <span>
             {value} / {max}
           </span>
-          <span className="font-semibold">{Math.round(percentage)}%</span>
+          <span className="font-medium">{Math.round(percentage)}%</span>
         </div>
       )}
     </div>

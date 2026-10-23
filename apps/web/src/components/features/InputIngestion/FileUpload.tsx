@@ -120,7 +120,9 @@ export function FileUpload({
   return (
     <Card className="p-6">
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Upload Files</h3>
+        <h3 className="font-display text-lg font-medium tracking-tight text-ink-100">
+          Upload Files
+        </h3>
 
         {/* Drag & Drop Zone */}
         <div
@@ -129,7 +131,7 @@ export function FileUpload({
             e.preventDefault();
             handleFileSelect(e.dataTransfer.files);
           }}
-          className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition cursor-pointer"
+          className="border-2 border-dashed border-ink-700 p-8 text-center hover:border-brand transition cursor-pointer"
         >
           <input
             ref={fileInputRef}
@@ -146,17 +148,17 @@ export function FileUpload({
             className="hidden"
           />
 
-          <Upload className="mx-auto mb-2 text-gray-400" size={32} />
-          <p className="text-sm font-medium text-gray-700">
+          <Upload className="mx-auto mb-2 text-ink-400" size={32} />
+          <p className="text-sm font-medium text-ink-100">
             Drag files here or{" "}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="text-blue-600 hover:underline"
+              className="text-brand hover:underline"
             >
               click to browse
             </button>
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-ink-500 mt-1">
             Max {maxFileSize}MB • Formats: {acceptedFormats.join(", ")}
           </p>
         </div>
@@ -172,13 +174,13 @@ export function FileUpload({
             {files.map((file) => (
               <div
                 key={file.name}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                className="flex items-center justify-between p-3 bg-ink-900 border border-hair"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {uploadStatus[file.name] === "uploading" && (
                     <Loader2
                       size={18}
-                      className="animate-spin text-blue-600 flex-shrink-0"
+                      className="animate-spin text-brand flex-shrink-0"
                     />
                   )}
                   {uploadStatus[file.name] === "success" && (
@@ -196,7 +198,7 @@ export function FileUpload({
 
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{file.name}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-ink-500">
                       {(file.size / 1024 / 1024).toFixed(2)} MB
                     </p>
                   </div>
@@ -221,7 +223,7 @@ export function FileUpload({
             disabled={
               loading || files.every((f) => uploadStatus[f.name] === "success")
             }
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition"
+            className="w-full bg-brand text-ink-950 hover:bg-brand-dim disabled:bg-ink-700 font-mono text-[0.7rem] uppercase tracking-[0.12em] py-2 px-4 transition"
           >
             {loading ? "Uploading..." : `Upload ${files.length} file(s)`}
           </button>

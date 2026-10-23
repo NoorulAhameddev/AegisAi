@@ -16,6 +16,7 @@ export interface SafetyCheckResult {
     | "malware"
     | "abuse"
     | "pii_leaked"
+    | "unknown_error"
     | "ok";
   confidence?: number;
   redactions?: string[];
@@ -141,15 +142,14 @@ function checkDangerousPatterns(response: string): {
 async function validateWithLLM(
   responseExcerpt: string,
 ): Promise<SafetyCheckResult> {
-  try {
-    const check = await openai.chat.completions.create({
-      model: "openai/gpt-4o-mini",
-      temperature: 0,
-      max_tokens: 200,
-      messages: [
-        {
-          role: "system",
-          content: `You are a safety classifier. Analyze this AI response excerpt for harmful content.
+  const check = await openai.chat.completions.create({
+    model: "openai/gpt-4o-mini",
+    temperature: 0,
+    max_tokens: 200,
+    messages: [
+      {
+        role: "system",
+        content: `You are a safety classifier. Analyze this AI response excerpt for harmful content.
 
 Categories:
 - SAFE: Normal helpful content, educational material
@@ -161,25 +161,22 @@ Categories:
 
 Respond ONLY with valid JSON: 
 {"safe": boolean, "category": "SAFE"|"WEAPONS"|"DRUGS"|"MALWARE"|"ABUSE"|"PII", "confidence": 0.0-1.0, "reason": "brief explanation"}`,
-        },
-        {
-          role: "user",
-          content: responseExcerpt,
-        },
-      ],
-      response_format: { type: "json_object" },
-    });
+      },
+      {
+        role: "user",
+        content: responseExcerpt,
+      },
+    ],
+    response_format: { type: "json_object" },
+  });
 
-    const result = JSON.parse(check.choices[0].message.content || "{}");
+  const result = JSON.parse(check.choices[0].message.content || "{}");
 
-    return {
-      safe: result.safe === true,
-      category: result.category?.toLowerCase(),
-      confidence: result.confidence ?? 0.5,
-    };
-  } catch (e) {
-    throw e;
-  }
+  return {
+    safe: result.safe === true,
+    category: result.category?.toLowerCase(),
+    confidence: result.confidence ?? 0.5,
+  };
 }
 
 /**
@@ -236,7 +233,7 @@ export function buildSafeResponse(
 
     return {
       content: redacted,
-      warning: `âš ï¸ This response contained ${validation.category} content. Sensitive areas have been redacted for safety.`,
+      warning: `âš ï¸  This response contained ${validation.category} content. Sensitive areas have been redacted for safety.`,
     };
   }
 

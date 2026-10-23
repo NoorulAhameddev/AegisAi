@@ -90,10 +90,7 @@ export default function ChatClient({ user }: ChatClientProps) {
         messageCacheRef.current = new Map(Object.entries(parsed));
       }
     } catch (err) {
-      logger.warn(
-        "[ChatClient] Failed to load message cache from localStorage:",
-        err,
-      );
+      logger.warn("[ChatClient] Failed to load message cache", { error: err });
     }
   }, []);
   const [input, setInput] = useState("");
@@ -157,7 +154,7 @@ export default function ChatClient({ user }: ChatClientProps) {
       .then((data) => {
         if (Array.isArray(data)) setChatList(data);
       })
-      .catch((err) => logger.error(err));
+      .catch((err) => logger.error("Failed to load chats", { error: err }));
   }, [urlChatId, generating]);
 
   useEffect(() => {
@@ -194,10 +191,9 @@ export default function ChatClient({ user }: ChatClientProps) {
                 JSON.stringify(cacheObj),
               );
             } catch (err) {
-              logger.warn(
-                "[ChatClient] Failed to load message cache from localStorage:",
-                err,
-              );
+              logger.warn("[ChatClient] Failed to load message cache", {
+                error: err,
+              });
             }
           }
         })
@@ -261,7 +257,7 @@ export default function ChatClient({ user }: ChatClientProps) {
           const cacheObj = Object.fromEntries(messageCacheRef.current);
           localStorage.setItem("aegis_message_cache", JSON.stringify(cacheObj));
         } catch (err) {
-          logger.warn("[ChatClient] Failed to save cache:", err);
+          logger.warn("[ChatClient] Failed to save cache:", { error: err });
         }
       }
       return next;
@@ -341,7 +337,9 @@ export default function ChatClient({ user }: ChatClientProps) {
                     JSON.stringify(cacheObj),
                   );
                 } catch (err) {
-                  logger.warn("[ChatClient] Failed to save cache:", err);
+                  logger.warn("[ChatClient] Failed to save cache:", {
+                    error: err,
+                  });
                 }
               }
               return n;
@@ -353,10 +351,9 @@ export default function ChatClient({ user }: ChatClientProps) {
           await new Promise((r) => setTimeout(r, 1000));
           attempts++;
         } catch (pollErr: any) {
-          logger.error(
-            `[Chat] Status endpoint returned ${sRes.status}:`,
-            errorData,
-          );
+          logger.error("[Chat] Status endpoint returned an error:", {
+            error: pollErr,
+          });
 
           // If it's a rate limit error, show it and stop polling
           if (
@@ -397,7 +394,9 @@ export default function ChatClient({ user }: ChatClientProps) {
                 JSON.stringify(cacheObj),
               );
             } catch (err) {
-              logger.warn("[ChatClient] Failed to save cache:", err);
+              logger.warn("[ChatClient] Failed to save cache:", {
+                error: err,
+              });
             }
           }
           return n;
@@ -426,7 +425,7 @@ export default function ChatClient({ user }: ChatClientProps) {
   };
 
   return (
-    <div className="flex h-screen bg-black text-white selection:bg-purple-500/30 font-sans overflow-hidden">
+    <div className="flex h-screen bg-ink-950 text-ink-100 selection:bg-brand/25 font-sans overflow-hidden">
       <div className="hidden md:block h-full shrink-0 z-40">
         <AppSidebar user={user} />
       </div>
@@ -437,27 +436,27 @@ export default function ChatClient({ user }: ChatClientProps) {
         onClose={() => setMobileNavOpen(false)}
       />
 
-      <main className="flex-1 flex flex-col min-w-0 bg-[#09090b] relative">
+      <main className="flex-1 flex flex-col min-w-0 bg-ink-950 relative">
         {/* Collaboration UI header */}
-        <div className="flex items-center gap-4 px-6 py-2 border-b border-white/5 bg-black/10">
+        <div className="flex items-center gap-4 px-6 py-2 border-b border-hair bg-ink-950">
           <PresenceAvatars users={collab.activeUsers || []} />
           <CollaboratorsDropdown
             collaborators={collaborators}
             onInvite={handleOpenShareModal}
           />
           <button
-            className="px-2 py-1 rounded bg-zinc-800 text-xs text-zinc-200 hover:bg-zinc-700"
+            className="px-2 py-1 bg-ink-800 text-xs text-ink-200 hover:bg-ink-700"
             onClick={handleOpenPermissionModal}
           >
             Manage Permissions
           </button>
         </div>
-        <header className="flex items-center justify-between px-6 h-16 border-b border-white/5 bg-black/20 backdrop-blur-sm z-20 shrink-0">
+        <header className="flex items-center justify-between px-6 h-16 border-b border-hair bg-ink-950 z-20 shrink-0">
           <div className="flex items-center gap-3">
             <div className="md:hidden">
               <button
                 onClick={() => setMobileNavOpen(true)}
-                className="p-2 -ml-2 text-zinc-400 hover:text-white transition-colors"
+                className="p-2 -ml-2 text-ink-400 hover:text-ink-100 transition-colors"
                 aria-label="Open Menu"
               >
                 <Menu className="h-6 w-6" />
@@ -467,10 +466,10 @@ export default function ChatClient({ user }: ChatClientProps) {
             <button
               onClick={() => setHistoryOpen(!historyOpen)}
               className={cn(
-                "hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 group",
+                "hidden md:flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors group",
                 historyOpen
-                  ? "text-zinc-400 hover:text-white"
-                  : "text-zinc-500 hover:text-zinc-300",
+                  ? "text-ink-400 hover:text-ink-100"
+                  : "text-ink-500 hover:text-ink-300",
               )}
               title={historyOpen ? "Close Sidebar" : "Open Sidebar"}
               aria-label={historyOpen ? "Close History" : "Open History"}
@@ -483,7 +482,7 @@ export default function ChatClient({ user }: ChatClientProps) {
             </button>
 
             {!historyOpen && (
-              <span className="text-sm font-medium text-zinc-400 animate-fade-in">
+              <span className="text-sm font-medium text-ink-400 animate-fade-in">
                 {chatList.find((c) => c.id === urlChatId)?.title || "New Chat"}
               </span>
             )}
@@ -492,7 +491,7 @@ export default function ChatClient({ user }: ChatClientProps) {
           <div className="flex items-center gap-2">
             <Link
               href="/chat"
-              className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors border border-transparent hover:border-white/5"
+              className="p-2 bg-white/5 hover:bg-white/10 text-ink-400 hover:text-ink-100 transition-colors border border-transparent hover:border-hair"
               title="New Chat"
               aria-label="Start New Chat"
             >
@@ -504,7 +503,7 @@ export default function ChatClient({ user }: ChatClientProps) {
         <div className="flex-1 flex overflow-hidden">
           <div
             className={cn(
-              "hidden md:flex flex-col bg-zinc-900/30 border-r border-white/5 transition-all duration-300 ease-in-out overflow-hidden h-full",
+              "hidden md:flex flex-col bg-ink-900 border-r border-hair transition-all duration-300 ease-in-out overflow-hidden h-full",
               historyOpen
                 ? "w-80 opacity-100 translate-x-0"
                 : "w-0 opacity-0 -translate-x-4 border-r-0",
@@ -512,7 +511,7 @@ export default function ChatClient({ user }: ChatClientProps) {
           >
             <div className="p-4 h-full overflow-y-auto w-80 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
               <div className="flex items-center justify-between mb-6 px-2">
-                <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                <h3 className="eyebrow text-ink-500">
                   Recent Chats
                 </h3>
               </div>
@@ -523,16 +522,16 @@ export default function ChatClient({ user }: ChatClientProps) {
                     key={chat.id}
                     href={`/chat?id=${chat.id}`}
                     className={cn(
-                      "flex flex-col px-3 py-3.5 rounded-xl text-sm truncate transition-all border border-transparent group",
+                      "flex flex-col px-3 py-3.5 text-sm truncate transition-colors border-l-2 group",
                       urlChatId === chat.id
-                        ? "bg-white/10 text-white border-white/5 shadow-sm"
-                        : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5",
+                        ? "bg-white/10 text-ink-100 border-l-brand"
+                        : "text-ink-400 hover:text-ink-200 hover:bg-white/5 border-l-transparent",
                     )}
                   >
                     <span className="font-medium truncate">
                       {chat.title || "Untitled Conversation"}
                     </span>
-                    <span className="text-[10px] text-zinc-600 mt-1 flex items-center gap-1 group-hover:text-zinc-500">
+                    <span className="text-[10px] text-ink-600 mt-1 flex items-center gap-1 group-hover:text-ink-500">
                       {new Date(chat.createdAt).toLocaleDateString()}
                     </span>
                   </Link>
@@ -541,11 +540,11 @@ export default function ChatClient({ user }: ChatClientProps) {
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col relative min-w-0 bg-[url('/bg-noise.png')] bg-repeat opacity-100 transition-all duration-300">
+          <div className="flex-1 flex flex-col relative min-w-0 transition-all duration-300">
             {/* Activity Feed Sidebar */}
-            <div className="absolute right-0 top-0 w-80 h-full bg-zinc-900/40 border-l border-white/5 z-30 hidden md:block">
+            <div className="absolute right-0 top-0 w-80 h-full bg-ink-900 border-l border-hair z-30 hidden md:block">
               <div className="p-4">
-                <h4 className="text-xs font-bold text-zinc-500 uppercase mb-2">
+                <h4 className="eyebrow text-ink-500 uppercase mb-2">
                   Activity Feed
                 </h4>
                 <ActivityFeed chatId={urlChatId || ""} />
@@ -555,17 +554,14 @@ export default function ChatClient({ user }: ChatClientProps) {
               <div className="max-w-3xl mx-auto min-h-full flex flex-col justify-end pb-8">
                 {messages.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-center space-y-8 animate-fade-in pb-20">
-                    <div className="relative group cursor-default">
-                      <div className="absolute inset-0 bg-purple-500 blur-[60px] opacity-0 group-hover:opacity-20 transition-opacity duration-1000 rounded-full" />
-                      <div className="relative h-20 w-20 rounded-2xl bg-linear-to-br from-zinc-800 to-black border border-white/10 flex items-center justify-center shadow-2xl group-hover:scale-105 transition-transform duration-500">
-                        <MessageSquare className="h-8 w-8 text-white" />
-                      </div>
+                    <div className="h-16 w-16 bg-ink-850 border border-ink-700 flex items-center justify-center">
+                      <MessageSquare className="h-7 w-7 text-brand" />
                     </div>
                     <div>
-                      <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-b from-white to-zinc-500 mb-3">
+                      <h2 className="font-display text-3xl font-medium tracking-tight text-ink-100 mb-3">
                         How can I help you?
                       </h2>
-                      <p className="text-zinc-500 max-w-md mx-auto leading-relaxed">
+                      <p className="text-ink-500 max-w-md mx-auto leading-relaxed">
                         I'm Aegis, your AI assistant. I can help you analyze
                         documents, write code, or just chat.
                       </p>
@@ -602,7 +598,7 @@ export default function ChatClient({ user }: ChatClientProps) {
                 />
                 {/* Typing indicator */}
                 {typingUsers.length > 0 && (
-                  <div className="text-xs text-purple-400 mt-2 ml-1 animate-pulse">
+                  <div className="text-xs text-brand mt-2 ml-1 animate-pulse">
                     {typingUsers.join(", ")}{" "}
                     {typingUsers.length === 1 ? "is" : "are"} typing...
                   </div>

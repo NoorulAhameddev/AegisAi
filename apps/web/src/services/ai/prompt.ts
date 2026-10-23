@@ -80,9 +80,9 @@ FORMATTING RULES:
 - Use Markdown for all formatting (bold, italic, lists, headers)
 - Use \`code\` for inline code, \`\`\`language for code blocks with language specified
 - When writing Math or Physics formulas, use LaTeX wrapped in dollar signs:
-  * Use \$formula\$ for inline math. Example: \$E=mc^2\$
-  * Use \$\$formula\$\$ for block math. Example: \$\$\\int_{0}^{\\infty} x^2 dx\$\$
-- Do NOT use \\[ ... \\] or \\( ... \\) for math. ONLY use \$ and \$\$
+  * Use $formula$ for inline math. Example: $E=mc^2$
+  * Use $$formula$$ for block math. Example: $$\\int_{0}^{\\infty} x^2 dx$$
+- Do NOT use \\[ ... \\] or \\( ... \\) for math. ONLY use $ and $$
 - Use Markdown tables for structured data and comparisons
 - Use numbered lists for step-by-step instructions
 

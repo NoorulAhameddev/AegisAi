@@ -9,6 +9,7 @@ import crypto from "crypto";
 import { logger } from "@/lib/logger";
 import { encrypt, decrypt } from "@/lib/encryption";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { notifyFileUploadComplete } from "@/services/realtime";
 
 export interface StorageConfig {
@@ -120,7 +121,7 @@ export async function uploadImage(
         size: fileBuffer.length,
         hash,
         filePath: encryptedPath,
-        metadata: metadata,
+        metadata: metadata as unknown as Prisma.InputJsonValue,
       },
     });
 

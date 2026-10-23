@@ -39,7 +39,7 @@ export async function register() {
       ],
 
       // Before sending events, scrub sensitive data
-      beforeSend(event, hint) {
+      beforeSend(event) {
         // Remove sensitive headers
         if (event.request) {
           if (event.request.headers) {

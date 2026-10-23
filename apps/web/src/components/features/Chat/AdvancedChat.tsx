@@ -14,7 +14,6 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { logger } from "@/lib/logger";
-import { logger } from "@/lib/logger";
 
 interface Message {
   id: string;
@@ -127,7 +126,7 @@ export function AdvancedChat({
 
         {suggestedQuestions.length > 0 && (
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-gray-700">
+            <p className="text-sm font-medium text-ink-300">
               Suggested questions:
             </p>
             {suggestedQuestions.map((q, idx) => (
@@ -136,9 +135,9 @@ export function AdvancedChat({
                 onClick={() => {
                   setInput(q);
                 }}
-                className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition"
+                className="w-full text-left p-3 bg-ink-850 hover:bg-ink-800 border border-ink-700 transition"
               >
-                <p className="text-sm text-gray-700">{q}</p>
+                <p className="text-sm text-ink-100">{q}</p>
               </button>
             ))}
           </div>
@@ -159,14 +158,14 @@ export function AdvancedChat({
             <div
               className={`max-w-xs lg:max-w-md xl:max-w-lg ${
                 message.role === "user"
-                  ? "bg-blue-600 text-white rounded-l-lg rounded-tr-lg"
-                  : "bg-gray-100 text-gray-900 rounded-r-lg rounded-tl-lg"
+                  ? "bg-brand text-ink-950"
+                  : "bg-ink-800 text-ink-100"
               } p-4`}
             >
               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
 
               {message.sources && message.sources.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-gray-300 space-y-1">
+                <div className="mt-3 pt-3 border-t border-ink-700 space-y-1">
                   <p className="text-xs font-semibold opacity-70">Sources:</p>
                   {message.sources.map((source, idx) => (
                     <p key={idx} className="text-xs opacity-70">
@@ -204,7 +203,7 @@ export function AdvancedChat({
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 text-gray-900 rounded-r-lg rounded-tl-lg p-4">
+            <div className="bg-ink-800 text-ink-100 p-4">
               <Loader2 size={18} className="animate-spin" />
             </div>
           </div>
@@ -225,7 +224,7 @@ export function AdvancedChat({
         <button
           onClick={handleSendMessage}
           disabled={loading || !input.trim()}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center gap-2"
+          className="bg-brand text-ink-950 hover:bg-brand-dim disabled:bg-ink-700 font-medium py-2 px-4 transition flex items-center gap-2"
         >
           {loading ? (
             <Loader2 size={18} className="animate-spin" />

@@ -160,7 +160,7 @@ export async function processChatJobLangChain(job: Job) {
     // LangChain agent input is a string. If we have a file/image, we need to handle it.
     // For now, if there is an image, we append a note or try to handle it.
     // Future: Update LangChain agent to accept multimodal input.
-    let finalMessage = message;
+    const finalMessage = message;
 
     if (fileId) {
       try {

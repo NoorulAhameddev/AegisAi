@@ -95,9 +95,9 @@ export const PermissionManagerModal: React.FC<PermissionManagerModalProps> = ({
         <ul className="space-y-3">
           {collaborators.map((c) => (
             <li key={c.userId} className="flex items-center gap-3">
-              <span className="font-medium text-zinc-200">{c.userName}</span>
+              <span className="font-medium text-ink-100">{c.userName}</span>
               <select
-                className="rounded border px-2 py-1 bg-zinc-900 text-white"
+                className="border border-hair px-2 py-1 bg-ink-900 text-ink-100 text-sm"
                 value={c.role}
                 onChange={(e) => handleRoleChange(c.userId, e.target.value)}
                 disabled={

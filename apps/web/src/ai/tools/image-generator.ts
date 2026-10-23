@@ -1,6 +1,5 @@
-﻿import { Tool } from "./index";
+import { Tool } from "./index";
 import { openai } from "@/services/ai/openai";
-import { logger } from "@/lib/logger";
 import { logger } from "@/lib/logger";
 
 export const ImageGeneratorTool: Tool = {

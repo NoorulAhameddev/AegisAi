@@ -8,7 +8,6 @@
 import { useState } from "react";
 import { LinkIcon, YoutubeIcon, GlobeIcon } from "lucide-react";
 import { logger } from "@/lib/logger";
-import { logger } from "@/lib/logger";
 
 interface URLIngestionProps {
   projectId?: string;
@@ -97,15 +96,15 @@ export default function URLIngestion({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://youtube.com/watch?v=... or https://example.com/article"
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 pr-10"
+            className="w-full px-4 py-2 border border-hair bg-ink-950 text-ink-100 placeholder:text-ink-600 focus:border-brand focus:outline-none pr-10"
             disabled={loading}
           />
           {urlType && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
               {urlType === "youtube" ? (
-                <YoutubeIcon size={20} className="text-red-600" />
+                <YoutubeIcon size={20} className="text-red-400" />
               ) : (
-                <GlobeIcon size={20} className="text-blue-600" />
+                <GlobeIcon size={20} className="text-brand" />
               )}
             </div>
           )}
@@ -113,15 +112,15 @@ export default function URLIngestion({
         <button
           onClick={ingestURL}
           disabled={loading || !url.trim()}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+          className="px-6 py-2 bg-brand text-ink-950 hover:bg-brand-dim disabled:opacity-50 font-medium"
         >
           {loading ? "Importing..." : "Import"}
         </button>
       </div>
 
       {result && (
-        <div className="p-4 border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20 rounded-lg">
-          <h4 className="font-semibold text-green-800 dark:text-green-200 mb-2">
+        <div className="p-4 border border-emerald-500/30 bg-emerald-500/10">
+          <h4 className="font-medium text-emerald-300 mb-2">
             Successfully imported!
           </h4>
           <div className="text-sm space-y-1">

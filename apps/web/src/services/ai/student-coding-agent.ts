@@ -74,7 +74,7 @@ export class StudentCodingAgent {
         });
         return this.errorResponse(
           "Input validation failed",
-          inputValidation.reason,
+          inputValidation.reason ?? "Unknown validation error",
         );
       }
 
@@ -271,8 +271,8 @@ TEACHING TECHNIQUES:
 
 FORMATTING:
 - Use \`code\` for inline code, \`\`\`language for blocks
-- Use \$formula\$ for math (e.g., \$E=mc^2\$)
-- Use \$\$block\$\$ for complex equations
+- Use $formula$ for math (e.g., $E=mc^2$)
+- Use $$block$$ for complex equations
 - Don't use \\( or \\[ for math`;
 
     // Customize based on student level

@@ -252,7 +252,7 @@ export async function generateImageEmbedding(
           throw new Error("Invalid response from HF API");
         }
 
-        let embedding = result[0];
+        const embedding = result[0];
         if (!Array.isArray(embedding)) {
           throw new Error("Embedding is not an array");
         }
@@ -343,7 +343,9 @@ export async function generateEmbeddingsBatch(
 
     try {
       // Use retry utility with embeddings-specific strategy
-      const response = await retryWithBackoff(
+      const response = await retryWithBackoff<{
+        data: Array<{ index: number; embedding: number[] }>;
+      }>(
         async () =>
           openai.embeddings.create({
             model,

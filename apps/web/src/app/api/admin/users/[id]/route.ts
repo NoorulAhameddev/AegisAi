@@ -54,7 +54,9 @@ export async function DELETE(
     const targetLevel = roleHierarchy[targetUser.role] ?? 0;
 
     if (adminLevel <= targetLevel) {
-      return forbiddenResponse("Cannot delete users with equal or higher role");
+      return forbiddenResponse({
+        message: "Cannot delete users with equal or higher role",
+      });
     }
 
     await prisma.user.delete({

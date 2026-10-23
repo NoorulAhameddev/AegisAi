@@ -26,7 +26,7 @@ export const CollaboratorsDropdown: React.FC<CollaboratorsDropdownProps> = ({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="flex items-center gap-2 px-3 py-1 rounded-lg bg-zinc-900 text-zinc-200 hover:bg-zinc-800 transition-all">
+        <button className="flex items-center gap-2 px-3 py-1 bg-ink-800 text-ink-200 hover:bg-ink-700 transition-colors">
           <Users className="h-5 w-5" />
           <span className="font-medium text-sm">
             {collaborators.length} Collaborators
@@ -35,13 +35,13 @@ export const CollaboratorsDropdown: React.FC<CollaboratorsDropdownProps> = ({
       </PopoverTrigger>
       <PopoverContent className="w-72 p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold text-zinc-500 uppercase">
+          <span className="eyebrow text-ink-500">
             Collaborators
           </span>
           {onInvite && (
             <button
               onClick={onInvite}
-              className="text-xs text-purple-500 hover:underline flex items-center gap-1"
+              className="text-xs text-brand hover:underline flex items-center gap-1"
             >
               <UserPlus className="h-4 w-4" /> Invite
             </button>
@@ -54,17 +54,17 @@ export const CollaboratorsDropdown: React.FC<CollaboratorsDropdownProps> = ({
                 name={c.userName}
                 size={28}
                 className={
-                  c.isActive ? "ring-2 ring-green-400" : "ring-1 ring-zinc-700"
+                  c.isActive ? "ring-1 ring-brand" : "ring-1 ring-ink-700"
                 }
               />
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-zinc-200">
+                <span className="text-sm font-medium text-ink-100">
                   {c.userName}
                 </span>
-                <span className="text-xs text-zinc-400">{c.role}</span>
+                <span className="text-xs text-ink-500">{c.role}</span>
               </div>
               {c.isActive && (
-                <span className="ml-auto text-xs text-green-400">Active</span>
+                <span className="ml-auto text-xs text-ink-400">Active</span>
               )}
             </li>
           ))}

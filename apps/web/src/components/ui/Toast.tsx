@@ -36,10 +36,10 @@ export function Toast({
   };
 
   const styles = {
-    success: "bg-emerald-500/10 border-emerald-500/20 text-emerald-400",
+    success: "bg-emerald-500/10 border-emerald-500/20 text-emerald-300",
     error: "bg-red-500/10 border-red-500/20 text-red-400",
-    warning: "bg-yellow-500/10 border-yellow-500/20 text-yellow-400",
-    info: "bg-blue-500/10 border-blue-500/20 text-blue-400",
+    warning: "bg-amber-500/10 border-amber-500/20 text-amber-300",
+    info: "bg-brand/10 border-brand/20 text-brand",
   };
 
   if (!visible) return null;
@@ -47,7 +47,7 @@ export function Toast({
   return (
     <div
       className={cn(
-        "fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border backdrop-blur-xl shadow-2xl animate-slide-up min-w-[300px] max-w-md",
+        "fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-3 border animate-slide-up min-w-[300px] max-w-md",
         styles[type],
       )}
     >
@@ -58,7 +58,7 @@ export function Toast({
           setVisible(false);
           onClose?.();
         }}
-        className="shrink-0 p-1 rounded-lg hover:bg-white/10 transition-colors"
+        className="shrink-0 p-1 rounded-none hover:bg-white/10 transition-colors"
       >
         <X className="h-4 w-4" />
       </button>

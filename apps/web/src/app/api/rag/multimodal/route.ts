@@ -26,7 +26,7 @@ import { logger } from "@/lib/logger";
  * }
  */
 export async function POST(req: NextRequest) {
-  const requestId = req.headers.get("x-request-id");
+  const requestId = req.headers.get("x-request-id") || undefined;
 
   try {
     const user = await verifyAuth(req);
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
  * }
  */
 export async function PUT(req: NextRequest) {
-  const requestId = req.headers.get("x-request-id");
+  const requestId = req.headers.get("x-request-id") || undefined;
 
   try {
     const user = await verifyAuth(req);

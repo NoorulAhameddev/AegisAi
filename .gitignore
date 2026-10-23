@@ -291,3 +291,6 @@ session-*.md
 
 # Windows artifacts
 nul
+ 
+jest-results.json
+*-results.json

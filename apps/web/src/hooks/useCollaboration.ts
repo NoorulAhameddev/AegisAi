@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { logger } from "@/lib/logger";
-import { logger } from "@/lib/logger";
 
 export type PresenceData = {
   userId: string;
@@ -84,7 +83,7 @@ export const useCollaboration = ({
       });
 
       socketRef.current.on("disconnect", (reason: string) => {
-        logger.info("[Collaboration] Disconnected:", reason);
+        logger.info("[Collaboration] Disconnected", { reason });
         setState((prev: CollaborationState) => ({
           ...prev,
           isConnected: false,

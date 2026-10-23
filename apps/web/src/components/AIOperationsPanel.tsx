@@ -17,7 +17,6 @@ import {
   LayoutListIcon,
 } from "lucide-react";
 import { logger } from "@/lib/logger";
-import { logger } from "@/lib/logger";
 
 interface AIOperationsPanelProps {
   selectedText: string;
@@ -150,7 +149,7 @@ export default function AIOperationsPanel({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold flex items-center gap-2">
+      <h3 className="font-display text-lg font-medium tracking-tight flex items-center gap-2">
         <Wand2Icon size={20} />
         AI Operations
       </h3>
@@ -163,19 +162,15 @@ export default function AIOperationsPanel({
               key={op.id}
               onClick={() => executeOperation(op.id)}
               disabled={loading || !selectedText.trim()}
-              className="flex flex-col items-start gap-2 p-4 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex flex-col items-start gap-2 p-4 border border-ink-700 hover:bg-ink-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Icon size={20} className="text-blue-600 dark:text-blue-400" />
+              <Icon size={20} className="text-brand" />
               <div className="text-left">
                 <div className="font-medium">{op.label}</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  {op.description}
-                </div>
+                <div className="text-xs text-ink-500">{op.description}</div>
               </div>
               {loading && currentOperation === op.id && (
-                <div className="text-xs text-blue-600 dark:text-blue-400">
-                  Processing...
-                </div>
+                <div className="text-xs text-brand">Processing...</div>
               )}
             </button>
           );
@@ -183,7 +178,7 @@ export default function AIOperationsPanel({
       </div>
 
       {result && (
-        <div className="mt-6 p-4 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900">
+        <div className="mt-6 p-4 border border-ink-700 bg-ink-900">
           <h4 className="font-semibold mb-2">Result:</h4>
           <div className="whitespace-pre-wrap text-sm">{result}</div>
         </div>

@@ -246,8 +246,9 @@ export class TraceCollector {
       .flatMap((t) =>
         stageName
           ? t.stages.filter((s) => s.name === stageName).map((s) => s.duration)
-          : [t.totalDuration],
+          : [t.totalDuration ?? 0],
       )
+      .filter((d): d is number => typeof d === "number")
       .sort((a, b) => a - b);
 
     const errors = traces.filter((t) =>

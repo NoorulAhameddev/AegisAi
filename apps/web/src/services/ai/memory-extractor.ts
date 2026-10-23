@@ -1,4 +1,4 @@
-﻿import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { openai } from "@/services/ai/openai";
 import { logger } from "@/lib/logger";
 import { MemoryType } from "@prisma/client";
@@ -30,14 +30,19 @@ export interface ExtractedMemory {
  */
 export async function extractAndSaveMemory(
   userId: string,
-  chatMessages: Array<{ role: string; content: string }>,
+  chatMessages: Array<{ role: string; content: string }> | string,
   chatId?: string,
 ): Promise<void> {
   try {
-    if (chatMessages.length === 0) return;
+    // Normalize string input to array format
+    const messages: Array<{ role: string; content: string }> =
+      typeof chatMessages === "string"
+        ? [{ role: "user", content: chatMessages }]
+        : chatMessages;
+    if (messages.length === 0) return;
 
     // Extract facts using LLM
-    const memory = await extractMemoryFromChat(chatMessages);
+    const memory = await extractMemoryFromChat(messages);
 
     // Save each fact to database
     if (memory.concepts && memory.concepts.length > 0) {

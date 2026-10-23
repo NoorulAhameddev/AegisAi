@@ -5,7 +5,7 @@ import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Notification } from "@/components/ui/Notification";
-import { AlertCircle, Check, X } from "lucide-react";
+import { AlertCircle, Check, X, Play, Globe } from "lucide-react";
 
 interface URLIngestionModalProps {
   isOpen: boolean;
@@ -76,13 +76,21 @@ export function URLIngestionModal({
             <button
               key={type}
               onClick={() => setUrlType(type)}
-              className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
+              className={`flex-1 px-4 py-2 font-medium transition ${
                 urlType === type
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-brand text-ink-950"
+                  : "bg-ink-800 text-ink-300 hover:bg-ink-700"
               }`}
             >
-              {type === "youtube" ? "▶ YouTube" : "🌐 Webpage"}
+              {type === "youtube" ? (
+                <>
+                  <Play size={14} className="inline mr-1" /> YouTube
+                </>
+              ) : (
+                <>
+                  <Globe size={14} className="inline mr-1" /> Webpage
+                </>
+              )}
             </button>
           ))}
         </div>
@@ -101,11 +109,11 @@ export function URLIngestionModal({
         />
 
         {/* Helpful text */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <p className="text-sm text-blue-700">
+        <div className="bg-ink-850 border-hair border p-3">
+          <p className="text-sm text-ink-300">
             {urlType === "youtube"
-              ? "🎬 Extracts transcript, timestamps, and metadata"
-              : "📄 Extracts text, links, and structured content"}
+              ? "Extracts transcript, timestamps, and metadata"
+              : "Extracts text, links, and structured content"}
           </p>
         </div>
 
@@ -116,14 +124,14 @@ export function URLIngestionModal({
         <div className="flex gap-3 pt-2">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition"
+            className="flex-1 px-4 py-2 border border-hair font-medium text-ink-100 hover:bg-ink-800 transition"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading || !url.trim()}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition"
+            className="flex-1 bg-brand text-ink-950 hover:bg-brand-dim disabled:bg-ink-700 font-medium py-2 px-4 transition"
           >
             {loading ? "Processing..." : "Ingest URL"}
           </button>

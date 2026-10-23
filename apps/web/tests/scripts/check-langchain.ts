@@ -13,8 +13,8 @@ async function main() {
     const tools = getLangChainTools();
     console.log(`✅ Success: ${tools.length} tools registered.`);
     tools.forEach((t) => console.log(`   - ${t.name}: ${t.description}`));
-  } catch (e: any) {
-    console.error(`❌ Tool Registry Error: ${e.message}`);
+  } catch (e: unknown) {
+    console.error(`❌ Tool Registry Error: ${(e as Error).message}`);
   }
 
   // 2. Check RAG Functionality
@@ -37,8 +37,8 @@ async function main() {
         "   (This is expected if the vector database is empty, but confirms the query ran without crashing.)",
       );
     }
-  } catch (e: any) {
-    console.error(`❌ RAG Retrieval Error: ${e.message}`);
+  } catch (e: unknown) {
+    console.error(`❌ RAG Retrieval Error: ${(e as Error).message}`);
     console.log("   (Ensure Database and Vector Store are reachable)");
   }
 
@@ -65,9 +65,9 @@ async function main() {
     } else {
       console.error(`❌ Agent Failed: ${result.error}`);
     }
-  } catch (e: any) {
-    console.error(`❌ Agent Creation/Execution Error: ${e.message}`);
-    if (e.message.includes("OPENAI_API_KEY")) {
+  } catch (e: unknown) {
+    console.error(`❌ Agent Creation/Execution Error: ${(e as Error).message}`);
+    if ((e as Error).message.includes("OPENAI_API_KEY")) {
       console.log("   (Missing OpenAI API Key in .env)");
     }
   }

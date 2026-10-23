@@ -27,7 +27,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
 
     const { imageId } = await params;
     const userId = authResult.id;
-    const requestId = req.headers.get("x-request-id");
+    const requestId = req.headers.get("x-request-id") || undefined;
 
     if (!imageId) {
       return notFoundResponse();

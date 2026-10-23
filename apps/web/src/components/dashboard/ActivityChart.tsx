@@ -20,7 +20,7 @@ export function ActivityChart({ data, className }: ActivityChartProps) {
       {/* Grid Lines */}
       <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="w-full border-t border-white/5" />
+          <div key={i} className="w-full border-t border-hair" />
         ))}
       </div>
 
@@ -33,14 +33,13 @@ export function ActivityChart({ data, className }: ActivityChartProps) {
             className="flex-1 flex flex-col items-center group relative h-full justify-end"
           >
             {/* Tooltip */}
-            <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-white text-black text-[10px] font-bold px-2 py-1 rounded shadow-xl pointer-events-none z-10 whitespace-nowrap">
+            <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-ink-100 text-ink-950 text-[10px] font-medium px-2 py-1 whitespace-nowrap pointer-events-none z-10">
               {item.count} messages
-              <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] border-t-white" />
             </div>
 
             {/* Bar */}
             <div
-              className="w-full max-w-[40px] rounded-t-lg bg-linear-to-t from-purple-500/20 to-purple-500 group-hover:to-purple-400 transition-all duration-500 animate-grow-height origin-bottom"
+              className="w-full max-w-[40px] bg-brand/30 group-hover:bg-brand transition-colors duration-500 animate-grow-height origin-bottom"
               style={{
                 height: `${Math.max(heightPercentage, 5)}%`,
                 animationDelay: `${i * 50}ms`,
@@ -48,7 +47,7 @@ export function ActivityChart({ data, className }: ActivityChartProps) {
             />
 
             {/* Label */}
-            <span className="text-[10px] text-zinc-600 mt-4 font-medium uppercase tracking-tighter">
+            <span className="text-[10px] text-ink-500 mt-4 font-mono uppercase tracking-wider">
               {item.day}
             </span>
           </div>

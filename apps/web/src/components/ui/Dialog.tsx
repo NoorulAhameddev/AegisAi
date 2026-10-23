@@ -65,7 +65,7 @@ export function Dialog({
     <div
       className={cn(
         "fixed inset-0 z-50 flex items-center justify-center p-4",
-        "bg-black/60 backdrop-blur-sm transition-opacity duration-200",
+        "bg-black/70 backdrop-blur-sm transition-opacity duration-200",
         open ? "opacity-100" : "opacity-0 pointer-events-none",
       )}
       onClick={(e) => {
@@ -78,8 +78,8 @@ export function Dialog({
       <div
         ref={dialogRef}
         className={cn(
-          "w-full rounded-2xl bg-zinc-900/95 backdrop-blur-xl",
-          "border border-white/10 shadow-2xl shadow-black/50",
+          "w-full bg-ink-900",
+          "border border-ink-700",
           "animate-scale-up max-h-[90vh] overflow-y-auto",
           sizeClasses[size],
           className,
@@ -87,12 +87,12 @@ export function Dialog({
       >
         {/* Header */}
         {(title || closeButton) && (
-          <div className="flex items-center justify-between p-6 border-b border-white/5">
+          <div className="flex items-center justify-between p-6 border-b border-hair">
             {title && (
               <div>
-                <h2 className="text-lg font-semibold text-white">{title}</h2>
+                <h2 className="font-display text-lg font-medium tracking-tight text-ink-100">{title}</h2>
                 {description && (
-                  <p className="text-sm text-zinc-400 mt-1">{description}</p>
+                  <p className="text-sm text-ink-500 mt-1">{description}</p>
                 )}
               </div>
             )}
@@ -102,7 +102,7 @@ export function Dialog({
                   onOpenChange?.(false);
                   onClose?.();
                 }}
-                className="p-2 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 text-ink-500 hover:text-ink-100 hover:bg-white/5 transition-colors"
                 aria-label="Close dialog"
               >
                 <X className="h-5 w-5" />
@@ -116,7 +116,7 @@ export function Dialog({
 
         {/* Footer */}
         {footer && (
-          <div className="p-6 border-t border-white/5 flex items-center justify-end gap-3">
+          <div className="p-6 border-t border-hair flex items-center justify-end gap-3">
             {footer}
           </div>
         )}

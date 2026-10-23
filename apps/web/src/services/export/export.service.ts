@@ -8,7 +8,6 @@ import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
 import PDFDocument from "pdfkit";
 import { marked } from "marked";
 import { logger } from "@/lib/logger";
-import { logger } from "@/lib/logger";
 
 export interface ExportResult {
   buffer: Buffer;
@@ -319,7 +318,9 @@ export async function exportNotesAsZip(
   userId: string,
   format: "pdf" | "markdown" | "docx",
 ): Promise<ExportResult> {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const archiver = require("archiver");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Readable } = require("stream");
 
   const archive = archiver("zip", { zlib: { level: 9 } });
@@ -371,7 +372,7 @@ export async function exportNotesAsZip(
  */
 function sanitizeFilename(filename: string): string {
   return filename
-    .replace(/[^a-z0-9_\-\.]/gi, "_")
+    .replace(/[^a-z0-9_.-]/gi, "_")
     .replace(/_+/g, "_")
     .substring(0, 100);
 }

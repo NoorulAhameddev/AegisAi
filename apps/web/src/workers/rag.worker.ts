@@ -109,11 +109,13 @@ const worker = new Worker(
   {
     connection,
     concurrency: env.WORKER_CONCURRENCY,
-    settings: {
-      stalledInterval: 60000, // Check for stalled jobs every 60s
-      maxStalledCount: 2, // Retry stalled jobs twice before DLQ
-    },
+    stalledInterval: 60000, // Check for stalled jobs every 60s
+    maxStalledCount: 2, // Retry stalled jobs twice before DLQ
     lockDuration: 300000, // 5 minutes - RAG ingestion can take longer
+    limiter: {
+      max: 500, // Max 500 jobs per second (RAG is more expensive)
+      duration: 1000,
+    },
   },
 );
 

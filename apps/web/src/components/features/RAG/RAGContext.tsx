@@ -77,7 +77,7 @@ export function RAGContext({
           <button
             onClick={handleSearch}
             disabled={loading || !searchQuery.trim()}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-6 rounded-lg transition"
+            className="bg-brand text-ink-950 hover:bg-brand-dim disabled:bg-ink-700 font-mono text-[0.7rem] uppercase tracking-[0.12em] py-2 px-6 transition"
           >
             {loading ? "Searching..." : "Search"}
           </button>
@@ -85,18 +85,18 @@ export function RAGContext({
       </div>
 
       {/* Context Info */}
-      <Card className="p-4 bg-blue-50 border-blue-200">
+      <Card className="p-4 bg-ink-850 border-hair">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-blue-900">RAG Context</p>
-            <p className="text-xs text-blue-700 mt-1">
+            <p className="text-sm font-medium text-ink-100">RAG Context</p>
+            <p className="text-xs text-ink-300 mt-1">
               {selectedDocs.length} documents • {totalTokens.toLocaleString()}{" "}
               tokens
             </p>
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="flex items-center gap-1 px-3 py-1 text-sm text-brand hover:text-brand-dim font-medium"
           >
             <Filter size={16} />
             Filters
@@ -111,8 +111,8 @@ export function RAGContext({
             key={doc.id}
             className={`p-3 cursor-pointer transition ${
               selectedDocs.includes(doc.id)
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200 hover:border-gray-300"
+                ? "border-brand bg-ink-800"
+                : "border-ink-700 hover:border-ink-500"
             }`}
           >
             <label className="flex items-start gap-3 cursor-pointer">
@@ -123,7 +123,7 @@ export function RAGContext({
                 className="mt-1 w-4 h-4"
               />
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm text-gray-900 truncate">
+                <p className="font-medium text-sm text-ink-100 truncate">
                   {doc.name}
                 </p>
                 <div className="flex gap-2 mt-2 flex-wrap">
@@ -139,7 +139,7 @@ export function RAGContext({
                     </Badge>
                   )}
                 </div>
-                <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
+                <div className="flex items-center gap-1 text-xs text-ink-500 mt-2">
                   <Clock size={12} />
                   {doc.uploadedAt}
                 </div>
@@ -157,20 +157,20 @@ export function RAGContext({
           </p>
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {searchResults.map((result, idx) => (
-              <div key={idx} className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-xs font-medium text-gray-600 mb-1">
+              <div key={idx} className="p-3 bg-ink-900 border border-hair">
+                <p className="text-xs font-medium text-ink-400 mb-1">
                   From: {result.source}
                 </p>
-                <p className="text-sm text-gray-700">{result.text}</p>
+                <p className="text-sm text-ink-300">{result.text}</p>
                 {result.relevance && (
                   <div className="mt-2 flex items-center gap-2">
-                    <div className="h-1.5 flex-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-1.5 flex-1 bg-ink-800 overflow-hidden">
                       <div
-                        className="h-full bg-blue-500"
+                        className="h-full bg-brand"
                         style={{ width: `${result.relevance * 100}%` }}
                       />
                     </div>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-ink-500">
                       {(result.relevance * 100).toFixed(0)}%
                     </span>
                   </div>

@@ -3,7 +3,14 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Loader2, CheckCircle, XCircle, SkipForward } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle,
+  XCircle,
+  SkipForward,
+  Check,
+  X,
+} from "lucide-react";
 
 interface QuizQuestion {
   id: string;
@@ -80,11 +87,11 @@ export function QuizGenerator({
   if (questions.length === 0) {
     return (
       <Card className="p-8 text-center">
-        <p className="text-gray-600 mb-4">No quiz yet</p>
+        <p className="text-ink-400 mb-4">No quiz yet</p>
         <button
           onClick={handleGenerate}
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-6 rounded-lg transition"
+          className="bg-brand text-ink-950 hover:bg-brand-dim font-mono text-[0.7rem] uppercase tracking-[0.12em] py-2 px-6 transition"
         >
           {loading ? "Generating Quiz..." : "Generate Quiz"}
         </button>
@@ -98,19 +105,21 @@ export function QuizGenerator({
 
     return (
       <div className="space-y-4">
-        <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <Card className="p-6 bg-ink-850 border-hair">
           <div className="text-center">
-            <p className="text-4xl font-bold text-blue-600 mb-2">
+            <p className="font-display text-4xl font-medium tracking-tight text-brand mb-2">
               {percentage}%
             </p>
-            <p className="text-lg font-semibold text-gray-800 mb-2">
+            <p className="text-lg font-medium text-ink-100 mb-2">
               {correctCount} out of {questions.length} correct
             </p>
             <div className="flex items-center justify-center gap-2">
               {percentage >= 80 ? (
                 <>
-                  <CheckCircle size={20} className="text-green-600" />
-                  <span className="text-green-600 font-medium">Excellent!</span>
+                  <CheckCircle size={20} className="text-emerald-400" />
+                  <span className="text-emerald-400 font-medium">
+                    Excellent!
+                  </span>
                 </>
               ) : percentage >= 60 ? (
                 <>
@@ -118,8 +127,8 @@ export function QuizGenerator({
                 </>
               ) : (
                 <>
-                  <XCircle size={20} className="text-red-600" />
-                  <span className="text-red-600 font-medium">Try again!</span>
+                  <XCircle size={20} className="text-red-400" />
+                  <span className="text-red-400 font-medium">Try again!</span>
                 </>
               )}
             </div>
@@ -128,7 +137,9 @@ export function QuizGenerator({
 
         {/* Review Answers */}
         <Card className="p-4">
-          <h3 className="font-semibold mb-3">Review Answers</h3>
+          <h3 className="font-display text-lg font-medium tracking-tight text-ink-100 mb-3">
+            Review Answers
+          </h3>
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {questions.map((question, idx) => {
               const userAnswer = answers.find(
@@ -137,33 +148,33 @@ export function QuizGenerator({
               const isCorrect = userAnswer?.correct;
 
               return (
-                <div key={question.id} className="p-3 bg-gray-50 rounded-lg">
+                <div key={question.id} className="p-3 bg-ink-900 border border-hair">
                   <div className="flex items-start gap-2 mb-2">
                     {isCorrect ? (
                       <CheckCircle
                         size={18}
-                        className="text-green-600 flex-shrink-0 mt-0.5"
+                        className="text-emerald-400 flex-shrink-0 mt-0.5"
                       />
                     ) : (
                       <XCircle
                         size={18}
-                        className="text-red-600 flex-shrink-0 mt-0.5"
+                        className="text-red-400 flex-shrink-0 mt-0.5"
                       />
                     )}
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-ink-100">
                         {idx + 1}. {question.question}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-ink-500 mt-1">
                         Your answer: {question.options[userAnswer?.answer || 0]}
                       </p>
                       {!isCorrect && (
-                        <p className="text-xs text-green-600 mt-1">
+                        <p className="text-xs text-emerald-400 mt-1">
                           Correct: {question.options[question.correctAnswer]}
                         </p>
                       )}
                       {question.explanation && (
-                        <p className="text-xs text-gray-600 mt-2 italic">
+                        <p className="text-xs text-ink-400 mt-2 italic">
                           {question.explanation}
                         </p>
                       )}
@@ -182,7 +193,7 @@ export function QuizGenerator({
             setAnswers([]);
             setShowResults(false);
           }}
-          className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition"
+          className="w-full py-2 px-4 bg-brand text-ink-950 hover:bg-brand-dim font-mono text-[0.7rem] uppercase tracking-[0.12em] transition"
         >
           Generate New Quiz
         </button>
@@ -198,7 +209,7 @@ export function QuizGenerator({
       {/* Progress */}
       <Card className="p-3">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-sm font-semibold">
+          <p className="text-sm font-medium text-ink-100">
             Question {currentIndex + 1} of {questions.length}
           </p>
           <Badge
@@ -213,9 +224,9 @@ export function QuizGenerator({
             {question.difficulty.toUpperCase()}
           </Badge>
         </div>
-        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="w-full h-2 bg-ink-800 overflow-hidden">
           <div
-            className="h-full bg-blue-500 transition-all duration-300"
+            className="h-full bg-brand transition-all duration-300"
             style={{
               width: `${((currentIndex + 1) / questions.length) * 100}%`,
             }}
@@ -224,8 +235,8 @@ export function QuizGenerator({
       </Card>
 
       {/* Question */}
-      <Card className="p-6 bg-blue-50">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">
+      <Card className="p-6 bg-ink-850 border-hair">
+        <h2 className="font-display text-lg font-medium tracking-tight text-ink-100 mb-6">
           {question.question}
         </h2>
 
@@ -235,31 +246,31 @@ export function QuizGenerator({
             <button
               key={idx}
               onClick={() => handleSelectAnswer(idx)}
-              className={`w-full p-3 text-left rounded-lg border-2 transition ${
+              className={`w-full p-3 text-left border-2 transition ${
                 userAnswer?.answer === idx
                   ? userAnswer.correct
-                    ? "border-green-500 bg-green-50"
-                    : "border-red-500 bg-red-50"
-                  : "border-gray-200 hover:border-blue-300"
+                    ? "border-emerald-500 bg-emerald-500/10"
+                    : "border-red-500 bg-red-500/10"
+                  : "border-ink-700 hover:border-brand"
               }`}
             >
               <div className="flex items-start gap-3">
                 <div
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                  className={`w-6 h-6 rounded-[2px] border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
                     userAnswer?.answer === idx
                       ? userAnswer.correct
-                        ? "border-green-500 bg-green-500"
+                        ? "border-emerald-500 bg-emerald-500"
                         : "border-red-500 bg-red-500"
-                      : "border-gray-300"
+                      : "border-ink-700"
                   }`}
                 >
                   {userAnswer?.answer === idx && (
-                    <span className="text-white font-semibold">
-                      {userAnswer.correct ? "✓" : "✕"}
+                    <span className="text-ink-950 font-semibold">
+                      {userAnswer.correct ? <Check size={14} /> : <X size={14} />}
                     </span>
                   )}
                 </div>
-                <p className="text-sm font-medium text-gray-900">{option}</p>
+                <p className="text-sm font-medium text-ink-100">{option}</p>
               </div>
             </button>
           ))}
@@ -273,7 +284,7 @@ export function QuizGenerator({
             if (currentIndex > 0) setCurrentIndex(currentIndex - 1);
           }}
           disabled={currentIndex === 0}
-          className="flex-1 py-2 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition"
+          className="flex-1 py-2 px-4 border border-hair font-medium text-ink-100 hover:bg-ink-800 disabled:opacity-50 transition"
         >
           Previous
         </button>
@@ -285,7 +296,7 @@ export function QuizGenerator({
               setShowResults(true);
             }
           }}
-          className="flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition"
+          className="flex-1 py-2 px-4 bg-brand text-ink-950 hover:bg-brand-dim font-medium transition"
         >
           {currentIndex === questions.length - 1 ? "Finish" : "Next"}
         </button>

@@ -137,11 +137,11 @@ process.on("uncaughtException", async () => {
  *   prisma.user.update({ where: { id: userId }, data: { tokenVersion: { increment: 1 } } })
  * ], { userId, action: 'revoke-all-sessions' });
  */
-export async function withTransaction<T>(
+export async function withTransaction(
   operations: any,
   context: Record<string, any> = {},
   timeout: number = 10000,
-): Promise<T> {
+): Promise<any> {
   const startTime = Date.now();
   const transactionId = `tx-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 

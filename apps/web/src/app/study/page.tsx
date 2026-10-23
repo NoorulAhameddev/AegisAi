@@ -511,18 +511,12 @@ const StudyHub = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-black via-[#0a0612] to-[#0f051a] text-white">
-      {/* Background Effects */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-3xl animate-pulse animation-delay-1s"></div>
-      </div>
-
+    <div className="min-h-screen bg-ink-950 text-ink-100">
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-white/10 bg-black/50 backdrop-blur-xl">
+      <div className="sticky top-0 z-10 border-b border-hair bg-ink-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           <div className="space-y-2">
-            <h1 className="text-3xl sm:text-4xl font-bold">Study Hub</h1>
+            <h1 className="font-display text-3xl sm:text-4xl font-medium tracking-tight">Study Hub</h1>
             <p className="text-zinc-400">
               AI-powered learning & knowledge management
             </p>
@@ -531,7 +525,7 @@ const StudyHub = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="sticky top-[88px] sm:top-[100px] z-10 border-b border-white/10 bg-black/30 backdrop-blur-sm">
+      <div className="sticky top-[88px] sm:top-[100px] z-10 border-b border-hair bg-ink-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex gap-8 overflow-x-auto scrollbar-hide">
             {navTabs.map((tab) => {
@@ -542,8 +536,8 @@ const StudyHub = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`px-4 py-4 font-medium text-sm sm:text-base whitespace-nowrap border-b-2 transition-all flex items-center gap-2 ${
                     activeTab === tab.id
-                      ? "border-blue-500 text-white"
-                      : "border-transparent text-zinc-400 hover:text-white"
+                      ? "border-brand text-ink-100"
+                      : "border-transparent text-zinc-400 hover:text-ink-100"
                   }`}
                 >
                   <Icon size={18} />
@@ -559,7 +553,7 @@ const StudyHub = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Error Alert */}
         {error && (
-          <div className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 flex items-start gap-3">
+          <div className="mb-6 border border-red-500/30 bg-red-500/10 p-4 flex items-start gap-3">
             <AlertCircle size={20} className="text-red-400 mt-0.5 shrink-0" />
             <div>
               <h3 className="font-semibold text-red-300">Error</h3>
@@ -570,7 +564,7 @@ const StudyHub = () => {
 
         {/* Success Alert */}
         {success && (
-          <div className="mb-6 rounded-2xl border border-green-500/30 bg-green-500/10 p-4 flex items-start gap-3">
+          <div className="mb-6 border border-green-500/30 bg-green-500/10 p-4 flex items-start gap-3">
             <CheckCircle size={20} className="text-green-400 mt-0.5 shrink-0" />
             <p className="text-sm text-green-200">{success}</p>
           </div>
@@ -578,8 +572,8 @@ const StudyHub = () => {
         {/* Study Tools Tab */}
         {activeTab === "study-tools" && (
           <div className="space-y-8">
-            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
-              <h2 className="text-2xl font-bold mb-2">
+            <div className="border border-hair bg-ink-850 p-8">
+              <h2 className="font-display text-2xl font-medium tracking-tight mb-2">
                 Study Tool Configuration
               </h2>
               <p className="text-zinc-400 mb-6">
@@ -595,7 +589,7 @@ const StudyHub = () => {
                   value={inputContent}
                   onChange={(e) => setInputContent(e.target.value)}
                   placeholder="Paste your notes, textbook content, or any material you want to study..."
-                  className="w-full h-40 rounded-xl bg-black/30 border border-white/10 p-4 text-white placeholder-zinc-500 focus:border-blue-500 outline-none"
+                  className="w-full h-40 bg-ink-900 border border-ink-700 p-4 text-ink-100 placeholder-zinc-500 focus:border-brand outline-none"
                 />
               </div>
 
@@ -608,10 +602,10 @@ const StudyHub = () => {
                   onClick={() =>
                     setSelectedDocument(selectedDocument ? null : "sample-doc")
                   }
-                  className={`w-full py-4 rounded-xl border-2 transition-all ${
+                  className={`w-full py-4 border-2 transition-all ${
                     selectedDocument
-                      ? "border-blue-500 bg-blue-500/10 text-white"
-                      : "border-dashed border-white/20 text-zinc-400 hover:border-blue-500/40 hover:text-blue-300"
+                      ? "border-brand bg-brand/10 text-ink-100"
+                      : "border-dashed border-ink-700 text-zinc-400 hover:border-brand/40 hover:text-brand"
                   }`}
                 >
                   {selectedDocument
@@ -630,10 +624,10 @@ const StudyHub = () => {
                     <button
                       key={material.id}
                       onClick={() => setSelectedStudyMaterial(material.id)}
-                      className={`p-4 rounded-xl border-2 transition-all font-medium text-left ${
+                      className={`p-4 border-2 transition-all font-medium text-left ${
                         selectedStudyMaterial === material.id
-                          ? "border-blue-500 bg-blue-500/20 text-blue-300"
-                          : "border-white/10 bg-white/5 text-white hover:border-white/30"
+                          ? "border-brand bg-brand/20 text-brand"
+                          : "border-ink-700 bg-ink-900 text-ink-100 hover:border-ink-500"
                       }`}
                     >
                       {material.label}
@@ -652,10 +646,10 @@ const StudyHub = () => {
                     <button
                       key={level}
                       onClick={() => setSelectedDifficulty(level)}
-                      className={`p-3 rounded-xl border-2 transition-all font-medium capitalize ${
+                      className={`p-3 border-2 transition-all font-medium capitalize ${
                         selectedDifficulty === level
                           ? "border-green-500 bg-green-500/20 text-green-300"
-                          : "border-white/10 bg-white/5 text-white hover:border-white/30"
+                          : "border-ink-700 bg-ink-900 text-ink-100 hover:border-ink-500"
                       }`}
                     >
                       {level}
@@ -668,9 +662,9 @@ const StudyHub = () => {
               <button
                 onClick={handleGenerateStudyTool}
                 disabled={!inputContent || loading}
-                className={`w-full py-4 rounded-xl font-bold transition-all ${
+                className={`w-full py-4 font-medium transition-all ${
                   inputContent && !loading
-                    ? "bg-linear-to-r from-blue-600 to-blue-500 text-white hover:shadow-xl hover:shadow-blue-500/50"
+                    ? "bg-brand text-ink-950 hover:bg-brand-dim"
                     : "bg-zinc-700 text-zinc-400 cursor-not-allowed"
                 }`}
               >
@@ -694,9 +688,9 @@ const StudyHub = () => {
 
             {/* Generated Study Tool Output */}
             {generatedContent && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+              <div className="border border-hair bg-ink-850 p-8">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold">
+                  <h3 className="font-display text-xl font-medium tracking-tight">
                     Generated{" "}
                     {selectedStudyMaterial === "flashcards"
                       ? "Flashcards"
@@ -706,12 +700,12 @@ const StudyHub = () => {
                   </h3>
                   <button
                     onClick={() => setGeneratedContent(null)}
-                    className="px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30 transition-all text-sm"
+                    className="px-4 py-2 bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30 transition-all text-sm"
                   >
                     Clear
                   </button>
                 </div>
-                <div className="rounded-xl bg-black/30 border border-white/10 p-6">
+                <div className="bg-ink-900 border border-ink-700 p-6">
                   {typeof generatedContent === "string" ? (
                     <pre className="whitespace-pre-wrap text-zinc-300 font-mono text-sm">
                       {generatedContent}
@@ -730,8 +724,8 @@ const StudyHub = () => {
         {/* AI Operations Tab */}
         {activeTab === "ai-operations" && (
           <div className="space-y-8">
-            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
-              <h2 className="text-2xl font-bold mb-2">Choose Input Method</h2>
+            <div className="border border-hair bg-ink-850 p-8">
+              <h2 className="font-display text-2xl font-medium tracking-tight mb-2">Choose Input Method</h2>
               <p className="text-zinc-400 mb-6">
                 Select how you want to input your study material
               </p>
@@ -744,10 +738,10 @@ const StudyHub = () => {
                     <button
                       key={method.id}
                       onClick={() => setSelectedInputMethod(method.id)}
-                      className={`p-4 rounded-xl border-2 transition-all text-center ${
+                      className={`p-4 border-2 transition-all text-center ${
                         selectedInputMethod === method.id
-                          ? "border-blue-500 bg-blue-500/20"
-                          : "border-white/10 bg-white/5 hover:border-white/30"
+                          ? "border-brand bg-brand/20"
+                          : "border-ink-700 bg-ink-900 hover:border-ink-500"
                       }`}
                     >
                       <div className="flex justify-center mb-2">
@@ -772,7 +766,7 @@ const StudyHub = () => {
                       placeholder="Paste your text here..."
                       value={inputContent}
                       onChange={(e) => setInputContent(e.target.value)}
-                      className="w-full h-40 rounded-xl bg-black/30 border border-white/10 p-4 text-white placeholder-zinc-500 focus:border-blue-500 outline-none"
+                      className="w-full h-40 bg-ink-900 border border-ink-700 p-4 text-ink-100 placeholder-zinc-500 focus:border-brand outline-none"
                     />
                   </div>
                 )}
@@ -795,7 +789,7 @@ const StudyHub = () => {
                     />
                     <label
                       htmlFor="file-upload-input"
-                      className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-blue-500/40 transition-all cursor-pointer block"
+                      className="border-2 border-dashed border-ink-700 p-8 text-center hover:border-brand/40 transition-all cursor-pointer block"
                     >
                       <div className="flex justify-center mb-3">
                         <Upload size={32} />
@@ -829,7 +823,7 @@ const StudyHub = () => {
                       placeholder="https://example.com/article"
                       value={inputUrl}
                       onChange={(e) => setInputUrl(e.target.value)}
-                      className="w-full rounded-xl bg-black/30 border border-white/10 p-4 text-white placeholder-zinc-500 focus:border-blue-500 outline-none"
+                      className="w-full bg-ink-900 border border-ink-700 p-4 text-ink-100 placeholder-zinc-500 focus:border-brand outline-none"
                     />
                   </div>
                 )}
@@ -847,7 +841,7 @@ const StudyHub = () => {
                       placeholder="https://youtube.com/watch?v=..."
                       value={inputUrl}
                       onChange={(e) => setInputUrl(e.target.value)}
-                      className="w-full rounded-xl bg-black/30 border border-white/10 p-4 text-white placeholder-zinc-500 focus:border-blue-500 outline-none"
+                      className="w-full bg-ink-900 border border-ink-700 p-4 text-ink-100 placeholder-zinc-500 focus:border-brand outline-none"
                     />
                   </div>
                 )}
@@ -870,7 +864,7 @@ const StudyHub = () => {
                     />
                     <label
                       htmlFor="audio-upload-input"
-                      className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-blue-500/40 transition-all cursor-pointer block"
+                      className="border-2 border-dashed border-ink-700 p-8 text-center hover:border-brand/40 transition-all cursor-pointer block"
                     >
                       <div className="flex justify-center mb-3">
                         <Mic size={32} />
@@ -912,7 +906,7 @@ const StudyHub = () => {
                     />
                     <label
                       htmlFor="image-upload-input"
-                      className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-blue-500/40 transition-all cursor-pointer block"
+                      className="border-2 border-dashed border-ink-700 p-8 text-center hover:border-brand/40 transition-all cursor-pointer block"
                     >
                       <div className="flex justify-center mb-3">
                         <ImageIcon size={32} />
@@ -950,7 +944,7 @@ const StudyHub = () => {
                     />
                     <label
                       htmlFor="batch-upload-input"
-                      className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-blue-500/40 transition-all cursor-pointer block"
+                      className="border-2 border-dashed border-ink-700 p-8 text-center hover:border-brand/40 transition-all cursor-pointer block"
                     >
                       <div className="flex justify-center mb-3">
                         <Package size={32} />
@@ -973,11 +967,11 @@ const StudyHub = () => {
                       ? !inputContent.trim()
                       : false) || loading
                   }
-                  className={`w-full py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+                  className={`w-full py-4 font-medium transition-all flex items-center justify-center gap-2 ${
                     ((selectedInputMethod === "text" && inputContent.trim()) ||
                       selectedInputMethod !== "text") &&
                     !loading
-                      ? "bg-linear-to-r from-blue-600 to-blue-500 text-white hover:shadow-xl hover:shadow-blue-500/50"
+                      ? "bg-brand text-ink-950 hover:bg-brand-dim"
                       : "bg-zinc-700 text-zinc-400 cursor-not-allowed"
                   }`}
                 >
@@ -989,17 +983,17 @@ const StudyHub = () => {
 
             {/* Generated Content Display */}
             {generatedContent && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+              <div className="border border-hair bg-ink-850 p-8">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold">Generated Output</h2>
+                  <h2 className="font-display text-2xl font-medium tracking-tight">Generated Output</h2>
                   <button
                     onClick={() => setGeneratedContent(null)}
-                    className="px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30 transition-all text-sm"
+                    className="px-4 py-2 bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30 transition-all text-sm"
                   >
                     Clear
                   </button>
                 </div>
-                <div className="rounded-xl bg-black/30 border border-white/10 p-6">
+                <div className="bg-ink-900 border border-ink-700 p-6">
                   <div className="prose prose-invert max-w-none">
                     {typeof generatedContent === "string" ? (
                       <pre className="whitespace-pre-wrap text-sm text-zinc-200 font-sans">
@@ -1018,7 +1012,7 @@ const StudyHub = () => {
                           (result: any, idx: number) => (
                             <div
                               key={idx}
-                              className="border border-white/10 rounded-lg p-4 bg-white/5"
+                              className="border border-ink-700 p-4 bg-ink-900"
                             >
                               <p className="text-sm text-zinc-300">
                                 {result.content || result.text}
@@ -1047,13 +1041,13 @@ const StudyHub = () => {
         {/* RAG Chat Tab */}
         {activeTab === "rag-chat" && (
           <div className="space-y-8">
-            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
-              <h2 className="text-2xl font-bold mb-2">RAG-Enhanced Chat</h2>
+            <div className="border border-hair bg-ink-850 p-8">
+              <h2 className="font-display text-2xl font-medium tracking-tight mb-2">RAG-Enhanced Chat</h2>
               <p className="text-zinc-400 mb-6">Querying your knowledge base</p>
 
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+                  <div className="border border-ink-700 bg-ink-900 p-4">
                     <div className="mb-2">
                       <HelpCircle size={24} />
                     </div>
@@ -1062,7 +1056,7 @@ const StudyHub = () => {
                       Ask about your documents with contextual answers
                     </p>
                   </div>
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+                  <div className="border border-ink-700 bg-ink-900 p-4">
                     <div className="mb-2">
                       <BookOpen size={24} />
                     </div>
@@ -1071,7 +1065,7 @@ const StudyHub = () => {
                       Get answers with citations to source material
                     </p>
                   </div>
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+                  <div className="border border-ink-700 bg-ink-900 p-4">
                     <div className="mb-2">
                       <Search size={24} />
                     </div>
@@ -1080,7 +1074,7 @@ const StudyHub = () => {
                       Find relevant content across documents
                     </p>
                   </div>
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+                  <div className="border border-ink-700 bg-ink-900 p-4">
                     <div className="mb-2">
                       <CheckCircle size={24} />
                     </div>
@@ -1096,7 +1090,7 @@ const StudyHub = () => {
                     type="text"
                     placeholder="Ask a question about your documents…"
                     id="rag-query"
-                    className="w-full rounded-xl bg-black/30 border border-white/10 p-4 text-white placeholder-zinc-500 focus:border-blue-500 outline-none"
+                    className="w-full bg-ink-900 border border-ink-700 p-4 text-ink-100 placeholder-zinc-500 focus:border-brand outline-none"
                   />
                   <button
                     onClick={() => {
@@ -1106,7 +1100,7 @@ const StudyHub = () => {
                       if (query) handleSearchKnowledge(query);
                     }}
                     disabled={loading}
-                    className="w-full py-4 rounded-xl bg-linear-to-r from-blue-600 to-blue-500 text-white font-bold hover:shadow-xl hover:shadow-blue-500/50 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="w-full py-4 bg-brand text-ink-950 font-medium hover:bg-brand-dim transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {loading && <Loader size={18} className="animate-spin" />}
                     {loading ? "Searching..." : "Search Knowledge Base"}
@@ -1117,12 +1111,12 @@ const StudyHub = () => {
 
             {/* RAG Search Results Display */}
             {generatedContent?.searchResults && (
-              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
+              <div className="border border-hair bg-ink-850 p-8">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold">Search Results</h2>
+                  <h2 className="font-display text-2xl font-medium tracking-tight">Search Results</h2>
                   <button
                     onClick={() => setGeneratedContent(null)}
-                    className="px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30 transition-all text-sm"
+                    className="px-4 py-2 bg-red-500/20 border border-red-500/30 text-red-300 hover:bg-red-500/30 transition-all text-sm"
                   >
                     Clear
                   </button>
@@ -1135,7 +1129,7 @@ const StudyHub = () => {
                     (result: any, idx: number) => (
                       <div
                         key={idx}
-                        className="border border-white/10 rounded-xl p-5 bg-black/30 hover:bg-black/40 transition-all"
+                        className="border border-ink-700 p-5 bg-ink-900 hover:bg-ink-800 transition-all"
                       >
                         <p className="text-sm text-zinc-200 leading-relaxed">
                           {result.content || result.text}
@@ -1157,8 +1151,8 @@ const StudyHub = () => {
         {/* Export Tab */}
         {activeTab === "export" && (
           <div className="space-y-8">
-            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
-              <h2 className="text-2xl font-bold mb-2">Export Content</h2>
+            <div className="border border-hair bg-ink-850 p-8">
+              <h2 className="font-display text-2xl font-medium tracking-tight mb-2">Export Content</h2>
               <p className="text-zinc-400 mb-6">
                 Choose saved notes/summary to export
               </p>
@@ -1169,10 +1163,10 @@ const StudyHub = () => {
                   <button
                     key={format.id}
                     onClick={() => setSelectedExportFormat(format.id)}
-                    className={`p-4 rounded-xl border-2 transition-all font-medium ${
+                    className={`p-4 border-2 transition-all font-medium ${
                       selectedExportFormat === format.id
                         ? "border-green-500 bg-green-500/20 text-green-300"
-                        : "border-white/10 bg-white/5 text-white hover:border-white/30"
+                        : "border-ink-700 bg-ink-900 text-ink-100 hover:border-ink-500"
                     }`}
                   >
                     {format.label}
@@ -1182,7 +1176,7 @@ const StudyHub = () => {
 
               {/* Export Features */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+                <div className="border border-ink-700 bg-ink-900 p-4">
                   <div className="mb-2">
                     <Palette size={24} />
                   </div>
@@ -1191,7 +1185,7 @@ const StudyHub = () => {
                     Preserve formatting in exports
                   </p>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+                <div className="border border-ink-700 bg-ink-900 p-4">
                   <div className="mb-2">
                     <Package size={24} />
                   </div>
@@ -1200,7 +1194,7 @@ const StudyHub = () => {
                     Export multiple notes at once
                   </p>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+                <div className="border border-ink-700 bg-ink-900 p-4">
                   <div className="mb-2">
                     <Zap size={24} />
                   </div>
@@ -1214,7 +1208,7 @@ const StudyHub = () => {
               <button
                 onClick={handleExportContent}
                 disabled={!generatedContent || loading}
-                className="w-full py-4 rounded-xl bg-linear-to-r from-green-600 to-green-500 text-white font-bold hover:shadow-xl hover:shadow-green-500/50 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-4 bg-green-600 text-ink-100 font-medium hover:bg-green-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {loading && <Loader size={18} className="animate-spin" />}
                 {loading
@@ -1228,8 +1222,8 @@ const StudyHub = () => {
         {/* Projects Tab */}
         {activeTab === "projects" && (
           <div className="space-y-8">
-            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8 text-center">
-              <h2 className="text-2xl font-bold mb-2">Project Manager</h2>
+            <div className="border border-hair bg-ink-850 p-8 text-center">
+              <h2 className="font-display text-2xl font-medium tracking-tight mb-2">Project Manager</h2>
               <p className="text-zinc-400 mb-8">
                 Manage documents into projects & namespaces
               </p>
@@ -1239,7 +1233,7 @@ const StudyHub = () => {
                   <Folder size={48} className="mx-auto" />
                 </div>
                 <p className="text-zinc-400 text-lg">No projects yet</p>
-                <button className="inline-block px-8 py-3 rounded-xl bg-linear-to-r from-blue-600 to-blue-500 text-white font-bold hover:shadow-xl hover:shadow-blue-500/50 transition-all">
+                <button className="inline-block px-8 py-3 bg-brand text-ink-950 font-medium hover:bg-brand-dim transition-all">
                   Create New Project
                 </button>
               </div>
@@ -1250,17 +1244,17 @@ const StudyHub = () => {
         {/* Upload Tab */}
         {activeTab === "upload" && (
           <div className="space-y-8">
-            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
-              <h2 className="text-2xl font-bold mb-2">Upload Files</h2>
+            <div className="border border-hair bg-ink-850 p-8">
+              <h2 className="font-display text-2xl font-medium tracking-tight mb-2">Upload Files</h2>
               <p className="text-zinc-400 mb-6">
                 Upload and ingest your study materials
               </p>
 
-              <div className="border-2 border-dashed border-white/20 rounded-xl p-12 text-center hover:border-blue-500/40 transition-all">
+              <div className="border-2 border-dashed border-ink-700 p-12 text-center hover:border-brand/40 transition-all">
                 <div className="flex justify-center mb-4">
                   <Upload size={48} />
                 </div>
-                <p className="text-white font-medium mb-2">
+                <p className="text-ink-100 font-medium mb-2">
                   Drag and drop your files here
                 </p>
                 <p className="text-zinc-400 text-sm mb-4">or click to browse</p>
@@ -1279,7 +1273,7 @@ const StudyHub = () => {
                     input.click();
                   }}
                   disabled={loading}
-                  className="mt-6 px-6 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mx-auto"
+                  className="mt-6 px-6 py-3 bg-brand text-ink-950 font-medium hover:bg-brand-dim transition-all disabled:opacity-50 flex items-center justify-center gap-2 mx-auto"
                 >
                   {loading && <Loader size={18} className="animate-spin" />}
                   {loading ? "Uploading..." : "Select Files"}
@@ -1292,8 +1286,8 @@ const StudyHub = () => {
         {/* Settings Tab */}
         {activeTab === "settings" && (
           <div className="space-y-8">
-            <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-8">
-              <h2 className="text-2xl font-bold mb-6">Settings</h2>
+            <div className="border border-hair bg-ink-850 p-8">
+              <h2 className="font-display text-2xl font-medium tracking-tight mb-6">Settings</h2>
 
               <div className="space-y-6">
                 <div>
@@ -1305,7 +1299,7 @@ const StudyHub = () => {
                       <input
                         type="checkbox"
                         defaultChecked
-                        className="w-4 h-4 rounded"
+                        className="w-4 h-4"
                       />
                       <span className="text-sm">Enable spaced repetition</span>
                     </label>
@@ -1313,12 +1307,12 @@ const StudyHub = () => {
                       <input
                         type="checkbox"
                         defaultChecked
-                        className="w-4 h-4 rounded"
+                        className="w-4 h-4"
                       />
                       <span className="text-sm">Auto-save progress</span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="checkbox" className="w-4 h-4 rounded" />
+                      <input type="checkbox" className="w-4 h-4" />
                       <span className="text-sm">Dark mode (always on)</span>
                     </label>
                   </div>
@@ -1333,7 +1327,7 @@ const StudyHub = () => {
                   </label>
                   <select
                     id="export-format"
-                    className="w-full rounded-xl bg-black/30 border border-white/10 p-3 text-white focus:border-blue-500 outline-none"
+                    className="w-full bg-ink-900 border border-ink-700 p-3 text-ink-100 focus:border-brand outline-none"
                   >
                     <option>Markdown (.md)</option>
                     <option>PDF (.pdf)</option>
@@ -1344,7 +1338,7 @@ const StudyHub = () => {
 
                 <button
                   onClick={handleSaveSettings}
-                  className="w-full py-3 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition-all"
+                  className="w-full py-3 bg-green-600 text-ink-100 font-medium hover:bg-green-700 transition-all"
                 >
                   Save Settings
                 </button>

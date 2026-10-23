@@ -14,9 +14,9 @@ async function test() {
     console.log(
       `✅ RAG Retrieval executed. Found ${context.documents.length} docs.`,
     );
-  } catch (e: any) {
-    console.error("❌ Failed RAG check:", e.message);
-    if (e.message.includes("client"))
+  } catch (e: unknown) {
+    console.error("❌ Failed RAG check:", (e as Error).message);
+    if ((e as Error).message.includes("client"))
       console.error("   (Likely DB or OpenAI Client issue)");
   }
 }

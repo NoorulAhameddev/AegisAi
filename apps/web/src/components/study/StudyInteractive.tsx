@@ -103,15 +103,15 @@ export default function StudyInteractive() {
   return (
     <div className="space-y-6">
       {/* Input area */}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-        <label className="text-sm text-zinc-300">Paste study content</label>
+      <div className="border border-hair bg-ink-900 p-4">
+        <label className="text-sm text-ink-300">Paste study content</label>
         <textarea
-          className="mt-2 w-full h-40 rounded-lg bg-black/30 border border-white/10 text-white p-3"
+          className="mt-2 w-full h-40 bg-ink-950 border border-hair text-ink-100 p-3 focus:border-brand focus:outline-none"
           placeholder="Paste text from files, transcripts, or notes..."
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        <p className="mt-2 text-xs text-zinc-500">
+        <p className="mt-2 text-xs text-ink-500">
           This content is processed client-side and sent to the protected API to
           generate study outputs.
         </p>
@@ -120,7 +120,7 @@ export default function StudyInteractive() {
       {/* Generators */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <p className="text-sm text-purple-200">Flashcards</p>
+          <p className="text-sm text-ink-500 uppercase tracking-wider font-mono">Flashcards</p>
           <FlashcardGenerator
             onGenerate={onGenerateFlashcards}
             loading={loading}
@@ -132,7 +132,7 @@ export default function StudyInteractive() {
           )}
         </div>
         <div className="space-y-2">
-          <p className="text-sm text-purple-200">Quiz (MCQ)</p>
+          <p className="text-sm text-ink-500 uppercase tracking-wider font-mono">Quiz (MCQ)</p>
           <QuizGenerator onGenerate={onGenerateQuiz} loading={loading} />
           {quizNoteId && (
             <div className="mt-2">
@@ -140,13 +140,13 @@ export default function StudyInteractive() {
             </div>
           )}
 
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+          <div className="border border-hair bg-ink-900 p-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-semibold text-white">Question Bank</p>
+              <p className="text-sm font-medium text-ink-100">Question Bank</p>
               <button
                 onClick={generateQuestionBank}
                 disabled={loading || !text}
-                className="text-xs px-3 py-1 rounded-lg bg-white text-black font-semibold hover:bg-zinc-100 disabled:opacity-50"
+                className="text-xs px-3 py-1 bg-brand text-ink-950 font-medium hover:bg-brand-dim disabled:opacity-50"
               >
                 Generate
               </button>
@@ -156,7 +156,7 @@ export default function StudyInteractive() {
                 <ReactMarkdown>{questionBank}</ReactMarkdown>
               </div>
             ) : (
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-ink-500">
                 Generate a mix of recall, conceptual, and application questions.
               </p>
             )}
@@ -171,13 +171,13 @@ export default function StudyInteractive() {
 
       {/* ELI5 & Exam Notes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        <div className="border border-hair bg-ink-900 p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-white">ELI5 Explanation</p>
+            <p className="text-sm font-medium text-ink-100">ELI5 Explanation</p>
             <button
               onClick={generateEli5}
               disabled={loading || !text}
-              className="text-xs px-3 py-1 rounded-lg bg-white text-black font-semibold hover:bg-zinc-100 disabled:opacity-50"
+              className="text-xs px-3 py-1 bg-brand text-ink-950 font-medium hover:bg-brand-dim disabled:opacity-50"
             >
               Generate
             </button>
@@ -187,7 +187,7 @@ export default function StudyInteractive() {
               <ReactMarkdown>{eli5}</ReactMarkdown>
             </div>
           ) : (
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-ink-500">
               Get a simple explanation suitable for beginners.
             </p>
           )}
@@ -198,15 +198,15 @@ export default function StudyInteractive() {
           )}
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+        <div className="border border-hair bg-ink-900 p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-white">
+            <p className="text-sm font-medium text-ink-100">
               Exam-Oriented Notes
             </p>
             <button
               onClick={generateExamNotes}
               disabled={loading || !text}
-              className="text-xs px-3 py-1 rounded-lg bg-white text-black font-semibold hover:bg-zinc-100 disabled:opacity-50"
+              className="text-xs px-3 py-1 bg-brand text-ink-950 font-medium hover:bg-brand-dim disabled:opacity-50"
             >
               Generate
             </button>

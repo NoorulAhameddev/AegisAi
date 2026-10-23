@@ -101,11 +101,13 @@ intervals.push(cleanupInterval);
 const worker = new Worker(chatQueue.name, async (job) => processChatJob(job), {
   connection,
   concurrency: env.WORKER_CONCURRENCY,
-  settings: {
-    stalledInterval: 60000, // Check for stalled jobs every 60s
-    maxStalledCount: 2, // Retry stalled jobs twice before DLQ
-  },
+  stalledInterval: 60000, // Check for stalled jobs every 60s
+  maxStalledCount: 2, // Retry stalled jobs twice before DLQ
   lockDuration: 180000, // 3 minutes - max time for job processing
+  limiter: {
+    max: 1000, // Max 1000 jobs per second
+    duration: 1000,
+  },
 });
 
 worker.on("completed", (job) => {
