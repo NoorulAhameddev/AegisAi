@@ -17,6 +17,7 @@ const config: Config = {
   ],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
+    "^@prisma/client$": "<rootDir>/../../node_modules/@prisma/client",
   },
   testMatch: [
     "<rootDir>/src/__tests__/**/*.test.ts",

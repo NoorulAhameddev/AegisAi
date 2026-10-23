@@ -516,7 +516,10 @@ ${sanitizedRagContext}
     }
 
     // Check 2: Dangerous content detection (patterns + LLM)
-    const safetyCheck = await validateResponseContent(finalContent);
+    const safetyCheck = await validateResponseContent(finalContent, {
+      userId: userId || "system",
+      requestId: (job.id as string) || "job",
+    });
 
     // Support both {safe} and {isValid} return shapes from validateResponseContent
     const isSafe = (safetyCheck as any).safe !== undefined
@@ -614,9 +617,7 @@ ${sanitizedRagContext}
       data: {
         userId,
         tokens: tokensUsed,
-        cost: tokensUsed * 0.000001, // approximate cost per token
         model: modelName,
-        chatId,
       },
     });
 
@@ -698,7 +699,7 @@ ${sanitizedRagContext}
       tokensUsed,
       totalTokens: tokensUsed,
       messageId: savedMessage.id,
-      ...(safetyWarning && { warning: safetyWarning }),
+      ...(safetyWarning ? { warning: safetyWarning } : {}),
     };
   } catch (err: any) {
     logger.error("Worker job failed", err as Error, {
