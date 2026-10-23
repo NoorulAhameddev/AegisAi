@@ -27,9 +27,11 @@ export default function URLIngestion({
 
     try {
       const urlObj = new URL(url);
+      const host = urlObj.hostname.toLowerCase();
       if (
-        urlObj.hostname.includes("youtube.com") ||
-        urlObj.hostname.includes("youtu.be")
+        host === "youtube.com" ||
+        host.endsWith(".youtube.com") ||
+        host === "youtu.be"
       ) {
         return "youtube";
       }

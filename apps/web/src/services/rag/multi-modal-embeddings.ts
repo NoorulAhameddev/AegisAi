@@ -68,7 +68,7 @@ export function detectContentType(
  */
 export function extractImageBase64(content: string): string[] {
   const imageMatches = content.matchAll(
-    /data:image\/[^;]+;base64,([A-Za-z0-9+/=]+)/g,
+    /data:image\/[a-z0-9.+-]{1,50};base64,([A-Za-z0-9+/=]+)/gi,
   );
   const images: string[] = [];
 
@@ -87,7 +87,7 @@ export function extractImageBase64(content: string): string[] {
 export function hasTextContent(content: string): boolean {
   const cleaned = content
     .replace(/\s+/g, "")
-    .replace(/data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/g, "");
+    .replace(/data:image\/[a-z0-9.+-]{1,50};base64,[A-Za-z0-9+/=]+/gi, "");
   return cleaned.length > 0;
 }
 
@@ -95,7 +95,7 @@ export function hasTextContent(content: string): boolean {
  * Check if content has images
  */
 export function hasImageContent(content: string): boolean {
-  return /data:image\/[^;]+;base64,/.test(content);
+  return /data:image\/[a-z0-9.+-]{1,50};base64,/i.test(content);
 }
 
 /**

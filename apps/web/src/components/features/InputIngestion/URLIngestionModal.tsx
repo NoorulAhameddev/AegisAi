@@ -47,8 +47,14 @@ export function URLIngestionModal({
 
     // Auto-detect YouTube URLs
     let detectedType = urlType;
-    if (url.includes("youtube.com") || url.includes("youtu.be")) {
-      detectedType = "youtube";
+    try {
+      const parsed = new URL(url);
+      const host = parsed.hostname.toLowerCase();
+      if (host === "youtube.com" || host.endsWith(".youtube.com") || host === "youtu.be") {
+        detectedType = "youtube";
+      }
+    } catch {
+      // url was already validated
     }
 
     try {

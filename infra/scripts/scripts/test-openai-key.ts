@@ -13,17 +13,9 @@ async function testOpenAIKey() {
   const rawKey = process.env.OPENAI_API_KEY || "";
   const cleanKey = rawKey.trim().replace(/^["']|["']$/g, "");
 
-  console.log("ðŸ“‹ Key Analysis:");
-  console.log(`   Raw Key Length: ${rawKey.length}`);
-  console.log(`   Clean Key Length: ${cleanKey.length}`);
-  console.log(
-    `   Starts with "sk-": ${cleanKey.startsWith("sk-") ? "âœ… YES" : "âŒ NO"}`,
-  );
-  console.log(
-    `   Contains newlines: ${rawKey.includes("\n") ? "âŒ YES (ERROR)" : "âœ… NO"}`,
-  );
-  console.log(`   First 15 chars: ${cleanKey.substring(0, 15)}`);
-  console.log(`   Last 15 chars:  ${cleanKey.substring(cleanKey.length - 15)}`);
+  console.log("Key Analysis:");
+  console.log(`   Key Present: ${cleanKey ? "YES" : "NO"}`);
+  console.log(`   Starts with sk-: ${cleanKey.startsWith("sk-") ? "YES" : "NO"}`);
 
   if (!cleanKey) {
     console.log("\nâŒ ERROR: No API key found in .env");

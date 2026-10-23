@@ -103,7 +103,7 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error("auto-upgrade route failed", error);
     return new Response(
-      JSON.stringify({ error: "Auto-upgrade failed", details: String(error) }),
+      JSON.stringify({ error: "Auto-upgrade failed. Please check server logs." }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }

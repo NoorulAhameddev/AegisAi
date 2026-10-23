@@ -208,11 +208,7 @@ export function sanitizeUserInput(input: string): string {
     cleaned = cleaned.replace(/<[^>]*>/g, "");
   } while (cleaned !== prev);
 
-  // Remove common XSS patterns
-  cleaned = cleaned.replace(/javascript:/gi, "");
-  cleaned = cleaned.replace(/on\w+\s*=/gi, "");
-
-  // HTML entity encode
+  // HTML entity encode all characters to neutralize any script execution
   return sanitize(cleaned);
 }
 
