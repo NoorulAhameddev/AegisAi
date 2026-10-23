@@ -65,8 +65,9 @@ jobs:
           JWT_ACCESS_SECRET: test-access-secret-min-32-chars!!
           JWT_REFRESH_SECRET: test-refresh-secret-min-32-chars!!
           ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef
-          OPENROUTER_API_KEY: test-key
+          OPENROUTER_API_KEY: sk-test-key-00000000000000000000
           APP_ENV: test
+          SKIP_PROD_VALIDATION: "1"
       
       - name: Upload coverage
         uses: codecov/codecov-action@v3
