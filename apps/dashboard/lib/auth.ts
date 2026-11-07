@@ -1,7 +1,12 @@
 import jwt from "jsonwebtoken";
 import { prisma } from "./prisma";
 
-const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
+const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
+const ACCESS_SECRET =
+  process.env.JWT_ACCESS_SECRET ||
+  (isBuildPhase
+    ? "dummy_dashboard_build_secret_min_64_characters_long_entropy_string_build_phase"
+    : "");
 
 if (!ACCESS_SECRET) {
   throw new Error("JWT_ACCESS_SECRET is required for dashboard auth");
