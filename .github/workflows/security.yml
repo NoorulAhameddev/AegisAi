@@ -18,9 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: 20
+          cache: 'npm'
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
@@ -33,15 +35,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
         with:
-          node-version: '22'
-      - name: Run npm audit
-        run: npm audit --audit-level=high || true
-      - name: Run gitleaks secret scan
-        uses: zricethezav/gitleaks-action@v2
-        continue-on-error: true
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          args: '--staged --exit-code 1'
+          node-version: 20
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Enforce dependency audit policy
+        run: npm run audit:ci
+      - name: Run Gitleaks Secret Scan
+        uses: gitleaks/gitleaks-action@v2
         env:
-          GITLEAKS_ARGS: '--no-git'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -15,7 +15,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: aegis_test
+          POSTGRES_DB: aegis_ai_test
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -37,9 +37,9 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
           cache: 'npm'
       
       - name: Install dependencies
@@ -52,22 +52,20 @@ jobs:
         run: |
           npm run migrate:deploy
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aegis_test
-          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/aegis_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aegis_ai_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/aegis_ai_test
       
       - name: Run tests
-        continue-on-error: true
         run: npm test
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aegis_test
-          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/aegis_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aegis_ai_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/aegis_ai_test
           REDIS_URL: redis://localhost:6379
           JWT_ACCESS_SECRET: test-access-secret-min-32-chars!!
           JWT_REFRESH_SECRET: test-refresh-secret-min-32-chars!!
           ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef
           OPENROUTER_API_KEY: sk-test-key-00000000000000000000
           APP_ENV: test
-          SKIP_PROD_VALIDATION: "1"
       
       - name: Upload coverage
         uses: codecov/codecov-action@v3
