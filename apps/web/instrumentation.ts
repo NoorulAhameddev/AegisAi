@@ -7,10 +7,7 @@ export async function register() {
   // Only run on server-side
   if (process.env.NEXT_RUNTIME === "nodejs") {
     // Only setup hard process exit handlers in runtime, not during next build
-    if (
-      process.env.NEXT_PHASE !== "phase-production-build" &&
-      process.env.SKIP_PROD_VALIDATION !== "1"
-    ) {
+    if (process.env.NEXT_PHASE !== "phase-production-build") {
       const { setupGlobalErrorHandlers } =
         await import("./src/lib/global-error-handlers");
       setupGlobalErrorHandlers("nextjs-server");
