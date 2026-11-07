@@ -1,6 +1,6 @@
 import { Tool } from "./index";
 import { searchWeb } from "@/lib/search";
-import axios from "axios";
+import { validateAndFetchSafeUrl } from "@/lib/security/ssrf-guard";
 import * as cheerio from "cheerio";
 
 export const WebSearchTool: Tool = {
@@ -32,14 +32,9 @@ export const WebReadTool: Tool = {
   },
   execute: async ({ url }) => {
     try {
-      const res = await axios.get(url, {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        },
-        timeout: 10000,
-      });
-      const $ = cheerio.load(res.data);
+      const res = await validateAndFetchSafeUrl(url, 3);
+      const html = typeof res.data === "string" ? res.data : await res.text();
+      const $ = cheerio.load(html);
 
       // Cleanup
       $("script").remove();

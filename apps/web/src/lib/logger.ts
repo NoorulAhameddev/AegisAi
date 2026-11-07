@@ -18,35 +18,47 @@ async function getSentry() {
 }
 
 // CRITICAL: PII redaction to prevent sensitive data in logs
-function redactPII(context?: LogContext): LogContext {
-  if (!context) return {};
+const SENSITIVE_FIELDS = [
+  "password",
+  "pass",
+  "token",
+  "secret",
+  "apikey",
+  "api_key",
+  "pin",
+  "ssn",
+  "creditcard",
+  "credit_card",
+  "cvv",
+  "email",
+  "phone",
+  "session",
+  "credential",
+  "authorization",
+  "privatekey",
+  "private_key",
+];
 
-  const redacted: LogContext = { ...context };
-  const sensitiveFields = [
-    "password",
-    "token",
-    "secret",
-    "apiKey",
-    "pin",
-    "ssn",
-    "creditCard",
-    "email",
-    "phone",
-  ];
+export function redactPII(context?: LogContext | any): any {
+  if (!context || typeof context !== "object") return context;
 
-  for (const key in redacted) {
+  if (Array.isArray(context)) {
+    return context.map((item) => redactPII(item));
+  }
+
+  const redacted: LogContext = {};
+
+  for (const [key, value] of Object.entries(context)) {
     const lowerKey = key.toLowerCase();
 
-    // Check if field name matches sensitive patterns
-    if (sensitiveFields.some((field) => lowerKey.includes(field))) {
-      const value = redacted[key];
-      if (typeof value === "string") {
-        // Show first 3 chars + asterisks for short strings, otherwise just [REDACTED]
-        redacted[key] =
-          value.length <= 3 ? "[REDACTED]" : value.substring(0, 3) + "***";
-      } else if (value !== null && value !== undefined) {
-        redacted[key] = "[REDACTED]";
-      }
+    if (value !== null && typeof value === "object") {
+      // Recursive sanitization for nested objects and arrays
+      redacted[key] = redactPII(value);
+    } else if (SENSITIVE_FIELDS.some((field) => lowerKey.includes(field))) {
+      // 100% masking for PINs, passwords, session tokens, and secrets (zero partial character leakage)
+      redacted[key] = "[REDACTED]";
+    } else {
+      redacted[key] = value;
     }
   }
 

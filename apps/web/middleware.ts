@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { logger } from "./src/lib/logger";
 import { env } from "./src/lib/env";
 import { isAdminRole } from "./src/services/auth/permissions";
@@ -13,10 +14,14 @@ interface JWTPayload {
   tokenVersion?: number;
   iat?: number;
   exp?: number;
+  isBanned?: boolean;
 }
 
 export async function middleware(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  const ip = forwardedFor
+    ? forwardedFor.split(",").map((s) => s.trim()).filter(Boolean).pop() || "unknown"
+    : (req as { ip?: string }).ip || "unknown";
   const path = req.nextUrl.pathname;
   const requestId = req.headers.get("x-request-id") || crypto.randomUUID();
 
@@ -105,6 +110,31 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // Enforce CSRF protection on /api/auth/logout
+  if (
+    (path === "/api/auth/logout" || path.startsWith("/api/auth/logout")) &&
+    ["POST", "PUT", "PATCH", "DELETE"].includes(req.method)
+  ) {
+    const csrfValid = validateCSRFToken(req);
+    if (!csrfValid) {
+      logger.security("CSRF validation failed on logout", {
+        path,
+        ip,
+        requestId,
+        method: req.method,
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "CSRF validation failed",
+          timestamp: new Date().toISOString(),
+          requestId,
+        },
+        { status: 403 },
+      );
+    }
+  }
+
   // Verify JWT for ALL authenticated API routes
   // Public routes (auth, webhooks, health, ping, pricing) are excluded below
   const isPublicApiRoute =
@@ -167,7 +197,7 @@ export async function middleware(req: NextRequest) {
       }
 
       // SECURITY: Verify user ban status and tokenVersion against DB/Redis to reject revoked/banned sessions
-      if ((payload as any).isBanned) {
+      if (payload.isBanned) {
         logger.security("Banned user token rejected in middleware", {
           path,
           ip,

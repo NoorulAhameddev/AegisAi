@@ -6,7 +6,7 @@
 
 import { prisma } from "./prisma";
 import { Role } from "@prisma/client";
-import { createHash, createHmac } from "crypto";
+import { createHash, createHmac, timingSafeEqual } from "crypto";
 import { env } from "./env";
 import { logger } from "./logger";
 
@@ -55,8 +55,9 @@ export interface AuditLogEntry {
  */
 export async function createAuditLog(entry: AuditLogEntry): Promise<void> {
   try {
-    // Generate integrity hash
-    const integrityHash = generateIntegrityHash(entry);
+    const createdAt = new Date();
+    // Generate integrity hash cryptographically bound to the persisted createdAt timestamp
+    const integrityHash = generateIntegrityHash(entry, createdAt);
 
     await prisma.auditLog.create({
       data: {
@@ -73,6 +74,7 @@ export async function createAuditLog(entry: AuditLogEntry): Promise<void> {
         ipAddress: entry.ipAddress,
         userAgent: entry.userAgent,
         mfaVerified: entry.mfaVerified || false,
+        createdAt,
         integrityHash,
       },
     });
@@ -141,23 +143,67 @@ async function sendToExternalLogger(
  * Generate cryptographic integrity hash for audit entry
  * Uses HMAC-SHA256 if signing key available, otherwise SHA256
  */
-function generateIntegrityHash(entry: AuditLogEntry): string {
+export function generateIntegrityHash(
+  entry: AuditLogEntry | { userId: string | null; action: string; targetId?: string | null },
+  createdAt: Date = new Date(),
+  signingKey?: string,
+): string {
   const data = JSON.stringify({
     userId: entry.userId,
     action: entry.action,
-    targetId: entry.targetId,
-    timestamp: new Date().toISOString(),
+    targetId: entry.targetId ?? null,
+    timestamp: createdAt.toISOString(),
   });
 
+  const key = signingKey || env.AUDIT_SIGNING_KEY;
+
   // CRITICAL: Use HMAC if signing key available for stronger integrity verification
-  if (env.AUDIT_SIGNING_KEY) {
-    return createHmac("sha256", env.AUDIT_SIGNING_KEY)
+  if (key) {
+    return createHmac("sha256", key)
       .update(data)
       .digest("hex");
   }
 
   // Fallback to SHA256 if no signing key configured
   return createHash("sha256").update(data).digest("hex");
+}
+
+/**
+ * Verifies audit log cryptographic integrity using timing-safe comparison
+ * Guards buffer lengths to prevent unhandled RangeError on tampered signatures
+ */
+export function verifyAuditEntryIntegrity(
+  entry: {
+    userId: string | null;
+    action: string;
+    targetId: string | null;
+    createdAt: Date;
+    integrityHash: string | null;
+  },
+  signingKey: string,
+): boolean {
+  if (!entry.integrityHash || !signingKey) return false;
+
+  const expected = createHmac("sha256", signingKey)
+    .update(
+      JSON.stringify({
+        userId: entry.userId,
+        action: entry.action,
+        targetId: entry.targetId ?? null,
+        timestamp: entry.createdAt.toISOString(),
+      }),
+    )
+    .digest("hex");
+
+  const actualBuf = Buffer.from(entry.integrityHash, "hex");
+  const expectedBuf = Buffer.from(expected, "hex");
+
+  // Buffer length guard eliminates Node ERR_CRYPTO_TIMING_SAFE_EQUAL_LENGTH RangeError
+  if (actualBuf.length !== expectedBuf.length || actualBuf.length === 0) {
+    return false;
+  }
+
+  return timingSafeEqual(actualBuf, expectedBuf);
 }
 
 /**

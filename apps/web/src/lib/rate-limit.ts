@@ -16,9 +16,52 @@ redis?.on("error", (err: unknown) => {
   logger.warn("Rate limit Redis error", { error: err instanceof Error ? err.message : String(err) });
 });
 
+import crypto from "crypto";
+
 interface RateLimitConfig {
   limit: number;
   window: number; // in seconds
+  enforceInTest?: boolean;
+}
+
+/**
+ * Resolves client IP address safely:
+ * 1. Checks direct socket/connection remote address if available
+ * 2. Checks rightmost proxy hop in x-forwarded-for (closest to our trusted ingress proxy)
+ * 3. Falls back to x-real-ip
+ * 4. Generates an isolated ephemeral identifier per request/connection rather than sharing a global "unknown" bucket
+ */
+export function resolveClientIp(req: NextRequest): string {
+  // 1. Direct socket address from Node HTTP / Next.js request
+  const socketIp =
+    (req as any).socket?.remoteAddress ||
+    (req as any).ip;
+  if (socketIp && typeof socketIp === "string" && socketIp.trim().length > 0) {
+    return socketIp.trim();
+  }
+
+  // 2. Rightmost hop from x-forwarded-for (closest to reverse proxy / load balancer)
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    const hops = forwardedFor
+      .split(",")
+      .map((h) => h.trim())
+      .filter(Boolean);
+    if (hops.length > 0) {
+      // Rightmost hop is the IP added by the immediate upstream trusted proxy
+      return hops[hops.length - 1];
+    }
+  }
+
+  // 3. x-real-ip
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp && realIp.trim().length > 0) {
+    return realIp.trim();
+  }
+
+  // 4. Connection-isolated identifier fallback to avoid DoS on a shared "unknown" bucket
+  const requestId = req.headers.get("x-request-id") || crypto.randomUUID();
+  return `unidentified_${requestId}`;
 }
 
 const GLOBAL_LIMIT = 100;
@@ -44,19 +87,14 @@ end
 
 export async function rateLimit(req: NextRequest, config?: RateLimitConfig) {
   // Disable rate limiting in test mode to allow rapid consecutive requests
-  if (process.env.NODE_ENV === "test") {
+  if (process.env.NODE_ENV === "test" && !config?.enforceInTest) {
     return { success: true, remaining: 999 };
   }
 
   const limit = config?.limit || GLOBAL_LIMIT;
   const window = config?.window || GLOBAL_WINDOW;
 
-  // SECURITY: Use req.ip (from socket) instead of x-forwarded-for header,
-  // which can be trivially spoofed by clients.
-  // req.ip is derived from the actual connection address and is not user-controllable.
-  // Only trust x-forwarded-for when behind a known trusted proxy (ALB/CloudFront).
-  const forwardedFor = req.headers.get("x-forwarded-for");
-  const ip = forwardedFor ? forwardedFor.split(",")[0].trim() : "unknown";
+  const ip = resolveClientIp(req);
   const key = `rate_limit:${ip}`;
 
   try {
