@@ -1,5 +1,10 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+
+let prismaClient: any = prisma;
+export function setPrismaClientForTesting(client: any): void {
+  prismaClient = client;
+}
 import { verifyAuth } from "@/services/auth/auth";
 import { hasAdminPermission, canModifyRole } from "@/services/auth/permissions";
 import { createAuditLog } from "@/lib/audit";
@@ -52,7 +57,8 @@ export async function POST(
     }
 
     // Get target user to check role hierarchy
-    const targetUser = await prisma.user.findUnique({
+    const db = prismaClient || prisma;
+    const targetUser = await db.user.findUnique({
       where: { id: targetUserId },
       select: { id: true, email: true, role: true, isBanned: true },
     });
@@ -67,7 +73,7 @@ export async function POST(
     }
 
     // Update user ban status
-    const updated = await prisma.user.update({
+    const updated = await db.user.update({
       where: { id: targetUserId },
       data: {
         isBanned: ban,
@@ -76,22 +82,47 @@ export async function POST(
       select: { id: true, email: true, isBanned: true, role: true },
     });
 
-    // Create comprehensive audit log
-    await createAuditLog({
-      userId: user.id,
-      adminRole: user.role,
-      action: ban ? "USER_BAN" : "USER_UNBAN",
-      targetType: "USER",
-      targetId: targetUserId,
-      previousState: { isBanned: targetUser.isBanned },
-      newState: { isBanned: ban },
-      reason: reason || undefined,
-      ticketId: ticketId || undefined,
-      ipAddress:
-        request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown",
-      userAgent: request.headers.get("user-agent") || undefined,
-      metadata: { targetEmail: targetUser.email },
+    // Delete active sessions from prisma.session to immediately revoke all refresh tokens
+    await db.session.deleteMany({
+      where: { userId: targetUserId },
     });
+
+    // Invalidate Redis token version cache and update banned status in cache
+    try {
+      const { invalidateTokenVersion } = await import("@/lib/token-version-cache");
+      await invalidateTokenVersion(targetUserId);
+      const { setUserBannedInCache } = await import("@/services/auth/session");
+      await setUserBannedInCache(targetUserId, ban);
+    } catch (cacheErr) {
+      logger.warn("Failed to invalidate token version cache on ban", {
+        userId: targetUserId,
+        error: cacheErr,
+      });
+    }
+
+    // Create comprehensive audit log
+    try {
+      await createAuditLog({
+        userId: user.id,
+        adminRole: user.role,
+        action: ban ? "USER_BAN" : "USER_UNBAN",
+        targetType: "USER",
+        targetId: targetUserId,
+        previousState: { isBanned: targetUser.isBanned },
+        newState: { isBanned: ban },
+        reason: reason || undefined,
+        ticketId: ticketId || undefined,
+        ipAddress:
+          request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown",
+        userAgent: request.headers.get("user-agent") || undefined,
+        metadata: { targetEmail: targetUser.email },
+      });
+    } catch (auditErr) {
+      logger.warn("Failed to create audit log for user ban", {
+        userId: targetUserId,
+        error: auditErr,
+      });
+    }
 
     return successResponse({ user: updated });
   } catch (error) {

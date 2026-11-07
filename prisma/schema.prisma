@@ -220,19 +220,25 @@ model ConversationSummary {
 }
 
 model Session {
-  id         String   @id @default(uuid())
-  userId     String
-  token      String   @unique
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  lastActive DateTime @default(now())
-  userAgent  String?  @db.VarChar(500)
-  ipAddress  String?  @db.VarChar(45)
-  User       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                    String    @id @default(uuid())
+  userId                String
+  token                 String    @unique
+  familyId              String    @default(uuid()) @db.VarChar(64)
+  replacedAt            DateTime?
+  replacedByTokenHash   String?   @db.VarChar(128)
+  expiresAt             DateTime
+  createdAt             DateTime  @default(now())
+  lastActive            DateTime  @default(now())
+  userAgent             String?   @db.Text
+  ipAddress             String?   @db.VarChar(45)
+  User                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, replacedAt])
   @@index([token])
+  @@index([familyId])
   @@index([expiresAt])
+  @@index([replacedByTokenHash])
 }
 
 model UserPresence {

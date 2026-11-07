@@ -166,9 +166,50 @@ export async function middleware(req: NextRequest) {
         );
       }
 
-      // SECURITY: Verify tokenVersion against DB/Redis to reject revoked sessions
-      // Using Redis cache for fast lookups with short TTL (30s)
-      // This catches password changes and forced logouts immediately
+      // SECURITY: Verify user ban status and tokenVersion against DB/Redis to reject revoked/banned sessions
+      if ((payload as any).isBanned) {
+        logger.security("Banned user token rejected in middleware", {
+          path,
+          ip,
+          requestId,
+          userId: payload.userId,
+        });
+        return NextResponse.json(
+          {
+            success: false,
+            error: "User is banned",
+            timestamp: new Date().toISOString(),
+            requestId,
+          },
+          { status: 403 },
+        );
+      }
+
+      // Check banned status via cache for immediate ban enforcement
+      try {
+        const { isUserBannedInCache } = await import("./src/services/auth/session");
+        if (await isUserBannedInCache(payload.userId)) {
+          logger.security("Banned user blocked via cache check", {
+            path,
+            ip,
+            requestId,
+            userId: payload.userId,
+          });
+          return NextResponse.json(
+            {
+              success: false,
+              error: "User is banned",
+              timestamp: new Date().toISOString(),
+              requestId,
+            },
+            { status: 403 },
+          );
+        }
+      } catch {
+        // Fallback gracefully if cache lookup unavailable
+      }
+
+      // Set request headers for downstream handlers
       const requestHeaders = new Headers(req.headers);
       requestHeaders.set("x-user-id", payload.userId);
       requestHeaders.set(

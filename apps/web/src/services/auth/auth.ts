@@ -5,6 +5,11 @@ import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { cacheTokenVersion, invalidateTokenVersion } from "@/lib/token-version-cache";
 
+let prismaClient: any = prisma;
+export function setPrismaClientForAuthTesting(client: any): void {
+  prismaClient = client;
+}
+
 const ACCESS_SECRET = env.JWT_ACCESS_SECRET;
 const REFRESH_SECRET = env.JWT_REFRESH_SECRET;
 
@@ -63,7 +68,8 @@ export async function verifyAuth(req: NextRequest) {
     const payload = verifyAccessToken(token);
 
     // Get full user details from database
-    const user = await prisma.user.findUnique({
+    const db = prismaClient || prisma;
+    const user = await db.user.findUnique({
       where: { id: payload.userId },
       select: {
         id: true,
