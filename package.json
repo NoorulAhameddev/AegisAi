@@ -8,7 +8,6 @@
     "services/*"
   ],
   "scripts": {
-    "test": "jest",
     "dev": "npm run dev --workspace=apps/web",
     "dev:mobile": "npm run start --workspace=apps/mobile",
     "build": "npm run build --workspace=apps/web",
