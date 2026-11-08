@@ -15,6 +15,7 @@ import { generateEmbedding } from "@/services/rag/embeddings";
 import { getDocumentChunker } from "@/services/rag/chunker";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { Prisma } from "@prisma/client";
 
 function validateUUID(id: string): boolean {
   const uuidRegex =
@@ -216,7 +217,7 @@ export class PgvectorProvider implements IVectorDBProvider {
                 FROM "Document"
                 WHERE "userId" = ${userId}
                     AND vector IS NOT NULL
-                    ${filters?.sourceId ? prisma.$queryRaw`AND "sourceId" = ${filters.sourceId}` : prisma.$queryRaw``}
+                    ${filters?.sourceId ? Prisma.sql`AND "sourceId" = ${filters.sourceId}` : Prisma.empty}
                     AND (1 - (vector <=> ${JSON.stringify(vector)}::vector)) >= 0.7
                 ORDER BY vector <=> ${JSON.stringify(vector)}::vector
                 LIMIT ${limit}

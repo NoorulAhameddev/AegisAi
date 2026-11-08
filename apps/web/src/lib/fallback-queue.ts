@@ -61,6 +61,7 @@ export async function addFallbackJob(
 
 /**
  * Get next pending job from fallback queue
+ * Reclaims stuck processing jobs whose lease expired (> 5 minutes ago)
  */
 export async function getNextFallbackJob(
   queueName: string,
@@ -76,7 +77,10 @@ export async function getNextFallbackJob(
         SELECT id
         FROM fallback_queue
         WHERE queue_name = ${queueName}
-          AND status = 'pending'
+          AND (
+            status = 'pending'
+            OR (status = 'processing' AND processed_at < NOW() - INTERVAL '5 minutes')
+          )
           AND attempts < max_attempts
         ORDER BY created_at ASC
         LIMIT 1
@@ -104,6 +108,22 @@ export async function getNextFallbackJob(
       queueName,
     });
     return null;
+  }
+}
+
+/**
+ * Worker Heartbeat: Extends visibility timeout lease for long-running ingestion/RAG tasks
+ */
+export async function heartbeatFallbackJob(jobId: string): Promise<void> {
+  try {
+    await prisma.$executeRaw`
+      UPDATE fallback_queue
+      SET processed_at = NOW()
+      WHERE id = ${jobId} AND status = 'processing'
+    `;
+    logger.debug("Heartbeat extended for fallback job", { jobId });
+  } catch (error) {
+    logger.warn("Failed to heartbeat fallback job", { jobId, error });
   }
 }
 

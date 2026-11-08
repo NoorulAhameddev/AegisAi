@@ -13,15 +13,34 @@ interface JWTPayload {
   tokenVersion?: number;
   iat?: number;
   exp?: number;
+  isBanned?: boolean;
+}
+
+function getRandomUUID(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
+    (
+      Number(c) ^
+      ((typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function"
+        ? crypto.getRandomValues(new Uint8Array(1))[0]
+        : Math.floor(Math.random() * 256)) &
+        (15 >> (Number(c) / 4)))
+    ).toString(16),
+  );
 }
 
 export async function middleware(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+  const forwardedFor = req.headers.get("x-forwarded-for");
+  const ip = forwardedFor
+    ? forwardedFor.split(",").map((s) => s.trim()).filter(Boolean).pop() || "unknown"
+    : (req as { ip?: string }).ip || "unknown";
   const path = req.nextUrl.pathname;
-  const requestId = req.headers.get("x-request-id") || crypto.randomUUID();
+  const requestId = req.headers.get("x-request-id") || getRandomUUID();
 
   // Generate CSP nonce for inline scripts (security hardening)
-  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const nonce = btoa(getRandomUUID());
 
   // Allow Expo web/clients to access API with credentials in dev
   // CRITICAL: Read from environment to avoid hardcoding production origins
@@ -105,6 +124,31 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // Enforce CSRF protection on /api/auth/logout
+  if (
+    (path === "/api/auth/logout" || path.startsWith("/api/auth/logout")) &&
+    ["POST", "PUT", "PATCH", "DELETE"].includes(req.method)
+  ) {
+    const csrfValid = validateCSRFToken(req);
+    if (!csrfValid) {
+      logger.security("CSRF validation failed on logout", {
+        path,
+        ip,
+        requestId,
+        method: req.method,
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "CSRF validation failed",
+          timestamp: new Date().toISOString(),
+          requestId,
+        },
+        { status: 403 },
+      );
+    }
+  }
+
   // Verify JWT for ALL authenticated API routes
   // Public routes (auth, webhooks, health, ping, pricing) are excluded below
   const isPublicApiRoute =
@@ -166,9 +210,27 @@ export async function middleware(req: NextRequest) {
         );
       }
 
-      // SECURITY: Verify tokenVersion against DB/Redis to reject revoked sessions
-      // Using Redis cache for fast lookups with short TTL (30s)
-      // This catches password changes and forced logouts immediately
+      // SECURITY: Verify user ban status and tokenVersion against DB/Redis to reject revoked/banned sessions
+      if (payload.isBanned) {
+        logger.security("Banned user token rejected in middleware", {
+          path,
+          ip,
+          requestId,
+          userId: payload.userId,
+        });
+        return NextResponse.json(
+          {
+            success: false,
+            error: "User is banned",
+            timestamp: new Date().toISOString(),
+            requestId,
+          },
+          { status: 403 },
+        );
+      }
+
+      // Set request headers for downstream handlers
+      // Downstream Node.js handlers and verifyAuth verify live DB/cache ban & tokenVersion status
       const requestHeaders = new Headers(req.headers);
       requestHeaders.set("x-user-id", payload.userId);
       requestHeaders.set(
@@ -176,29 +238,6 @@ export async function middleware(req: NextRequest) {
         payload.tokenVersion?.toString() || "0",
       );
       requestHeaders.set("x-request-id", requestId);
-
-      // Fast token version check via Redis cache for immediate revocation
-      const { getCachedTokenVersion } = await import("./src/lib/token-version-cache");
-      const cachedVersion = await getCachedTokenVersion(payload.userId);
-      
-      if (cachedVersion !== null && cachedVersion !== payload.tokenVersion) {
-        logger.security("Token revoked via cache check", {
-          path,
-          ip,
-          requestId,
-          cachedVersion,
-          tokenVersion: payload.tokenVersion,
-        });
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Session revoked",
-            timestamp: new Date().toISOString(),
-            requestId,
-          },
-          { status: 401 },
-        );
-      }
 
       // CSRF validation for mutating requests
       if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {

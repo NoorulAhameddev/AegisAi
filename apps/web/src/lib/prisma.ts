@@ -52,8 +52,8 @@ export const prisma =
     },
   });
 
-// Validate connection pool configuration on startup
-if (process.env.SKIP_PROD_VALIDATION !== '1') {
+// Validate connection pool configuration on startup (skipped during build phase)
+if (process.env.NEXT_PHASE !== "phase-production-build") {
   if (env.NODE_ENV === "production") {
     const dbUrl = env.DATABASE_URL;
     if (!dbUrl.includes("connection_limit=")) {
@@ -85,8 +85,10 @@ if (process.env.SKIP_PROD_VALIDATION !== '1') {
   }
 }
 
-// Start connection pool monitoring
-startPoolMonitoring();
+// Start connection pool monitoring in runtime (skip in tests to avoid open handles)
+if (env.NODE_ENV !== "test" && process.env.NODE_ENV !== "test") {
+  startPoolMonitoring();
+}
 
 // Extend Prisma with connection tracking middleware
 prisma.$use(async (params, next) => {
@@ -111,10 +113,12 @@ prisma.$use(async (params, next) => {
 });
 
 // Graceful shutdown with connection pool cleanup
-process.on("beforeExit", async () => {
-  logger.info("[Prisma] Disconnecting from database...");
-  await prisma.$disconnect();
-});
+if (process.env.NODE_ENV !== "test") {
+  process.on("beforeExit", async () => {
+    logger.info("[Prisma] Disconnecting from database...");
+    await prisma.$disconnect();
+  });
+}
 
 // Handle uncaught exceptions
 process.on("uncaughtException", async () => {

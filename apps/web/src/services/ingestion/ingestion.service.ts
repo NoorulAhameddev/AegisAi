@@ -477,18 +477,14 @@ export async function fetchYouTubeTitle(videoId: string): Promise<string> {
 async function fetchAndCleanWebPage(
   url: string,
 ): Promise<{ title: string; content: string }> {
-  const axios = (await import("axios")).default;
+  const { validateAndFetchSafeUrl } = await import("@/lib/security/ssrf-guard");
   const cheerio = await import("cheerio");
 
-  const response = await axios.get(url, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    },
-    timeout: 10000,
-  });
+  const response = await validateAndFetchSafeUrl(url, 3);
+  const html =
+    typeof response.data === "string" ? response.data : await response.text();
 
-  const $ = cheerio.load(response.data);
+  const $ = cheerio.load(html);
 
   // Remove unwanted elements
   $("script, style, nav, footer, header, aside, iframe").remove();

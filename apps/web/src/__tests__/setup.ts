@@ -6,9 +6,20 @@ jest.mock("next/cache", () => ({
   revalidateTag: jest.fn(),
 }));
 
-// Mock the env module before any imports that use it
-jest.mock("@/lib/env", () => ({
-  env: {
+// Mock the env module before any imports that use it, allowing tests to opt out for real validation testing
+jest.mock("@/lib/env", () => {
+  const isRealEnvTest =
+    process.env.UNMOCK_ENV === "true" ||
+    process.env.TEST_REAL_ENV === "true" ||
+    (typeof expect !== "undefined" &&
+      expect.getState?.()?.testPath &&
+      /env(\.test|\.spec)\.[jt]sx?$/.test(expect.getState().testPath));
+
+  if (isRealEnvTest) {
+    return jest.requireActual("@/lib/env");
+  }
+
+  const mockEnv = {
     APP_ENV: "test",
     DATABASE_URL: "postgresql://test:test@localhost:5432/test",
     JWT_ACCESS_SECRET: "test-access-secret-key-min-32-chars-long",
@@ -39,8 +50,13 @@ jest.mock("@/lib/env", () => ({
     ENABLE_SERVERLESS_FUNCTIONS: false,
     FRONTEND_URL: "http://localhost:3000",
     SITE_URL: "http://localhost:3000",
-  },
-}));
+  };
+
+  return {
+    env: mockEnv,
+    getEnv: jest.fn(() => mockEnv),
+  };
+});
 
 // Global test utilities
 export const mockUser = {

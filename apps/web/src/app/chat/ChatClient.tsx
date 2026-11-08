@@ -279,103 +279,111 @@ export default function ChatClient({ user }: ChatClientProps) {
         router.push(`/chat?id=${activeChatId}`);
       }
 
-      const res = await fetch("/api/chat/stream", {
+      // Direct SSE streaming from /api/chat/stream-sse
+      const res = await fetch("/api/chat/stream-sse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chatId: activeChatId,
           message: userMsg,
-          fileId: uploadedFileId,
+          fileId: uploadedFileId || undefined,
         }),
         signal: abortController.signal,
       });
 
-      if (!res.ok) throw new Error((await res.json()).error || "Error");
-      const { jobId } = await res.json();
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        if (res.status === 429) {
+          throw new Error(errorData.error || "Rate limited. Please wait before trying again.");
+        } else if (res.status === 403) {
+          throw new Error(errorData.error || "Monthly token quota exceeded. Please upgrade your plan.");
+        } else if (res.status >= 500) {
+          throw new Error("Server error. Please try again shortly.");
+        } else {
+          throw new Error(errorData.error || `HTTP ${res.status}`);
+        }
+      }
 
-      let attempts = 0;
-      const maxAttempts = 120; // 2 minutes with 1s polling
-      while (attempts < maxAttempts) {
+      const reader = res.body?.getReader();
+      if (!reader) {
+        throw new Error("No response body stream available");
+      }
+
+      const decoder = new TextDecoder();
+      let accumulatedContent = "";
+      let sseBuffer = "";
+
+      while (true) {
         if (abortController.signal.aborted) break;
 
-        try {
-          const sRes = await fetch(`/api/chat/status?jobId=${jobId}`);
+        const { done, value } = await reader.read();
+        if (done) break;
 
-          // ✅ CRITICAL FIX: Validate HTTP response before parsing
-          if (!sRes.ok) {
-            const errorData = await sRes.json().catch(() => ({}));
-            logger.error(
-              `[Chat] Status endpoint returned ${sRes.status}:`,
-              errorData,
-            );
+        sseBuffer += decoder.decode(value, { stream: true });
+        const lines = sseBuffer.split("\n");
+        sseBuffer = lines.pop() || "";
 
-            if (sRes.status === 429) {
-              throw new Error("Rate limited. Please wait before trying again.");
-            } else if (sRes.status >= 500) {
-              throw new Error("Server error. Please try again shortly.");
-            } else {
-              throw new Error(errorData.error || `HTTP ${sRes.status}`);
-            }
-          }
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith("data:")) continue;
 
-          const { state, result, error } = await sRes.json();
-
-          if (state === "completed") {
-            setMessages((prev) => {
-              const n: Message[] = [...prev];
-              if (n[n.length - 1].role === "ASSISTANT")
-                n[n.length - 1].content = result.content;
-              // Persist to cache for active chat
-              const currentId = urlChatId || activeChatId;
-              if (currentId) {
-                messageCacheRef.current.set(currentId, n);
-                // Save to localStorage
-                try {
-                  const cacheObj = Object.fromEntries(messageCacheRef.current);
-                  localStorage.setItem(
-                    "aegis_message_cache",
-                    JSON.stringify(cacheObj),
-                  );
-                } catch (err) {
-                  logger.warn("[ChatClient] Failed to save cache:", {
-                    error: err,
-                  });
-                }
-              }
-              return n;
-            });
+          const dataStr = trimmed.slice(5).trim();
+          if (dataStr === "[DONE]") {
             break;
           }
-          if (state === "failed") throw new Error(error || "Failed");
 
-          await new Promise((r) => setTimeout(r, 1000));
-          attempts++;
-        } catch (pollErr: any) {
-          logger.error("[Chat] Status endpoint returned an error:", {
-            error: pollErr,
-          });
-
-          // If it's a rate limit error, show it and stop polling
-          if (
-            pollErr.message.includes("Rate limited") ||
-            pollErr.message.includes("429")
-          ) {
-            throw new Error(pollErr.message);
-          }
-
-          // For transient errors, continue polling
-          if (attempts < maxAttempts - 1) {
-            await new Promise((r) => setTimeout(r, 1000));
-            attempts++;
-          } else {
-            throw pollErr;
+          try {
+            const parsed = JSON.parse(dataStr);
+            if (parsed.error) {
+              throw new Error(parsed.error);
+            }
+            const token = parsed.text ?? parsed.content ?? "";
+            if (token) {
+              accumulatedContent += token;
+              setMessages((prev) => {
+                const n: Message[] = [...prev];
+                if (n.length > 0 && n[n.length - 1].role === "ASSISTANT") {
+                  n[n.length - 1] = {
+                    ...n[n.length - 1],
+                    content: accumulatedContent,
+                  };
+                }
+                return n;
+              });
+            }
+          } catch (jsonErr: any) {
+            if (jsonErr.message && !jsonErr.message.includes("JSON")) {
+              throw jsonErr;
+            }
           }
         }
       }
 
-      // If we exhausted all attempts, that's a timeout
-      if (attempts >= maxAttempts) {
-        throw new Error("Request timeout. The AI response took too long.");
+      // Persist completed response to cache for active chat
+      const currentId = urlChatId || activeChatId;
+      if (currentId && accumulatedContent) {
+        setMessages((prev) => {
+          const n: Message[] = [...prev];
+          if (n.length > 0 && n[n.length - 1].role === "ASSISTANT") {
+            n[n.length - 1] = {
+              ...n[n.length - 1],
+              content: accumulatedContent,
+            };
+          }
+          messageCacheRef.current.set(currentId, n);
+          try {
+            const cacheObj = Object.fromEntries(messageCacheRef.current);
+            localStorage.setItem(
+              "aegis_message_cache",
+              JSON.stringify(cacheObj),
+            );
+          } catch (err) {
+            logger.warn("[ChatClient] Failed to save cache:", {
+              error: err,
+            });
+          }
+          return n;
+        });
       }
     } catch (err: any) {
       if (err.name !== "AbortError") {

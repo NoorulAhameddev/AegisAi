@@ -294,3 +294,7 @@ nul
  
 jest-results.json
 *-results.json
+
+# Agent scratch and runtime logs
+.agents/teamwork/*/
+

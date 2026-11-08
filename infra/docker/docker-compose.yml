@@ -11,7 +11,7 @@ services:
       POSTGRES_DB: ${DB_NAME:-aegis_ai}
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
@@ -47,7 +47,7 @@ services:
         "redis-server --appendonly yes --requirepass $REDIS_PASSWORD${REDIS_MAXMEMORY:+ --maxmemory $REDIS_MAXMEMORY}${REDIS_MAXMEMORY_POLICY:+ --maxmemory-policy $REDIS_MAXMEMORY_POLICY}",
       ]
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     volumes:
       - redis-data:/data
     restart: unless-stopped

@@ -224,21 +224,31 @@ If SSE connection drops mid-stream:
    - No replication, no backup
    - Production disaster waiting
 
-## Justifying BullMQ to a Staff Engineer
+## Reconciled Chat Execution Architecture: Dual-Mode Execution Model (R5)
 
-**Honest answer**:
+### Historical Debate & Investigation
+Historically, the codebase maintained two separate execution paths:
+1. Direct HTTP SSE Streaming (`/api/chat/stream-sse`)
+2. Asynchronous Queue Polling (`/api/chat/stream` + BullMQ + `chat.worker.ts`)
 
-> "We use BullMQ because OpenAI API calls are slow (1-2s), and we don't want to block HTTP request handlers. If we process inline, every request takes at least 2s, and the Node.js event loop stalls. BullMQ lets us enqueue instantly and return to the user, so they feel responsive."
+During early audits, an architectural inconsistency was noted: web chat previously polled `/api/chat/stream`, missing real-time SSE streaming, while enterprise features (token budgets, multi-modal images, RAG sanitization) were scattered.
 
-**Staff engineer responds**:
+### Architectural Resolution: Unified Dual-Mode Topology
+Following the R5 Engineering Hardening reconciliation (see `docs/architecture/CHAT_EXECUTION_ARCHITECTURE.md`):
 
-> "But you have SSE (`/stream-sse`) that blocks on OpenAI anyway. So why have two paths? Why not just stream always?"
+1. **Interactive Real-Time Mode (`/api/chat/stream-sse`)**:
+   - Primary route consumed by web `ChatClient.tsx`.
+   - Direct HTTP Server-Sent Events stream from OpenAI with low latency token delivery.
+   - Enforces user plan quota check (`checkQuota`) and pre-stream token budget reservation (`reserveBudget`).
+   - Resolves multi-modal image attachments (`fileId`) into base64 data URLs.
+   - Sanitizes RAG retrieved context (`sanitizeRagContext`) within security boundaries (`===EXTERNAL_KNOWLEDGE_BASE_START===`).
+   - Handles client disconnects (`req.signal.addEventListener('abort')`) by gracefully persisting partial responses (`isPartial: true`) and finalizing token usage.
+   - Guarded by request timeouts (120s) and backpressure buffer limits (`MAX_BUFFER_SIZE = 50`).
 
-**Honest retreat**:
-
-> "The polling path (`/stream`) is there for... clients that can't do SSE? But we don't have any mobile clients using it. We built it 'just in case'."
-
-**Staff engineer's verdict**: Remove `/stream`. Use SSE everywhere. If you need async for something else (file uploads, bulk operations), fine. But for chat, SSE is strictly better. BullMQ becomes unnecessary complexity.
+2. **Asynchronous Background Queue Mode (`/api/chat/stream` & `chat.worker.ts`)**:
+   - Preserved for mobile clients (`apps/mobile/src/services/chat.ts`), batch queue jobs, and non-streaming background tasks.
+   - Backed by BullMQ with PostgreSQL fallback queue (`FallbackQueue`) resilience.
+   - Processes asynchronous AI pipeline stages (document vectorization, memory extraction, tool execution) outside the HTTP request lifecycle.
 
 ## Worst Possible Cascading Failure
 

@@ -220,19 +220,25 @@ model ConversationSummary {
 }
 
 model Session {
-  id         String   @id @default(uuid())
-  userId     String
-  token      String   @unique
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  lastActive DateTime @default(now())
-  userAgent  String?  @db.VarChar(500)
-  ipAddress  String?  @db.VarChar(45)
-  User       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                    String    @id @default(uuid())
+  userId                String
+  token                 String    @unique
+  familyId              String    @default(uuid()) @db.VarChar(64)
+  replacedAt            DateTime?
+  replacedByTokenHash   String?   @db.VarChar(128)
+  expiresAt             DateTime
+  createdAt             DateTime  @default(now())
+  lastActive            DateTime  @default(now())
+  userAgent             String?   @db.Text
+  ipAddress             String?   @db.VarChar(45)
+  User                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, replacedAt])
   @@index([token])
+  @@index([familyId])
   @@index([expiresAt])
+  @@index([replacedByTokenHash])
 }
 
 model UserPresence {
@@ -641,17 +647,20 @@ model ChatInvitation {
 }
 // PostgreSQL Fallback Queue for Redis outages
 model FallbackQueue {
-  id           String    @id
+  id           String    @id @default(uuid())
   queueName    String    @map("queue_name") @db.VarChar(100)
   data         Json
+  opts         Json?
   attempts     Int       @default(0)
-  maxAttempts  Int       @map("max_attempts") @default(3)
-  status       String    @db.VarChar(50) @default("pending") // pending, processing, completed, failed
+  maxAttempts  Int       @default(3) @map("max_attempts")
+  status       String    @default("pending") @db.VarChar(50) // pending, processing, completed, failed
   error        String?   @db.Text
-  createdAt    DateTime  @map("created_at") @default(now())
+  createdAt    DateTime  @default(now()) @map("created_at")
   processedAt  DateTime? @map("processed_at")
+  completedAt  DateTime? @map("completed_at")
   
-  @@index([queueName, status, createdAt])
-  @@index([status])
+  @@index([queueName, status], name: "idx_fallback_queue_status")
+  @@index([status, createdAt])
+  @@index([processedAt], name: "idx_fallback_queue_processed")
   @@map("fallback_queue")
 }

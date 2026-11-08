@@ -29,16 +29,68 @@ export async function rotateEncryptionKey(): Promise<void> {
   keyCachedAt = null;
 }
 
+/**
+ * Initialize secrets provider
+ */
+export async function initSecrets(): Promise<void> {
+  if (env.SECRET_PROVIDER === "local") {
+    logger.info("[Secrets] Secret provider configured: local");
+    return;
+  }
+  logger.info("[Secrets] Secret provider configured: aws-kms");
+  await getEncryptionKey();
+}
+
+/**
+ * Retrieve a secret value by name
+ */
+export async function getSecret(secretName: string): Promise<string> {
+  if (env.SECRET_PROVIDER === "local") {
+    const val = process.env[secretName];
+    if (!val) {
+      throw new Error(`Secret '${secretName}' not found in local environment`);
+    }
+    return val;
+  }
+
+  const val = process.env[secretName];
+  if (!val) {
+    throw new Error(`Secret '${secretName}' not found in environment`);
+  }
+  return val;
+}
+
 export async function getEncryptionKey(): Promise<Buffer> {
   // Check if cached key is valid
   if (cachedKey && !isKeyExpired()) {
     return cachedKey;
   }
 
+  // Handle local secret provider without instantiating KMSClient
+  if (env.SECRET_PROVIDER === "local") {
+    const rawKey = process.env.ENCRYPTION_KEY || env.ENCRYPTION_KEY;
+    if (!rawKey) {
+      if (env.NODE_ENV !== "production") {
+        cachedKey = Buffer.from("0".repeat(64), "hex");
+        keyCachedAt = Date.now();
+        return cachedKey;
+      }
+      throw new Error("FATAL: ENCRYPTION_KEY is required when SECRET_PROVIDER=local");
+    }
+
+    cachedKey =
+      rawKey.length === 64
+        ? Buffer.from(rawKey, "hex")
+        : Buffer.from(rawKey, "utf-8");
+    keyCachedAt = Date.now();
+    return cachedKey;
+  }
+
+  // AWS KMS Provider
   const kms = new KMSClient({ region: env.AWS_REGION });
   let lastError: Error | null = null;
 
-  // CRITICAL FIX: Add exponential backoff retry logic
+  // Exponential backoff retry logic
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
       const result = await kms.send(

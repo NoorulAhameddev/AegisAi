@@ -7,8 +7,9 @@ import { NextRequest } from "next/server";
 import { verifyAuth } from "@/services/auth/auth";
 import { batchIngestFiles } from "@/services/ingestion/ingestion.service";
 import { writeFile, unlink, mkdir, readFile } from "fs/promises";
-import { join } from "path";
+import { join, basename } from "path";
 import { existsSync } from "fs";
+import { randomUUID } from "crypto";
 import {
   errorResponse,
   rateLimitResponse,
@@ -61,6 +62,23 @@ export async function POST(req: NextRequest) {
         if (file.size > env.MAX_FILE_SIZE) {
           return errorResponse("File too large", { status: 413 });
         }
+
+        // Path Traversal Defense: Reject directory traversal sequences
+        if (
+          file.name.includes("..") ||
+          file.name.includes("/") ||
+          file.name.includes("\\")
+        ) {
+          return badRequestResponse(
+            "Invalid file name: directory traversal not allowed",
+          );
+        }
+
+        const sanitizedName = basename(file.name);
+        if (!sanitizedName || sanitizedName === "." || sanitizedName === "..") {
+          return badRequestResponse("Invalid file name");
+        }
+
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
@@ -70,13 +88,14 @@ export async function POST(req: NextRequest) {
           await mkdir(uploadsDir, { recursive: true });
         }
 
-        const tempPath = join(uploadsDir, `temp-${Date.now()}-${file.name}`);
+        const storageFileName = `${randomUUID()}-${sanitizedName}`;
+        const tempPath = join(uploadsDir, storageFileName);
         await writeFile(tempPath, buffer);
 
         tempFiles.push(tempPath);
         files.push({
           path: tempPath,
-          name: file.name,
+          name: sanitizedName,
           mimeType: file.type,
         });
       }
