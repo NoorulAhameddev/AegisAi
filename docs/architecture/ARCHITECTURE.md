@@ -1,5 +1,7 @@
 # Architecture & Visual Overview
 
+> For the complete chat execution architecture, see [CHAT_EXECUTION_ARCHITECTURE.md](./CHAT_EXECUTION_ARCHITECTURE.md).
+
 ## 🏗️ System Architecture
 
 ```
@@ -16,7 +18,7 @@
 ┌─────────────────────────────────────────────────────────────────┐
 │                 NEXT.JS API LAYER (Backend)                      │
 ├─────────────────────────────────────────────────────────────────┤
-│  src/app/api/                                                    │
+│  apps/web/src/app/api/                                                    │
 │  ├── /chat          → Chat operations                           │
 │  ├── /auth          → Authentication                            │
 │  ├── /users         → User management                           │
@@ -28,7 +30,7 @@
 ┌─────────────────────────────────────────────────────────────────┐
 │                  BUSINESS LOGIC LAYER                            │
 ├─────────────────────────────────────────────────────────────────┤
-│  src/services/              │  src/lib/                          │
+│  apps/web/src/services/              │  apps/web/src/lib/                          │
 │  ├── ChatService.ts         │  ├── Database queries              │
 │  ├── AiService.ts           │  ├── Prisma operations             │
 │  ├── RagService.ts          │  ├── Helpers                       │
@@ -218,7 +220,7 @@ Aegis-Ai/
 ```
 User Input (Web/Mobile)
         ↓
-ChatService (src/services/)
+ChatService (apps/web/src/services/)
         ↓
 OpenRouter API (LLM)
         ↓
@@ -270,7 +272,7 @@ Hooks (useChat, useUser)
     ↓ uses
 Services (ChatService, UserService)
     ↓ calls
-API Routes (src/app/api/)
+API Routes (apps/web/src/app/api/)
     ↓ uses
 lib/ (Database, Helpers)
     ↓ uses
@@ -340,5 +342,5 @@ PostgreSQL
 For more details, see:
 
 - [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) - Detailed structure
-- [docs/IMPLEMENTATION_GUIDE.md](./docs/IMPLEMENTATION_GUIDE.md) - Implementation details
+- [docs/IMPLEMENTATION_GUIDE.md](../IMPLEMENTATION_GUIDE.md) - Implementation details
 - [CONTRIBUTING.md](./CONTRIBUTING.md) - Code standards

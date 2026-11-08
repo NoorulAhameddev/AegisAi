@@ -229,4 +229,4 @@ Before committing:
 - [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) - Detailed structure
 - [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) - Quick navigation
 - [README.md](./README.md) - Project overview
-- [docs/DOCUMENTATION.md](./docs/DOCUMENTATION.md) - API docs
+- [docs/DOCUMENTATION.md](../DOCUMENTATION.md) - API docs

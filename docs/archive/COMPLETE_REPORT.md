@@ -189,12 +189,12 @@ After:  src/
 
 | Document       | Location                                                           | Purpose           |
 | -------------- | ------------------------------------------------------------------ | ----------------- |
-| Full API Docs  | [docs/DOCUMENTATION.md](./docs/DOCUMENTATION.md)                   | API reference     |
-| RAG Guide      | [docs/RAG_QUICKSTART.md](./docs/RAG_QUICKSTART.md)                 | RAG setup         |
-| Admin Guide    | [docs/admin/ADMIN_QUICKSTART.md](./docs/admin/ADMIN_QUICKSTART.md) | Admin features    |
-| Implementation | [docs/IMPLEMENTATION_GUIDE.md](./docs/IMPLEMENTATION_GUIDE.md)     | Technical details |
-| Test Accounts  | [docs/TEST_ACCOUNTS.md](./docs/TEST_ACCOUNTS.md)                   | Test credentials  |
-| Changelog      | [docs/CHANGELOG.md](./docs/CHANGELOG.md)                           | Version history   |
+| Full API Docs  | [docs/DOCUMENTATION.md](../DOCUMENTATION.md)                   | API reference     |
+| RAG Guide      | [docs/RAG_QUICKSTART.md](../RAG_QUICKSTART.md)                 | RAG setup         |
+| Admin Guide    | [docs/admin/ADMIN_QUICKSTART.md](../admin/ADMIN_QUICKSTART.md) | Admin features    |
+| Implementation | [docs/IMPLEMENTATION_GUIDE.md](../IMPLEMENTATION_GUIDE.md)     | Technical details |
+| Test Accounts  | [docs/TEST_ACCOUNTS.md](../TEST_ACCOUNTS.md)                   | Test credentials  |
+| Changelog      | [docs/CHANGELOG.md](../CHANGELOG.md)                           | Version history   |
 
 ## 💡 Key Benefits
 
@@ -337,7 +337,7 @@ The organization supports:
 1. Add CI/CD workflows to `.github/workflows/`
 2. Archive old documentation to `docs/archive/`
 3. Update docs as features evolve
-4. Keep [CHANGELOG.md](./docs/CHANGELOG.md) current
+4. Keep [CHANGELOG.md](../CHANGELOG.md) current
 
 ## 📊 Organization Statistics
 
@@ -365,9 +365,9 @@ The organization supports:
 
 ### For Feature-Specific Work
 
-1. Chat: [docs/DOCUMENTATION.md](./docs/DOCUMENTATION.md)
-2. RAG: [docs/RAG_QUICKSTART.md](./docs/RAG_QUICKSTART.md)
-3. Admin: [docs/admin/ADMIN_QUICKSTART.md](./docs/admin/ADMIN_QUICKSTART.md)
+1. Chat: [docs/DOCUMENTATION.md](../DOCUMENTATION.md)
+2. RAG: [docs/RAG_QUICKSTART.md](../RAG_QUICKSTART.md)
+3. Admin: [docs/admin/ADMIN_QUICKSTART.md](../admin/ADMIN_QUICKSTART.md)
 
 ## ✅ Verification Checklist
 

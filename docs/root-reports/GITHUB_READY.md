@@ -155,7 +155,7 @@ The project is **production-ready** for public GitHub distribution. Your code fo
 
 ## Questions?
 
-See [`docs/README.md`](./docs/README.md) for complete documentation.
+See [`docs/README.md`](../README.md) for complete documentation.
 
 ---
 

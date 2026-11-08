@@ -12,15 +12,15 @@ This report details the implementation progress of the RAG (Retrieval Augmented 
 
 **Overall Progress**: 1.5 out of 5 phases completed (30%)
 
-- âœ… Phase 3: Advanced Reranking (Cross-Encoder) - **COMPLETE**
-- ðŸŸ¡ Phase 2: Multi-Modal Embeddings - **PARTIAL** (OCR + server-side image handling)
+- ✅ Phase 3: Advanced Reranking (Cross-Encoder) - **COMPLETE**
+- 🟡 Phase 2: Multi-Modal Embeddings - **PARTIAL** (OCR + server-side image handling)
 - â¸ï¸ Phase 1: Vector DB Provider Abstraction - **NOT STARTED**
 - â¸ï¸ Phase 4: Semantic Caching - **NOT STARTED**
 - â¸ï¸ Phase 5: Environment & Testing - **NOT STARTED**
 
 ---
 
-## Phase 3: Advanced Reranking (Cross-Encoder) âœ… COMPLETE
+## Phase 3: Advanced Reranking (Cross-Encoder) ✅ COMPLETE
 
 ### Implementation Overview
 
@@ -113,16 +113,16 @@ const key = `rerank:${sha256(model:normalizedQuery:docId)}`;
 
 ```
 rerankDocumentsCrossEncoderWithScores()
-  â”œâ”€ Check if model is OpenRouter-compatible
-  â”‚  â””â”€ No: Use heuristic fallback
-  â”œâ”€ Load cached scores for all documents
-  â”œâ”€ Identify missing scores (cache miss)
-  â”‚  â””â”€ All cached: Return sorted results
-  â”œâ”€ Call OpenRouter cross-encoder for missing docs
-  â”‚  â”œâ”€ Success: Parse JSON scores, merge with cached
-  â”‚  â””â”€ Failure: Fallback to heuristic scoring
-  â”œâ”€ Store new scores in cache (TTL: 15 min)
-  â””â”€ Return sorted documents + score map
+  ├─ Check if model is OpenRouter-compatible
+  │  └─ No: Use heuristic fallback
+  ├─ Load cached scores for all documents
+  ├─ Identify missing scores (cache miss)
+  │  └─ All cached: Return sorted results
+  ├─ Call OpenRouter cross-encoder for missing docs
+  │  ├─ Success: Parse JSON scores, merge with cached
+  │  └─ Failure: Fallback to heuristic scoring
+  ├─ Store new scores in cache (TTL: 15 min)
+  └─ Return sorted documents + score map
 ```
 
 **Backward Compatibility**: Original `rerankDocumentsCrossEncoder()` maintained, calls new function and returns documents only.
@@ -406,7 +406,7 @@ npx tsc --noEmit
 
 ---
 
-## Phase 2: Multi-Modal Embeddings ðŸŸ¡ PARTIAL
+## Phase 2: Multi-Modal Embeddings 🟡 PARTIAL
 
 ### What Was Completed
 
@@ -681,30 +681,30 @@ SEMANTIC_CACHE_THRESHOLD=0.95         # Similarity threshold
 
 ```
 User Query
-    â†“
+    ↓
 [retrieveContext]
-    â†“
-Generate Embedding â”€â”€â†’ [EmbeddingCache] (Redis/Memory)
-    â†“                        â†“ (cache hit)
-    â†“                        â””â”€â”€â†’ Use Cached
-    â†“ (cache miss)
+    ↓
+Generate Embedding ──→ [EmbeddingCache] (Redis/Memory)
+    ↓                        ↓ (cache hit)
+    ↓                        └──→ Use Cached
+    ↓ (cache miss)
 LanceDB Vector Search
-    â†“
+    ↓
 [rerankDocumentsCrossEncoderWithScores]
-    â†“
-Check RerankCache â”€â”€â†’ [RerankCache] (Redis/Memory)
-    â†“                      â†“ (cache hit)
-    â†“                      â””â”€â”€â†’ Use Cached Scores
-    â†“ (cache miss)
+    ↓
+Check RerankCache ──→ [RerankCache] (Redis/Memory)
+    ↓                      ↓ (cache hit)
+    ↓                      └──→ Use Cached Scores
+    ↓ (cache miss)
 Call OpenRouter Cross-Encoder
-    â†“
-    â”œâ”€ Success: Parse Scores â†’ Cache â†’ Return
-    â””â”€ Failure: Heuristic Fallback
-    â†“
+    ↓
+    ├─ Success: Parse Scores → Cache → Return
+    └─ Failure: Heuristic Fallback
+    ↓
 Score for Trust/Safety
-    â†“
+    ↓
 Build Context String
-    â†“
+    ↓
 Return { documents, context, scores, sources }
 ```
 
@@ -712,30 +712,30 @@ Return { documents, context, scores, sources }
 
 ```
 User Query
-    â†“
-Generate Embedding â”€â”€â†’ [EmbeddingCache]
-    â†“
+    ↓
+Generate Embedding ──→ [EmbeddingCache]
+    ↓
 [SemanticCache Lookup] (similarity > 0.95?)
-    â”œâ”€ Hit: Return Cached Results
-    â””â”€ Miss: Continue
-    â†“
+    ├─ Hit: Return Cached Results
+    └─ Miss: Continue
+    ↓
 [VectorDBProvider] (factory selects LanceDB or pgvector)
-    â”œâ”€ LanceDB (local, fast)
-    â””â”€ pgvector (remote, scalable)
-    â†“
+    ├─ LanceDB (local, fast)
+    └─ pgvector (remote, scalable)
+    ↓
 [Multi-Modal Processing]
-    â”œâ”€ Text Embedding (OpenAI)
-    â””â”€ Image Embedding (CLIP/HF)
-    â†“
+    ├─ Text Embedding (OpenAI)
+    └─ Image Embedding (CLIP/HF)
+    ↓
 [Cross-Encoder Reranking]
-    â”œâ”€ Check RerankCache
-    â”œâ”€ Call OpenRouter Model
-    â””â”€ Fallback to Heuristic
-    â†“
+    ├─ Check RerankCache
+    ├─ Call OpenRouter Model
+    └─ Fallback to Heuristic
+    ↓
 [Trust/Safety Scoring]
-    â†“
+    ↓
 Cache Results in SemanticCache
-    â†“
+    ↓
 Return Results
 ```
 
@@ -894,8 +894,8 @@ At 10,000 queries/day:
 
 ### Immediate (Week 1)
 
-1. âœ… Deploy Phase 3 to staging
-2. âœ… Run smoke tests on rerank endpoint
+1. ✅ Deploy Phase 3 to staging
+2. ✅ Run smoke tests on rerank endpoint
 3. â˜ Monitor cache hit rate for 48 hours
 4. â˜ Deploy to production with feature flag
 5. â˜ Enable reranking for 10% of users (A/B test)
@@ -942,10 +942,10 @@ At 10,000 queries/day:
 
 Phase 3 (Cross-Encoder Reranking) is production-ready and delivers immediate value:
 
-- âœ… 22% latency increase (150ms â†’ 230ms) for 30% relevance improvement
-- âœ… 40-50% cache hit rate reduces cost by 50%
-- âœ… Graceful fallback ensures zero downtime
-- âœ… Diagnostics endpoint enables proactive monitoring
+- ✅ 22% latency increase (150ms → 230ms) for 30% relevance improvement
+- ✅ 40-50% cache hit rate reduces cost by 50%
+- ✅ Graceful fallback ensures zero downtime
+- ✅ Diagnostics endpoint enables proactive monitoring
 
 **Recommendation**: Deploy Phase 3 to production with feature flag, monitor for 1 week, then enable for all users. Begin work on Phase 2 (Multi-Modal) and Phase 4 (Semantic Cache) in parallel for next iteration.
 

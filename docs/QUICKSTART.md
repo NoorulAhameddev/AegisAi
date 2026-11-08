@@ -1,22 +1,22 @@
-# Study Hub - Quick Start Guide for Developers
+# Aegis AI - Quick Start Guide for Developers
 
-Get the Study Hub running in minutes with this quick start guide.
+Get Aegis AI running in minutes with this quick start guide.
 
 ## 5-Minute Local Setup
 
 ### 1. Install Prerequisites
 
 ```bash
-# Required: Node.js 20+, PostgreSQL 14+, Redis 7+
-node --version  # Should be v20.x or higher
+# Required: Node.js 20 LTS, PostgreSQL 14+, Redis 6+
+node --version  # Should be v20.x LTS
 npm --version   # Should be v10.x or higher
 ```
 
 ### 2. Clone & Setup
 
 ```bash
-git clone <repository-url>
-cd aegis-ai
+git clone https://github.com/NoorulAhameddev/AegisAi.git
+cd AegisAi
 npm install --legacy-peer-deps
 ```
 

@@ -44,23 +44,23 @@ The RAG feature enables your AI to have access to a knowledge base of documents,
 
 ```
 src/lib/
-â”œâ”€â”€ rag-config.ts          # RAG configuration and settings
-â”œâ”€â”€ chunker.ts             # Document chunking logic
-â”œâ”€â”€ vector-store.ts        # LanceDB vector store operations
-â”œâ”€â”€ rag-retrieval.ts       # Enhanced retrieval with reranking
-â””â”€â”€ embeddings.ts          # OpenAI embedding generation
+├── rag-config.ts          # RAG configuration and settings
+├── chunker.ts             # Document chunking logic
+├── vector-store.ts        # LanceDB vector store operations
+├── rag-retrieval.ts       # Enhanced retrieval with reranking
+└── embeddings.ts          # OpenAI embedding generation
 
 src/app/api/rag/
-â”œâ”€â”€ ingest/route.ts        # Document ingestion endpoint
-â”œâ”€â”€ search/route.ts        # Search endpoint
-â”œâ”€â”€ documents/route.ts     # Delete documents endpoint
-â””â”€â”€ stats/route.ts         # Statistics endpoint
+├── ingest/route.ts        # Document ingestion endpoint
+├── search/route.ts        # Search endpoint
+├── documents/route.ts     # Delete documents endpoint
+└── stats/route.ts         # Statistics endpoint
 
 src/components/rag/
-â””â”€â”€ RAGManagement.tsx      # UI for RAG management
+└── RAGManagement.tsx      # UI for RAG management
 
 src/app/knowledge/
-â””â”€â”€ page.tsx               # Knowledge base page
+└── page.tsx               # Knowledge base page
 ```
 
 ### Data Flow
@@ -68,12 +68,12 @@ src/app/knowledge/
 1. **Ingestion Flow**:
 
    ```
-   File Upload â†’ Extract Text â†’ Chunk Document â†’ Generate Embeddings â†’ Store in LanceDB
+   File Upload → Extract Text → Chunk Document → Generate Embeddings → Store in LanceDB
    ```
 
 2. **Retrieval Flow**:
    ```
-   User Query â†’ Generate Query Embedding â†’ Vector Search â†’ Rerank Results â†’ Inject Context â†’ AI Response
+   User Query → Generate Query Embedding → Vector Search → Rerank Results → Inject Context → AI Response
    ```
 
 ## Configuration

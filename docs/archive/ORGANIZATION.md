@@ -131,7 +131,7 @@ Follow this onboarding path:
 
 3. **Day 3**:
    - Read [CONTRIBUTING.md](./CONTRIBUTING.md) - Learn standards
-   - Look at [docs/DOCUMENTATION.md](./docs/DOCUMENTATION.md) - API reference
+   - Look at [docs/DOCUMENTATION.md](../DOCUMENTATION.md) - API reference
    - Ready to contribute!
 
 ## 📊 Organization Benefits
@@ -194,17 +194,17 @@ Follow this onboarding path:
 
 ### Feature Documentation
 
-- [docs/DOCUMENTATION.md](./docs/DOCUMENTATION.md) - Full API docs
-- [docs/RAG_QUICKSTART.md](./docs/RAG_QUICKSTART.md) - RAG setup
-- [docs/RAG_GUIDE.md](./docs/RAG_GUIDE.md) - RAG detailed guide
-- [docs/admin/ADMIN_QUICKSTART.md](./docs/admin/ADMIN_QUICKSTART.md) - Admin guide
-- [docs/IMPLEMENTATION_GUIDE.md](./docs/IMPLEMENTATION_GUIDE.md) - Architecture
+- [docs/DOCUMENTATION.md](../DOCUMENTATION.md) - Full API docs
+- [docs/RAG_QUICKSTART.md](../RAG_QUICKSTART.md) - RAG setup
+- [docs/RAG_GUIDE.md](../RAG_GUIDE.md) - RAG detailed guide
+- [docs/admin/ADMIN_QUICKSTART.md](../admin/ADMIN_QUICKSTART.md) - Admin guide
+- [docs/IMPLEMENTATION_GUIDE.md](../IMPLEMENTATION_GUIDE.md) - Architecture
 
 ### Additional Resources
 
-- [docs/TEST_ACCOUNTS.md](./docs/TEST_ACCOUNTS.md) - Test credentials
-- [docs/CHANGELOG.md](./docs/CHANGELOG.md) - Version history
-- [docs/admin/ADMIN_IMPLEMENTATION.md](./docs/admin/ADMIN_IMPLEMENTATION.md) - Admin implementation
+- [docs/TEST_ACCOUNTS.md](../TEST_ACCOUNTS.md) - Test credentials
+- [docs/CHANGELOG.md](../CHANGELOG.md) - Version history
+- [docs/admin/ADMIN_IMPLEMENTATION.md](../admin/ADMIN_IMPLEMENTATION.md) - Admin implementation
 
 ## 💡 Pro Tips
 

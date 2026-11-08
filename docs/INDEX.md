@@ -44,6 +44,7 @@ Start with: [DOCUMENTATION.md](./DOCUMENTATION.md) → Run `npm run diagnose-ai`
 | Document                                                      | Purpose                          | Location           |
 | ------------------------------------------------------------- | -------------------------------- | ------------------ |
 | [ARCHITECTURE.md](./architecture/ARCHITECTURE.md)             | System architecture & patterns   | docs/architecture/ |
+| [CHAT_EXECUTION_ARCHITECTURE.md](./architecture/CHAT_EXECUTION_ARCHITECTURE.md) | Dual-mode SSE & BullMQ execution | docs/architecture/ |
 | [ARCHITECTURE_AUDIT.md](./architecture/ARCHITECTURE_AUDIT.md) | Production-grade audit report    | docs/architecture/ |
 | [IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md)          | Technical implementation details | docs/              |
 
@@ -73,19 +74,19 @@ Start with: [DOCUMENTATION.md](./DOCUMENTATION.md) → Run `npm run diagnose-ai`
 
 | Document                                                                   | Purpose                      | Read Time |
 | -------------------------------------------------------------------------- | ---------------------------- | --------- |
-| [docs/RAG_QUICKSTART.md](./docs/RAG_QUICKSTART.md)                         | RAG setup & quick start      | 10 min    |
-| [docs/RAG_GUIDE.md](./docs/RAG_GUIDE.md)                                   | RAG detailed guide           | 20 min    |
-| [docs/RAG_IMPLEMENTATION.md](./docs/RAG_IMPLEMENTATION.md)                 | RAG implementation details   | 20 min    |
-| [docs/admin/ADMIN_QUICKSTART.md](./docs/admin/ADMIN_QUICKSTART.md)         | Admin panel quick start      | 10 min    |
-| [docs/admin/ADMIN_IMPLEMENTATION.md](./docs/admin/ADMIN_IMPLEMENTATION.md) | Admin implementation details | 15 min    |
-| [docs/admin/ADMIN_GUIDE.md](./docs/admin/ADMIN_GUIDE.md)                   | Complete admin guide         | 20 min    |
+| [docs/RAG_QUICKSTART.md](./RAG_QUICKSTART.md)                         | RAG setup & quick start      | 10 min    |
+| [docs/RAG_GUIDE.md](./RAG_GUIDE.md)                                   | RAG detailed guide           | 20 min    |
+| [docs/RAG_IMPLEMENTATION.md](./RAG_IMPLEMENTATION.md)                 | RAG implementation details   | 20 min    |
+| [docs/admin/ADMIN_QUICKSTART.md](./admin/ADMIN_QUICKSTART.md)         | Admin panel quick start      | 10 min    |
+| [docs/admin/ADMIN_IMPLEMENTATION.md](./admin/ADMIN_IMPLEMENTATION.md) | Admin implementation details | 15 min    |
+| [docs/admin/ADMIN_GUIDE.md](./admin/ADMIN_GUIDE.md)                   | Complete admin guide         | 20 min    |
 
 ### 🔧 Setup & Configuration
 
 | Document                                         | Purpose                     | Read Time |
 | ------------------------------------------------ | --------------------------- | --------- |
-| [docs/TEST_ACCOUNTS.md](./docs/TEST_ACCOUNTS.md) | Test credentials & accounts | 5 min     |
-| [docs/CHANGELOG.md](./docs/CHANGELOG.md)         | Version history & changes   | 10 min    |
+| [docs/TEST_ACCOUNTS.md](./TEST_ACCOUNTS.md) | Test credentials & accounts | 5 min     |
+| [docs/CHANGELOG.md](./CHANGELOG.md)         | Version history & changes   | 10 min    |
 
 ### 📊 Reports & Summaries
 
@@ -112,7 +113,7 @@ Start with: [DOCUMENTATION.md](./DOCUMENTATION.md) → Run `npm run diagnose-ai`
 
 1. [GETTING_STARTED.md](./GETTING_STARTED.md) - Main entry point
 2. [SETUP.md](./SETUP.md) - Development setup
-3. [docs/TEST_ACCOUNTS.md](./docs/TEST_ACCOUNTS.md) - Test credentials
+3. [docs/TEST_ACCOUNTS.md](./TEST_ACCOUNTS.md) - Test credentials
 
 ### Project Overview
 
@@ -124,31 +125,31 @@ Start with: [DOCUMENTATION.md](./DOCUMENTATION.md) → Run `npm run diagnose-ai`
 
 1. [CONTRIBUTING.md](./CONTRIBUTING.md) - Code standards
 2. [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) - Navigation guide
-3. [docs/DOCUMENTATION.md](./docs/DOCUMENTATION.md) - API reference
+3. [docs/DOCUMENTATION.md](./DOCUMENTATION.md) - API reference
 
 ### Architecture & Design
 
 1. [ARCHITECTURE.md](./ARCHITECTURE.md) - System design
-2. [docs/IMPLEMENTATION_GUIDE.md](./docs/IMPLEMENTATION_GUIDE.md) - Implementation
+2. [docs/IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md) - Implementation
 3. [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) - Structure details
 
 ### Features
 
 1. **RAG**
-   - [docs/RAG_QUICKSTART.md](./docs/RAG_QUICKSTART.md)
-   - [docs/RAG_GUIDE.md](./docs/RAG_GUIDE.md)
-   - [docs/RAG_IMPLEMENTATION.md](./docs/RAG_IMPLEMENTATION.md)
+   - [docs/RAG_QUICKSTART.md](./RAG_QUICKSTART.md)
+   - [docs/RAG_GUIDE.md](./RAG_GUIDE.md)
+   - [docs/RAG_IMPLEMENTATION.md](./RAG_IMPLEMENTATION.md)
 
 2. **Admin**
-   - [docs/admin/ADMIN_QUICKSTART.md](./docs/admin/ADMIN_QUICKSTART.md)
-   - [docs/admin/ADMIN_GUIDE.md](./docs/admin/ADMIN_GUIDE.md)
-   - [docs/admin/ADMIN_IMPLEMENTATION.md](./docs/admin/ADMIN_IMPLEMENTATION.md)
+   - [docs/admin/ADMIN_QUICKSTART.md](./admin/ADMIN_QUICKSTART.md)
+   - [docs/admin/ADMIN_GUIDE.md](./admin/ADMIN_GUIDE.md)
+   - [docs/admin/ADMIN_IMPLEMENTATION.md](./admin/ADMIN_IMPLEMENTATION.md)
 
 ### Reference
 
-1. [docs/CHANGELOG.md](./docs/CHANGELOG.md) - History
+1. [docs/CHANGELOG.md](./CHANGELOG.md) - History
 2. [reports/COMPLETE_REPORT.md](./reports/COMPLETE_REPORT.md) - Organization report
-3. [docs/archive/](./docs/archive/) - Archived docs
+3. [docs/archive/](./archive/) - Archived docs
 
 ---
 
@@ -175,16 +176,16 @@ Start with: [DOCUMENTATION.md](./DOCUMENTATION.md) → Run `npm run diagnose-ai`
 → [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 **Use the Chat Feature**
-→ [docs/DOCUMENTATION.md](./docs/DOCUMENTATION.md)
+→ [docs/DOCUMENTATION.md](./DOCUMENTATION.md)
 
 **Setup RAG**
-→ [docs/RAG_QUICKSTART.md](./docs/RAG_QUICKSTART.md)
+→ [docs/RAG_QUICKSTART.md](./RAG_QUICKSTART.md)
 
 **Manage Admin Panel**
-→ [docs/admin/ADMIN_QUICKSTART.md](./docs/admin/ADMIN_QUICKSTART.md)
+→ [docs/admin/ADMIN_QUICKSTART.md](./admin/ADMIN_QUICKSTART.md)
 
 **See What's Changed**
-→ [docs/CHANGELOG.md](./docs/CHANGELOG.md)
+→ [docs/CHANGELOG.md](./CHANGELOG.md)
 
 **Understand the Organization**
 → [ORGANIZATION.md](./ORGANIZATION.md)
@@ -305,10 +306,10 @@ SPECIFIC FEATURES:
 | Code Standards  | [CONTRIBUTING.md](./CONTRIBUTING.md)                               | 15 min |
 | Architecture    | [ARCHITECTURE.md](./ARCHITECTURE.md)                               | 15 min |
 | Project Org     | [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)                     | 15 min |
-| API Docs        | [docs/DOCUMENTATION.md](./docs/DOCUMENTATION.md)                   | 30 min |
-| RAG Setup       | [docs/RAG_QUICKSTART.md](./docs/RAG_QUICKSTART.md)                 | 10 min |
-| Admin Setup     | [docs/admin/ADMIN_QUICKSTART.md](./docs/admin/ADMIN_QUICKSTART.md) | 10 min |
-| What's New      | [docs/CHANGELOG.md](./docs/CHANGELOG.md)                           | 10 min |
+| API Docs        | [docs/DOCUMENTATION.md](./DOCUMENTATION.md)                   | 30 min |
+| RAG Setup       | [docs/RAG_QUICKSTART.md](./RAG_QUICKSTART.md)                 | 10 min |
+| Admin Setup     | [docs/admin/ADMIN_QUICKSTART.md](./admin/ADMIN_QUICKSTART.md) | 10 min |
+| What's New      | [docs/CHANGELOG.md](./CHANGELOG.md)                           | 10 min |
 
 ---
 

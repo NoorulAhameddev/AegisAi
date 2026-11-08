@@ -132,7 +132,7 @@ LOG_LEVEL=info
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-See [TEST_ACCOUNTS.md](./docs/TEST_ACCOUNTS.md) for test credentials.
+See [TEST_ACCOUNTS.md](../TEST_ACCOUNTS.md) for test credentials.
 
 ## 📂 File Organization at a Glance
 
@@ -268,9 +268,9 @@ docker push myregistry/aegis-ai:latest
 - [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) - Detailed structure
 - [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) - Navigation guide
 - [CONTRIBUTING.md](./CONTRIBUTING.md) - Code standards
-- [docs/DOCUMENTATION.md](./docs/DOCUMENTATION.md) - Full API docs
-- [docs/RAG_QUICKSTART.md](./docs/RAG_QUICKSTART.md) - RAG setup
-- [docs/admin/ADMIN_QUICKSTART.md](./docs/admin/ADMIN_QUICKSTART.md) - Admin guide
+- [docs/DOCUMENTATION.md](../DOCUMENTATION.md) - Full API docs
+- [docs/RAG_QUICKSTART.md](../RAG_QUICKSTART.md) - RAG setup
+- [docs/admin/ADMIN_QUICKSTART.md](../admin/ADMIN_QUICKSTART.md) - Admin guide
 
 ## 🆘 Troubleshooting
 
@@ -317,9 +317,9 @@ npm run diagnose-ai
 ## 📞 Getting Help
 
 1. Check [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) for file locations
-2. See [docs/DOCUMENTATION.md](./docs/DOCUMENTATION.md) for API reference
+2. See [docs/DOCUMENTATION.md](../DOCUMENTATION.md) for API reference
 3. Review [CONTRIBUTING.md](./CONTRIBUTING.md) for code standards
-4. Check [docs/IMPLEMENTATION_GUIDE.md](./docs/IMPLEMENTATION_GUIDE.md) for architecture
+4. Check [docs/IMPLEMENTATION_GUIDE.md](../IMPLEMENTATION_GUIDE.md) for architecture
 5. Run diagnostic scripts: `npm run diagnose-ai`
 
 ## 🎯 Next Steps

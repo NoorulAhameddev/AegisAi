@@ -756,9 +756,9 @@ For issues or questions regarding implementation:
 
 **Documentation Links:**
 
-- [API Documentation](./docs/API.md) (to be created)
-- [Deployment Guide](./docs/DEPLOYMENT.md) (to be created)
-- [User Guide](./docs/USER_GUIDE.md) (to be created)
+- [API Documentation](../API.md) (to be created)
+- [Deployment Guide](../DEPLOYMENT.md) (to be created)
+- [User Guide](../USER_GUIDE.md) (to be created)
 
 ---
 

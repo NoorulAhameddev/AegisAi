@@ -289,7 +289,7 @@ npm run studio          # Open database UI
 
 - Quick lookup: Use [QUICK_REFERENCE.md](./QUICK_REFERENCE.md)
 - Code standards: Check [CONTRIBUTING.md](./CONTRIBUTING.md)
-- API docs: See [docs/DOCUMENTATION.md](./docs/DOCUMENTATION.md)
+- API docs: See [docs/DOCUMENTATION.md](../DOCUMENTATION.md)
 - Feature setup: Find in docs/
 
 ---

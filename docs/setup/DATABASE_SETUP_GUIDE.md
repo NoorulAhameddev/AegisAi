@@ -18,14 +18,14 @@
 
 Update **both** of these files:
 
-#### File 1: `d:\Aegis-Ai\apps\web\.env.local`
+#### File 1: `apps/web/.env.local`
 
 ```
 DATABASE_URL=postgresql://[user]:[password]@[host]:5432/[database]?schema=public&connection_limit=10
 REDIS_URL=redis://localhost:6379
 ```
 
-#### File 2: `d:\Aegis-Ai\.env.local`
+#### File 2: `.env.local`
 
 ```
 DATABASE_URL=postgresql://[user]:[password]@[host]:5432/[database]?schema=public&connection_limit=10
@@ -35,14 +35,12 @@ REDIS_URL=redis://localhost:6379
 ### Step 4: Run Migrations
 
 ```bash
-cd d:\Aegis-Ai
 npm run migrate:deploy
 ```
 
 ### Step 5: Restart Web App
 
 ```bash
-cd d:\Aegis-Ai\apps\web
 npm run dev
 ```
 
@@ -81,7 +79,6 @@ npm run dev
 
 4. **Run Migrations:**
    ```bash
-   cd d:\Aegis-Ai
    npm run migrate:deploy
    ```
 
@@ -92,7 +89,6 @@ npm run dev
 1. **Restart Web Server:**
 
    ```sh
-   cd d:\Aegis-Ai\apps\web
    npm run dev
    ```
 

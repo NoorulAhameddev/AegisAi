@@ -1,6 +1,6 @@
 ﻿# AI Character/Persona System - Implementation Plan
 
-## ðŸ§  Brainstormed Approaches
+## 🧠 Brainstormed Approaches
 
 ### Approach 1: Database-Driven Character Presets (RECOMMENDED)
 
@@ -8,12 +8,12 @@
 
 **Pros**:
 
-- âœ… Scalable - characters stored in DB with full CRUD operations
-- âœ… User customization - users can create their own characters
-- âœ… Admin control - system-wide presets (Teacher, Coding Expert, Creative Writer)
-- âœ… Versioning - track character evolution over time
-- âœ… Permission-based - RBAC integration (who can create/edit/delete)
-- âœ… Analytics - track which characters are most popular
+- ✅ Scalable - characters stored in DB with full CRUD operations
+- ✅ User customization - users can create their own characters
+- ✅ Admin control - system-wide presets (Teacher, Coding Expert, Creative Writer)
+- ✅ Versioning - track character evolution over time
+- ✅ Permission-based - RBAC integration (who can create/edit/delete)
+- ✅ Analytics - track which characters are most popular
 
 **Cons**:
 
@@ -59,10 +59,10 @@ model Chat {
 
 **Pros**:
 
-- âœ… No database migration needed
-- âœ… Fast implementation (1-2 hours)
-- âœ… Version controlled (Git tracks changes)
-- âœ… Easy to share presets
+- ✅ No database migration needed
+- ✅ Fast implementation (1-2 hours)
+- ✅ Version controlled (Git tracks changes)
+- ✅ Easy to share presets
 
 **Cons**:
 
@@ -81,7 +81,7 @@ model Chat {
       "id": "socratic-tutor",
       "name": "Socratic Tutor",
       "description": "Guides with questions, never gives direct answers",
-      "avatar": "ðŸŽ“",
+      "avatar": "🎓",
       "systemPrompt": "You are a Socratic tutor...",
       "temperature": 0.7,
       "model": "glm-5"
@@ -99,10 +99,10 @@ model Chat {
 
 **Pros**:
 
-- âœ… Best of both worlds
-- âœ… Fast default presets from config
-- âœ… User customization via DB
-- âœ… Graceful fallback if DB fails
+- ✅ Best of both worlds
+- ✅ Fast default presets from config
+- ✅ User customization via DB
+- ✅ Graceful fallback if DB fails
 
 **Cons**:
 
@@ -111,7 +111,7 @@ model Chat {
 
 ---
 
-## ðŸ“‹ Selected Approach: **Approach 1 (Database-Driven)**
+## 📋 Selected Approach: **Approach 1 (Database-Driven)**
 
 **Rationale**:
 
@@ -123,7 +123,7 @@ model Chat {
 
 ---
 
-## ðŸŽ¯ Implementation Plan
+## 🎯 Implementation Plan
 
 ### Phase 1: Database Schema Extension
 
@@ -267,7 +267,7 @@ POST   /api/characters/system   - Admin: Create system preset
         "id": "sys-001",
         "name": "Socratic Tutor",
         "description": "Guides with questions, never gives direct answers",
-        "avatar": "ðŸŽ“",
+        "avatar": "🎓",
         "category": "Education",
         "isSystem": true,
         "usageCount": 1250
@@ -411,7 +411,7 @@ const DEFAULT_CHARACTERS = [
   {
     name: "Socratic Tutor",
     description: "Guides learning with questions, never gives direct answers",
-    avatar: "ðŸŽ“",
+    avatar: "🎓",
     category: "Education",
     tags: ["education", "pedagogy", "questioning"],
     systemPrompt: `You are a Socratic tutor. Your goal is to help students learn by asking guiding questions, not by providing direct answers.
@@ -451,9 +451,9 @@ Always:
 5. Best practices and design patterns
 
 Format your feedback as:
-âœ… What's good (positive reinforcement)
-âš ï¸ Issues to fix (categorized by severity)
-ðŸ’¡ Suggestions for improvement
+✅ What's good (positive reinforcement)
+⚠️ Issues to fix (categorized by severity)
+💡 Suggestions for improvement
 
 Never:
 - Rewrite the entire code
@@ -502,7 +502,7 @@ Avoid:
   {
     name: "Math Tutor",
     description: "Explains mathematical concepts with step-by-step reasoning",
-    avatar: "ðŸ”¢",
+    avatar: "🔢",
     category: "Education",
     tags: ["math", "education", "problem-solving"],
     systemPrompt: `You are a patient math tutor. Break down complex mathematical concepts into intuitive steps.
@@ -588,7 +588,7 @@ Never:
 
 ---
 
-## ðŸ§ª Testing Strategy
+## 🧠ª Testing Strategy
 
 ### Unit Tests
 
@@ -609,21 +609,21 @@ Never:
 
 ### Integration Tests
 
-1. Create chat with character â†’ verify system prompt used
-2. Switch character mid-chat â†’ verify new prompt applied
-3. Delete character â†’ verify chats revert to default
-4. Admin creates system character â†’ verify available to all users
+1. Create chat with character → verify system prompt used
+2. Switch character mid-chat → verify new prompt applied
+3. Delete character → verify chats revert to default
+4. Admin creates system character → verify available to all users
 
 ### E2E Tests (Manual)
 
-1. Open chat â†’ Select "Socratic Tutor" â†’ Ask coding question â†’ Verify response is question-based
-2. Settings â†’ Create custom character â†’ Use in chat â†’ Verify custom prompt works
-3. Admin panel â†’ Create system character â†’ Verify appears for all users
-4. Delete custom character â†’ Verify removed from character list
+1. Open chat → Select "Socratic Tutor" → Ask coding question → Verify response is question-based
+2. Settings → Create custom character → Use in chat → Verify custom prompt works
+3. Admin panel → Create system character → Verify appears for all users
+4. Delete custom character → Verify removed from character list
 
 ---
 
-## ðŸ“Š Success Metrics
+## 📊 Success Metrics
 
 1. **User Engagement**: % of chats using custom characters (target: 40%)
 2. **Character Creation**: # of user-created characters (target: 500/month)
@@ -632,7 +632,7 @@ Never:
 
 ---
 
-## ðŸš€ Deployment Checklist
+## 🚀 Deployment Checklist
 
 - [ ] Database migration tested in staging
 - [ ] Seed default characters in production DB
@@ -646,7 +646,7 @@ Never:
 
 ---
 
-## ðŸ”® Future Enhancements
+## 🔮 Future Enhancements
 
 ### Phase 2 Features (Post-Launch)
 
@@ -662,10 +662,10 @@ Never:
 
 ---
 
-## ðŸ“ Notes
+## 📜 Notes
 
 - **Character Switching Mid-Chat**: Supported - new system prompt applies to next message
-- **Migration Path**: Existing chats get `characterId = NULL` â†’ use default prompt
+- **Migration Path**: Existing chats get `characterId = NULL` → use default prompt
 - **Performance**: Character fetch cached in Redis (5-min TTL)
 - **Security**: User-created characters sanitized (no prompt injection)
 - **Monetization**: Pro tier gets unlimited custom characters (Free tier: 3 max)
