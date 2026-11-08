@@ -2,7 +2,7 @@
 
 **Report Date**: 2026-11-07  
 **Branch**: `remediation/engineering-hardening`  
-**Commit**: `5d0fbac`  
+**Commit**: `22a95a9`  
 **Test Harness**: Local Node 20 LTS Environment  
 
 ---
