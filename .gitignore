@@ -81,10 +81,12 @@ apps/web/uploads/*
 ################################################################################
 # ENVIRONMENT & SECRETS (CRITICAL)
 ################################################################################
-# All environment files except template
+# All environment files across all workspaces and root
 .env
+.env*
+.env.*
 .env.local
-.env.*.local
+.env*.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -92,8 +94,28 @@ apps/web/uploads/*
 .env.production
 .env.staging
 .env.development
+.env.preview
+.env.vault
 .envrc
 .direnv/
+*.override.env
+
+# Explicit exceptions for environment templates
+!.env.example
+!.env.*.example
+!apps/*/.env.example
+!apps/*/.env.*.example
+!infra/docker/.env.example
+!infra/docker/.env.*.example
+
+# Service accounts, cloud credentials & API keys
+service-account*.json
+service_account*.json
+firebase-adminsdk*.json
+credentials.json
+client_secret*.json
+*.token
+*.credentials
 
 # Mobile-specific environment files
 mobile/.env.production
@@ -244,6 +266,11 @@ infra/docker/.env
 *.jks
 *.keystore
 *.mobileprovision
+*.pub
+*id_rsa*
+*id_ed25519*
+*id_ecdsa*
+*id_dsa*
 
 ################################################################################
 # AWS & CLOUD CREDENTIALS
@@ -298,3 +325,6 @@ jest-results.json
 # Agent scratch and runtime logs
 .agents/teamwork/*/
 
+
+# Audit output logs
+.audits/
