@@ -52,6 +52,13 @@ jest.mock("bcrypt", () => ({
   compare: jest.fn(),
 }));
 
+jest.mock("@/lib/token-version-cache", () => ({
+  getCachedTokenVersion: jest.fn().mockResolvedValue(null),
+  cacheTokenVersion: jest.fn().mockResolvedValue(undefined),
+  invalidateTokenVersion: jest.fn().mockResolvedValue(undefined),
+  refreshTokenVersion: jest.fn().mockResolvedValue(undefined),
+}));
+
 const createMockResponse = (status: number, data: any) => ({
   status,
   cookies: {

@@ -9,13 +9,14 @@ const createJestConfig = nextJest({
 // Add any custom config to be passed to Jest
 const config: Config = {
   coverageProvider: "v8",
-  testEnvironment: "jsdom",
+  testEnvironment: "node",
   // Add more setup options before each test is run
   setupFilesAfterEnv: [
     "<rootDir>/../../config/jest.setup.ts",
     "<rootDir>/src/__tests__/setup.ts",
   ],
   moduleNameMapper: {
+    "^@prisma/client$": "<rootDir>/../../node_modules/@prisma/client/default.js",
     "^@/(.*)$": "<rootDir>/src/$1",
     "^@prisma/client$": "<rootDir>/../../node_modules/@prisma/client/default.js",
   },

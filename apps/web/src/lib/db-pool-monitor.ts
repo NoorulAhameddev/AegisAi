@@ -56,6 +56,10 @@ class DBPoolMonitor {
       this.collectAndPublish();
     }, this.interval);
 
+    if (this.monitoringInterval && typeof this.monitoringInterval.unref === "function") {
+      this.monitoringInterval.unref();
+    }
+
     // Initial collection
     this.collectAndPublish();
   }

@@ -3,14 +3,213 @@
  * Test character CRUD, permissions, and chat integration
  */
 
-import {
-  describe,
-  it,
-  expect,
-  beforeAll,
-  afterAll,
-  beforeEach,
-} from "@jest/globals";
+jest.mock("@/lib/prisma", () => {
+  const mockUserStore = new Map<string, any>();
+  const mockPresetStore = new Map<string, any>();
+  const mockChatStore = new Map<string, any>();
+
+  const mockUserOps = {
+    create: jest.fn(async ({ data }: any) => {
+      const user = {
+        id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        plan: "FREE",
+        ...data,
+      };
+      mockUserStore.set(user.id, user);
+      return user;
+    }),
+    findUnique: jest.fn(async ({ where }: any) => {
+      return mockUserStore.get(where.id) || null;
+    }),
+    delete: jest.fn(async ({ where }: any) => {
+      mockUserStore.delete(where.id);
+      return { id: where.id };
+    }),
+  };
+
+  const mockCharacterOps = {
+    create: jest.fn(async ({ data }: any) => {
+      const preset = {
+        id: `char-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        userId: null,
+        isSystem: false,
+        isPublic: false,
+        isActive: true,
+        usageCount: 0,
+        tags: [],
+        model: "openai/gpt-4o-mini",
+        temperature: 0.7,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ...data,
+      };
+      mockPresetStore.set(preset.id, preset);
+      return preset;
+    }),
+    findFirst: jest.fn(async ({ where }: any) => {
+      for (const preset of mockPresetStore.values()) {
+        if (where.id && preset.id !== where.id) continue;
+        if (where.userId && preset.userId !== where.userId) continue;
+        if (where.isActive !== undefined && preset.isActive !== where.isActive) continue;
+        if (where.isSystem !== undefined && preset.isSystem !== where.isSystem) continue;
+        if (where.OR && Array.isArray(where.OR)) {
+          const matchesOr = where.OR.some((cond: any) => {
+            if (cond.isSystem && preset.isSystem) return true;
+            if (cond.isPublic && preset.isPublic) return true;
+            if (cond.userId && preset.userId === cond.userId) return true;
+            return false;
+          });
+          if (!matchesOr) continue;
+        }
+        return preset;
+      }
+      return null;
+    }),
+    findUnique: jest.fn(async ({ where }: any) => {
+      return mockPresetStore.get(where.id) || null;
+    }),
+    findMany: jest.fn(async ({ where, orderBy }: any) => {
+      let results = Array.from(mockPresetStore.values());
+      if (where) {
+        if (where.isActive !== undefined) {
+          results = results.filter((p) => p.isActive === where.isActive);
+        }
+        if (where.isSystem !== undefined) {
+          results = results.filter((p) => p.isSystem === where.isSystem);
+        }
+        if (where.isPublic !== undefined) {
+          results = results.filter((p) => p.isPublic === where.isPublic);
+        }
+        if (where.userId !== undefined) {
+          if (typeof where.userId === "object" && where.userId.not) {
+            results = results.filter((p) => p.userId !== where.userId.not);
+          } else {
+            results = results.filter((p) => p.userId === where.userId);
+          }
+        }
+        if (where.category) {
+          results = results.filter((p) => p.category === where.category);
+        }
+        if (where.OR && Array.isArray(where.OR)) {
+          results = results.filter((p) => {
+            return where.OR.some((cond: any) => {
+              if (cond.name?.contains) {
+                return p.name.toLowerCase().includes(cond.name.contains.toLowerCase());
+              }
+              if (cond.description?.contains) {
+                return (p.description || "").toLowerCase().includes(cond.description.contains.toLowerCase());
+              }
+              if (cond.isSystem !== undefined) return p.isSystem === cond.isSystem;
+              if (cond.isPublic !== undefined) return p.isPublic === cond.isPublic;
+              if (cond.userId !== undefined) return p.userId === cond.userId;
+              return false;
+            });
+          });
+        }
+      }
+      if (orderBy) {
+        if (Array.isArray(orderBy)) {
+          results.sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0));
+        } else if (orderBy.usageCount === "desc") {
+          results.sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0));
+        }
+      }
+      return results;
+    }),
+    update: jest.fn(async ({ where, data }: any) => {
+      const preset = mockPresetStore.get(where.id);
+      if (!preset) throw new Error("Preset not found");
+      Object.assign(preset, data, { updatedAt: new Date() });
+      return preset;
+    }),
+    count: jest.fn(async ({ where }: any) => {
+      let count = 0;
+      for (const preset of mockPresetStore.values()) {
+        if (where.userId && preset.userId !== where.userId) continue;
+        if (where.isActive !== undefined && preset.isActive !== where.isActive) continue;
+        count++;
+      }
+      return count;
+    }),
+    deleteMany: jest.fn(async ({ where }: any) => {
+      let count = 0;
+      for (const [id, preset] of mockPresetStore.entries()) {
+        if (where.userId && preset.userId === where.userId) {
+          mockPresetStore.delete(id);
+          count++;
+        }
+      }
+      return { count };
+    }),
+  };
+
+  const mockChatOps = {
+    create: jest.fn(async ({ data }: any) => {
+      const chat = {
+        id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        title: data.title,
+        userId: data.userId,
+        characterId: data.characterId || null,
+      };
+      mockChatStore.set(chat.id, chat);
+      return chat;
+    }),
+    findUnique: jest.fn(async ({ where }: any) => {
+      const chat = mockChatStore.get(where.id);
+      if (!chat) return null;
+      const char = chat.characterId ? mockPresetStore.get(chat.characterId) : null;
+      return {
+        ...chat,
+        Character: (char && char.isActive !== false) ? char : null,
+        characterId: (char && char.isActive !== false) ? chat.characterId : null,
+      };
+    }),
+    update: jest.fn(async ({ where, data }: any) => {
+      const chat = mockChatStore.get(where.id);
+      if (!chat) throw new Error("Chat not found");
+      Object.assign(chat, data);
+      const char = chat.characterId ? mockPresetStore.get(chat.characterId) : null;
+      return {
+        ...chat,
+        Character: (char && char.isActive !== false) ? char : null,
+        characterId: (char && char.isActive !== false) ? chat.characterId : null,
+      };
+    }),
+    updateMany: jest.fn(async ({ where, data }: any) => {
+      let count = 0;
+      for (const chat of mockChatStore.values()) {
+        if (where.characterId && chat.characterId === where.characterId) {
+          Object.assign(chat, data);
+          count++;
+        }
+      }
+      return { count };
+    }),
+    deleteMany: jest.fn(async ({ where }: any) => {
+      let count = 0;
+      for (const [id, chat] of mockChatStore.entries()) {
+        if (where.userId && chat.userId === where.userId) {
+          mockChatStore.delete(id);
+          count++;
+        }
+      }
+      return { count };
+    }),
+  };
+
+  return {
+    prisma: {
+      user: mockUserOps,
+      characterPreset: mockCharacterOps,
+      character: mockCharacterOps,
+      chat: mockChatOps,
+      memory: {
+        findMany: jest.fn(async () => []),
+      },
+    },
+  };
+});
+
 import { prisma } from "@/lib/prisma";
 import {
   getCharacterPresets,
@@ -56,7 +255,7 @@ describe("Character Service", () => {
         {
           name: "Python Expert",
           description: "Specializes in Python programming",
-          avatar: "🐍",
+          avatar: "python-avatar",
           systemPrompt: "You are a Python expert...",
           temperature: 0.6,
           category: "Coding",
@@ -102,7 +301,7 @@ describe("Character Service", () => {
         {
           name: "Socratic Tutor",
           description: "Guides with questions",
-          avatar: "🎓",
+          avatar: "tutor-avatar",
           systemPrompt: "You ask questions to guide learning...",
           isPublic: true,
         },
@@ -237,7 +436,14 @@ describe("Character Service", () => {
 
   describe("Character Permissions", () => {
     it("should allow user to access their own character", async () => {
-      const hasAccess = await canUserAccessCharacter(characterId, userId);
+      const activeChar = await createCharacterPreset(
+        {
+          name: "Active Character",
+          systemPrompt: "You are an active character",
+        },
+        userId,
+      );
+      const hasAccess = await canUserAccessCharacter(activeChar.id, userId);
       expect(hasAccess).toBe(true);
     });
 

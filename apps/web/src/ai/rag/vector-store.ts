@@ -121,6 +121,27 @@ export async function addDocument(
 }
 
 /**
+ * Add document with multi-modal content (text + image)
+ */
+export async function addMultiModalDocument(
+  text: string,
+  metadata: DocumentMetadata,
+  userId: string,
+  imageBase64?: string,
+  imageMimeType?: string,
+): Promise<string> {
+  return addDocument(
+    text,
+    {
+      ...metadata,
+      imageData: imageBase64,
+      imageMimeType,
+    },
+    userId,
+  );
+}
+
+/**
  * Ingest a document with smart chunking
  */
 export async function ingestDocument(

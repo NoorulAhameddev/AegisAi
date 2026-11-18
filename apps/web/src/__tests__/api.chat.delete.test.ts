@@ -6,14 +6,17 @@ jest.mock("@/lib/prisma", () => ({
   prisma: {
     chat: {
       findFirst: jest.fn(),
+      update: jest.fn(),
       delete: jest.fn(),
     },
     message: {
+      updateMany: jest.fn(),
       deleteMany: jest.fn(),
     },
     auditLog: {
       create: jest.fn(),
     },
+    $transaction: jest.fn().mockImplementation(async (items) => Promise.all(items)),
   },
 }));
 
@@ -117,8 +120,8 @@ describe("DELETE /api/chat/delete", () => {
       id: testChatId,
       userId: testUserId,
     });
-    prisma.message.deleteMany.mockResolvedValue({ count: 5 });
-    prisma.chat.delete.mockResolvedValue({
+    prisma.message.updateMany.mockResolvedValue({ count: 5 });
+    prisma.chat.update.mockResolvedValue({
       id: testChatId,
       userId: testUserId,
     });
@@ -130,10 +133,11 @@ describe("DELETE /api/chat/delete", () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.success).toBe(true);
-    expect(prisma.message.deleteMany).toHaveBeenCalledWith({
+    expect(prisma.message.updateMany).toHaveBeenCalledWith({
       where: { chatId: testChatId },
+      data: { deletedAt: expect.any(Date) },
     });
-    expect(prisma.chat.delete).toHaveBeenCalled();
+    expect(prisma.chat.update).toHaveBeenCalled();
     expect(prisma.auditLog.create).toHaveBeenCalled();
   });
 });

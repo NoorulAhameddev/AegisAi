@@ -4,31 +4,63 @@
  * Run with: npm test -- semantic-cache.test.ts
  */
 
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  jest,
-} from "@jest/globals";
 import type { Document } from "@/ai/rag/vector-store";
 
 // Mock Redis before importing the module
 jest.mock("ioredis", () => {
+  const store = new Map<string, string>();
+  const stats = new Map<string, number>();
+  const lists = new Map<string, string[]>();
+
   const mockRedis = {
-    keys: jest.fn(),
-    get: jest.fn(),
-    setex: jest.fn(),
-    del: jest.fn(),
-    hincrby: jest.fn(),
-    hgetall: jest.fn(),
-    lpush: jest.fn(),
-    ltrim: jest.fn(),
-    lrange: jest.fn(),
+    keys: jest.fn(async (pattern: string) => {
+      const regex = new RegExp("^" + pattern.replace(/\*/g, ".*") + "$");
+      return Array.from(store.keys()).filter((k) => regex.test(k));
+    }),
+    get: jest.fn(async (key: string) => store.get(key) || null),
+    setex: jest.fn(async (key: string, _ttl: number, value: string) => {
+      store.set(key, value);
+      return "OK";
+    }),
+    del: jest.fn(async (...keys: string[]) => {
+      let count = 0;
+      for (const k of keys) {
+        if (store.delete(k)) count++;
+      }
+      return count;
+    }),
+    hincrby: jest.fn(async (_key: string, field: string, amount: number) => {
+      const current = stats.get(field) || 0;
+      stats.set(field, current + amount);
+      return current + amount;
+    }),
+    hgetall: jest.fn(async (_key: string) => {
+      const obj: Record<string, string> = {};
+      for (const [k, v] of stats.entries()) {
+        obj[k] = v.toString();
+      }
+      return obj;
+    }),
+    lpush: jest.fn(async (key: string, val: string) => {
+      const list = lists.get(key) || [];
+      list.unshift(val);
+      lists.set(key, list);
+      return list.length;
+    }),
+    ltrim: jest.fn(async (key: string, start: number, stop: number) => {
+      const list = lists.get(key) || [];
+      lists.set(key, list.slice(start, stop + 1));
+      return "OK";
+    }),
+    lrange: jest.fn(async (key: string, start: number, stop: number) => {
+      const list = lists.get(key) || [];
+      if (stop === -1) return list.slice(start);
+      return list.slice(start, stop + 1);
+    }),
   };
   return {
     Redis: jest.fn(() => mockRedis),
+    default: jest.fn(() => mockRedis),
   };
 });
 

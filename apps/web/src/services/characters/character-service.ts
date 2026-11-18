@@ -275,7 +275,6 @@ export async function updateCharacterPreset(
     const existingCharacter = await characterPreset.findFirst({
       where: {
         id: characterId,
-        OR: [{ userId }, { isSystem: false }], // Owner or non-system
       },
     });
 
@@ -287,6 +286,12 @@ export async function updateCharacterPreset(
 
     if (existingCharacter.isSystem) {
       throw new Error("System characters cannot be modified by users");
+    }
+
+    if (existingCharacter.userId !== userId) {
+      throw new Error(
+        "Character not found or you don't have permission to edit it",
+      );
     }
 
     const updatedCharacter = await characterPreset.update({

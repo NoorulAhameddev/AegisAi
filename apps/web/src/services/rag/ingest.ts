@@ -1,4 +1,4 @@
-import { addDocument } from "@/ai/rag/vector-store";
+import { addDocument, addMultiModalDocument } from "@/ai/rag/vector-store";
 import { getDocumentChunker } from "@/services/rag/chunker";
 import { logger } from "@/lib/logger";
 import { getRAGConfig } from "@/services/rag/rag-config";
@@ -67,11 +67,13 @@ export async function ingestFile(
           hasImage: true,
         });
 
-        await addDocument(chunk.text, {
-          ...metadata,
-          imageData: chunk.metadata.imageData,
-          imageMimeType: chunk.metadata.imageMimeType,
-        }, userId);
+        await addMultiModalDocument(
+          chunk.text,
+          metadata,
+          userId,
+          chunk.metadata.imageData,
+          chunk.metadata.imageMimeType,
+        );
       } else {
         // Text-only chunk
         await addDocument(chunk.text, metadata, userId);
@@ -99,14 +101,12 @@ export async function ingestFile(
         });
 
         // Add as image-only document with minimal text
-        await addDocument(
+        await addMultiModalDocument(
           `[Image from ${options?.fileName || fileId}]`,
-          {
-            ...metadata,
-            imageData: image.base64,
-            imageMimeType: image.mimeType,
-          },
+          metadata,
           userId,
+          image.base64,
+          image.mimeType,
         );
       }
     }

@@ -4,7 +4,16 @@
  * Run with: npm test -- multi-modal-ingest.test.ts
  */
 
-import { describe, it, expect, beforeEach, jest } from "@jest/globals";
+// Mock prisma
+jest.mock("@/lib/prisma", () => ({
+  prisma: {
+    document: {
+      deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+      create: jest.fn().mockResolvedValue({ id: "doc-1" }),
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+  },
+}));
 
 // Mock secrets (for encryption operations if needed)
 jest.mock("@/lib/secrets", () => ({
@@ -38,6 +47,11 @@ jest.mock("@/services/rag/rag-config", () => ({
   getRAGConfig: jest.fn(() => ({
     embeddings: {
       imageSupport: true,
+    },
+    processing: {
+      extractImages: true,
+      supportedTypes: ["text/plain", "image/png", "image/jpeg"],
+      maxFileSize: 10485760,
     },
   })),
 }));
