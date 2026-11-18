@@ -19,8 +19,8 @@ if (!process.env.JWT_REFRESH_SECRET)
 if (!process.env.OPENROUTER_API_KEY)
   process.env.OPENROUTER_API_KEY = "sk-or-test-key-for-testing";
 if (!process.env.REDIS_URL) process.env.REDIS_URL = "redis://localhost:6379";
-if (!process.env.ENCRYPTION_KEY)
-  process.env.ENCRYPTION_KEY = "test-encryption-key-32-chars!!";
+if (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY.length !== 32)
+  process.env.ENCRYPTION_KEY = "test-encryption-key-32-chars-ok!";
 if (!process.env.NEXT_PUBLIC_APP_URL)
   process.env.NEXT_PUBLIC_APP_URL = "http://localhost:3000";
 

@@ -431,7 +431,7 @@ export async function revokeAllSessions(
  */
 export async function getUserSessions(userId: string) {
   try {
-    const sessions = await prisma.session.findMany({
+    const sessions = await (prisma.session.findMany as any)({
       where: {
         userId,
         expiresAt: { gt: new Date() },

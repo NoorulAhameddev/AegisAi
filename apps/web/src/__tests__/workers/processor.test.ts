@@ -655,6 +655,7 @@ describe("Chat Processor Worker", () => {
 
       expect(mockValidateResponseContent).toHaveBeenCalledWith(
         expect.any(String),
+        expect.anything(),
       );
     });
 

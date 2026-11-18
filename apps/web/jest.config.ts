@@ -18,7 +18,6 @@ const config: Config = {
   moduleNameMapper: {
     "^@prisma/client$": "<rootDir>/../../node_modules/@prisma/client/default.js",
     "^@/(.*)$": "<rootDir>/src/$1",
-    "^@prisma/client$": "<rootDir>/../../node_modules/@prisma/client/default.js",
   },
   testMatch: [
     "<rootDir>/src/__tests__/**/*.test.ts",

@@ -57,6 +57,8 @@ jest.mock("ioredis", () => {
       if (stop === -1) return list.slice(start);
       return list.slice(start, stop + 1);
     }),
+    on: jest.fn(),
+    quit: jest.fn(),
   };
   return {
     Redis: jest.fn(() => mockRedis),

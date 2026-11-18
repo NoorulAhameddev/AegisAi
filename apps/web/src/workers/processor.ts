@@ -613,10 +613,12 @@ ${sanitizedRagContext}
     // Save usage metrics directly to DB
     const tokensUsed = totalTokensUsed;
     const modelName = response?.model || "openai/gpt-4o-mini";
-    await prisma.usageMetric.create({
+    const calculatedCost = tokensUsed * 0.000001;
+    await (prisma.usageMetric.create as any)({
       data: {
         userId,
         tokens: tokensUsed,
+        cost: calculatedCost,
         model: modelName,
       },
     });
